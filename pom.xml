@@ -15,6 +15,7 @@
         <module>tagbase-main</module>
         <module>tagbase-sql</module>
         <module>tool-assembly</module>
+        <module>tagbase-core</module>
     </modules>
 
     <properties>
@@ -24,6 +25,9 @@
         <guice.version>4.2.2</guice.version>
         <jetty.version>9.4.25.v20191220</jetty.version>
         <jersey.version>1.19.4</jersey.version>
+        <jackson.version>2.10.0</jackson.version>
+        <slf4j.version>1.7.25</slf4j.version>
+        <junit.version>4.12</junit.version>
     </properties>
 
 

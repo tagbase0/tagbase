@@ -12,4 +12,12 @@
     <artifactId>tagbase-storage</artifactId>
 
 
+    <dependencies>
+        <dependency>
+            <groupId>com.oppo</groupId>
+            <artifactId>tagbase-core</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
+    </dependencies>
+
 </project>
