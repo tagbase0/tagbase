@@ -29,7 +29,7 @@ import java.io.IOException;
  *
  */
 public class CloseQuietly {
-    private static final Logger log = LoggerFactory.getLogger(CloseQuietly.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CloseQuietly.class);
 
     public static void close(Closeable closeable) {
         if (closeable == null) {
@@ -38,7 +38,7 @@ public class CloseQuietly {
         try {
             closeable.close();
         } catch (IOException e) {
-            log.error("IOException thrown while closing Closeable.", e);
+            LOG.error("IOException thrown while closing Closeable.", e);
         }
     }
 }

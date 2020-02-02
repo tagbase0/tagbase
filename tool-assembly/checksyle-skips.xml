@@ -5,6 +5,5 @@
         "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 
 <suppressions>
-    <!--check style skip antlr generated files-->
-    <!--<suppress files="PrestoParser.+" checks="[a-zA-Z0-9]*"/>-->
+    <suppress files="JsonConfigurator.+" checks="[a-zA-Z0-9]*"/>
 </suppressions>
