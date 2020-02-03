@@ -11,11 +11,15 @@ import com.oppo.tagbase.guice.Lifecycle;
  */
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
 
         Injector ij = GuiceInjectors.makeStartupInjector();
 
         Lifecycle lifecycle = ij.getInstance(Lifecycle.class);
+
         lifecycle.start();
+
+        System.out.println("start");
+        lifecycle.join();
     }
 }

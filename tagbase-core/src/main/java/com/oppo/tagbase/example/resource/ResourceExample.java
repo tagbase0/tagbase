@@ -12,6 +12,7 @@ public class ResourceExample {
         Injector ij = GuiceInjectors.makeInjector(
                 new JettyModule(),
                 new LifecycleModule(),
+                new ValidatorModule(),
                 new StatusModule()
         );
         Lifecycle lifecycle = ij.getInstance(Lifecycle.class);

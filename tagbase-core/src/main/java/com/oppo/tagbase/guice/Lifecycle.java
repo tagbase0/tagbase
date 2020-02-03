@@ -5,6 +5,8 @@ import com.google.inject.Binder;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -16,6 +18,8 @@ import java.util.Set;
  */
 public class Lifecycle {
 
+    private static Logger LOG = LoggerFactory.getLogger(Lifecycle.class);
+
     public static void registerInstance(Binder binder, Class instance) {
         Multibinder.newSetBinder(binder, new TypeLiteral<Class<?>>() {
         }, Names.named("lifecycle"))
@@ -26,7 +30,7 @@ public class Lifecycle {
 
     /**
      * Adding managed instance into Lifecycle.
-     * This is not a user API.
+     * Warning: This is not a user API.
      *
      * @param instance
      */
@@ -37,11 +41,15 @@ public class Lifecycle {
 
     public void start() {
 
-        addShutdownHook();
-
         for (Object instance : instances) {
+            LOG.debug("Start - {}", instance.getClass().getSimpleName());
             new Handler(instance).start();
         }
+    }
+
+    public void join() throws InterruptedException {
+        addShutdownHook();
+        Thread.currentThread().join();
     }
 
     private void addShutdownHook() {
