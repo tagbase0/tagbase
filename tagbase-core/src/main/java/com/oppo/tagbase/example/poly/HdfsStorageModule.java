@@ -11,7 +11,7 @@ public class HdfsStorageModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        ConfBind.bind(binder(), "tagbase.example.storage", HdfsStorageConfig.class);
+        ConfBind.bind(binder(), "tagbase.example.storage.hdfs", HdfsStorageConfig.class);
         PolyBind.registerImpl(binder(), Storage.class, "hdfs", HdfsStorage.class);
     }
 }

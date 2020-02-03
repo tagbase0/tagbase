@@ -7,9 +7,12 @@ import com.google.inject.Inject;
  */
 public class S3Storage implements Storage {
 
+    public S3Storage() {
+
+    }
+
     @Inject
     private S3StorageConfig config;
-
 
     @Override
     public void push(byte[] data) {

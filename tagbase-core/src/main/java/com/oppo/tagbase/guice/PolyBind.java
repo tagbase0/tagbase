@@ -14,7 +14,7 @@ import java.util.Properties;
 public class PolyBind {
 
     /**
-     * First add interface implementation option
+     * 1. register an implementation
      */
     public static <T> void registerImpl(Binder binder,
                                         Class<T> i,
@@ -24,14 +24,16 @@ public class PolyBind {
                 .addBinding(implName).to(implClazz).in(Scopes.SINGLETON);
     }
 
+
     /**
-     * Second bind a named implementation to interface
+     * 2. bind named implementation to interface by prop key
      */
     public static <T> void bind(Binder binder, Class<T> i, String propKey, String defaultImpl) {
-        binder.bind(i).toProvider(new ConfigProvider<T>(i, propKey, defaultImpl)).in(Scopes.SINGLETON);
+        binder.bind(i).toProvider(new PolyProvider<T>(i, propKey, defaultImpl)).in(Scopes.SINGLETON);
     }
 
-    static class ConfigProvider<T> implements Provider {
+
+    static class PolyProvider<T> implements Provider {
 
         private final String propKey;
 
@@ -47,7 +49,7 @@ public class PolyBind {
         private Injector ij;
 
 
-        ConfigProvider(Class<T> i, String propKey, String defaultImpl) {
+        private PolyProvider(Class<T> i, String propKey, String defaultImpl) {
             this.i = i;
             this.propKey = propKey;
             this.defaultImpl = defaultImpl;

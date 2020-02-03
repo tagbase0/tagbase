@@ -17,6 +17,5 @@ public class LifecycleExample {
         );
         Lifecycle lifecycle = ij.getInstance(Lifecycle.class);
         lifecycle.start();
-        lifecycle.stop();
     }
 }

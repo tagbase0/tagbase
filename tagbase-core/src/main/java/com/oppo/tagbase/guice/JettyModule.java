@@ -2,6 +2,7 @@ package com.oppo.tagbase.guice;
 
 import com.google.inject.Binder;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.sun.jersey.guice.JerseyServletModule;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import org.eclipse.jetty.server.Connector;
@@ -33,11 +34,15 @@ public class JettyModule extends JerseyServletModule {
     }
 
     @Provides
+    @Singleton
     private Server getJettyServer(JettyConfig config, GuiceContainer container) {
 
         System.out.println("new jetty server");
 
-        QueuedThreadPool pool = new QueuedThreadPool(config.getNumThreads(), 8);
+        QueuedThreadPool pool = new QueuedThreadPool(
+                config.getNumThreads(),
+                Math.max(1, config.getNumThreads() / 2));
+
         pool.setName("jetty");
 
         Server server = new Server(pool);

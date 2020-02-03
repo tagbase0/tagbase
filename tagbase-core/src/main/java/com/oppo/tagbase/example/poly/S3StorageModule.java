@@ -11,7 +11,7 @@ public class S3StorageModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        ConfBind.bind(binder(), "tagbase.example.storage", S3StorageConfig.class);
+        ConfBind.bind(binder(), "tagbase.example.storage.s3", S3StorageConfig.class);
         PolyBind.registerImpl(binder(), Storage.class, "s3", S3Storage.class);
     }
 }
