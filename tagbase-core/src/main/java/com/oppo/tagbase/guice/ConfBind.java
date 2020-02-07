@@ -1,20 +1,15 @@
 package com.oppo.tagbase.guice;
 
 
-import com.fasterxml.jackson.annotation.JacksonInject;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
-import com.google.inject.*;
-import com.google.inject.spi.Message;
+import com.google.inject.Binder;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Scopes;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ElementKind;
-import javax.validation.Path;
 import javax.validation.Validator;
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**

@@ -28,7 +28,7 @@ public class JettyModule extends JerseyServletModule {
     @Override
     protected void configureServlets() {
         Binder binder = binder();
-        ConfBind.bind(binder, "tagbase.server.jetty", JettyConfig.class);
+        ConfBind.bind(binder, "tagbase.server", JettyConfig.class);
         binder.bind(GuiceContainer.class).to(ResourceContainer.class);
         Lifecycle.registerInstance(binder, JettyInitializer.class);
     }

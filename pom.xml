@@ -32,6 +32,8 @@
         <javax.el-api.version>3.0.0</javax.el-api.version>
         <validation.version>2.0.1.Final</validation.version>
         <hibernate.version>6.0.2.Final</hibernate.version>
+        <jdbi.version>3.12.0</jdbi.version>
+        <mysql.version>5.1.48</mysql.version>
     </properties>
 
 
