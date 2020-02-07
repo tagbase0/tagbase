@@ -17,6 +17,11 @@
             <artifactId>tagbase-core</artifactId>
             <version>${parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.oppo</groupId>
+            <artifactId>tagbase-sql</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <build>
