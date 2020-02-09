@@ -10,7 +10,7 @@ import com.oppo.tagbase.guice.Lifecycle;
 import com.oppo.tagbase.guice.LifecycleModule;
 import com.oppo.tagbase.guice.ValidatorModule;
 import com.oppo.tagbase.module.QueryModule;
-import com.oppo.tagbase.query.ComplexQuery;
+import com.oppo.tagbase.query.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -19,8 +19,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
 
 /**
  * Created by 71518 on 2020/2/7.
@@ -29,30 +27,51 @@ import java.io.IOException;
 @Path("/tagbase/v1/")
 public class QueryResource {
     protected final ObjectMapper jsonMapper;
+    private final QueryManager queryManager;
+    private final QueryExecutionFactory queryExecutionFactory;
 
     @Inject
-    public QueryResource(ObjectMapper jsonMapper) {
+    public QueryResource(ObjectMapper jsonMapper, QueryManager queryManager,QueryExecutionFactory queryExecutionFactory) {
         this.jsonMapper = jsonMapper;
-        System.out.println("create queryResource");
+        this.queryManager = queryManager;
+        this.queryExecutionFactory = queryExecutionFactory;
     }
 
     @POST
     @Path("query")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response query(@Context final HttpServletRequest req) {
+    public QueryResponse query(@Context final HttpServletRequest req) {
 
+        QueryResponse response = null;
         try {
-            ComplexQuery query = jsonMapper.readValue(req.getInputStream(),ComplexQuery.class);
-            System.out.println(query);
+
+            Query query = jsonMapper.readValue(req.getInputStream(), Query.class);
+
+            QueryExecution execution = queryExecutionFactory.create(query);
+
+            response = execution.execute();
 
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            response = QueryResponse.error(e);
         }
 
-        return Response.ok("ok").build();
+        return response;
     }
+
+
+
+    @POST
+    @Path("cancel")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public QueryResponse cancel(@Context final HttpServletRequest req) {
+
+        return null;
+    }
+
+
 
 
     public static void main(String[] args) {

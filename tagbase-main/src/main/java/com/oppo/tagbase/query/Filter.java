@@ -1,4 +1,4 @@
-package com.oppo.tagbase.module.query;
+package com.oppo.tagbase.query;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
