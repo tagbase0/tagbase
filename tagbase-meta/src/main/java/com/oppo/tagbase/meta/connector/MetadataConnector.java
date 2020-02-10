@@ -2,6 +2,7 @@ package com.oppo.tagbase.meta.connector;
 
 import com.google.common.collect.ImmutableList;
 import com.oppo.tagbase.meta.obj.*;
+import org.jdbi.v3.core.HandleCallback;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.Batch;
 import org.jdbi.v3.guava.GuavaPlugin;
@@ -26,7 +27,7 @@ public abstract class MetadataConnector {
     }
 
     private void initJdbi() {
-        Jdbi jdbi = Jdbi.create(
+        jdbi = Jdbi.create(
                 config.getConnectURI(),
                 config.getUser(),
                 config.getPassword()
@@ -41,29 +42,26 @@ public abstract class MetadataConnector {
         return jdbi;
     }
 
-//    protected <R, X extends Exception> R execute(HandleCallback<R, X> handle, String sql) throws X {
-//        return get().withHandle(handle);
-//    }
-//
-//    protected <R, X extends Exception> void executeBatch(HandleCallback<R, X> handle) throws X {
-//        Batch batch = handle.createBatch();
-//    }
+    protected <R> R submit(HandleCallback<R, MCE> handle) {
+        return get().withHandle(handle);
+    }
+
 
     /*-------------Metadata initialization part--------------*/
 
     public void initSchema() {
-        get().withHandle(handle -> {
+        submit(handle -> {
 
-            ImmutableList<String> sqls = ImmutableList.of(
+            ImmutableList<String> sqlList = ImmutableList.of(
                     // create table DB
                     "Create table if not exist DB (\n" +
-                            "\tid INTEGER PRIMARY KEY, \n" +
-                            "\tname VARCHAR(128)\n" +
-                            ")",
+                            "\tid INTEGER PRIMARY KEY AUTO_INCREMENT, \n" +
+                            "\tname VARCHAR(128) NOT NULL UNIQUE\n" +
+                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
 
                     // create table TBL
                     "Create table if not exist TBL (\n" +
-                            "\tid INTEGER PRIMARY KEY, \n" +
+                            "\tid INTEGER PRIMARY KEY AUTO_INCREMENT, \n" +
                             "\tname VARCHAR(128),\n" +
                             "\tdbId INTEGER,\n" +
                             "\tsrcDb VARCHAR(128),\n" +
@@ -71,22 +69,14 @@ public abstract class MetadataConnector {
                             "\tdesc VARCHAR(128),\n" +
                             "\tlatestSlice  VARCHAR(128),\n" +
                             "\ttype VARCHAR(128)\n" +
-                            ")",
+                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
 
-                    // create table SLICE
-                    "Create table  if not exist SLICE (\n" +
-                            "\tid INTEGER PRIMARY KEY, \n" +
-                            "\tname VARCHAR(128),\n" +
-                            "\ttableId INTEGER,\n" +
-                            "\tstatus VARCHAR(128),\n" +
-                            "\tsrcTable VARCHAR(128),\n" +
-                            "\tsink VARCHAR(128),\n" +
-                            "\tshardNum  TINYINT\n" +
-                            ")",
+                    // add index
+                    "CREATE UNIQUE INDEX nameAndDbId ON TBL(name, dbId)",
 
                     // create table COLUMN
                     "Create table  if not exist COLUMN (\n" +
-                            "\tid INTEGER PRIMARY KEY, \n" +
+                            "\tid INTEGER PRIMARY KEY AUTO_INCREMENT, \n" +
                             "\tname VARCHAR(128),\n" +
                             "\ttableId INTEGER,\n" +
                             "\tsrcName VARCHAR(128),\n" +
@@ -94,11 +84,28 @@ public abstract class MetadataConnector {
                             "\tdataType VARCHAR(128),\n" +
                             "\ttype TINYINT,\n" +
                             "\tdesc VARCHAR(256)\n" +
-                            ")"
+                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
+
+                    // add index
+                    "CREATE UNIQUE INDEX nameAndTableId ON COLUMN(name, tableId)",
+
+                    // create table SLICE
+                    "Create table  if not exist SLICE (\n" +
+                            "\tid INTEGER PRIMARY KEY AUTO_INCREMENT, \n" +
+                            "\tname VARCHAR(128),\n" +
+                            "\ttableId INTEGER,\n" +
+                            "\tstatus VARCHAR(128),\n" +
+                            "\tsrcTable VARCHAR(128),\n" +
+                            "\tsink VARCHAR(128),\n" +
+                            "\tshardNum  TINYINT\n" +
+                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
+
+                    // add index
+                    "CREATE UNIQUE INDEX nameAndTableId ON SLICE(name, tableId)"
             );
 
             Batch batch = handle.createBatch();
-            for (String s : sqls) {
+            for (String s : sqlList) {
                 batch.add(s);
             }
             return batch.execute();
@@ -110,7 +117,7 @@ public abstract class MetadataConnector {
     /*-------------Metadata DDL part--------------*/
 
     public void createDb(String dbName, String desc) {
-        get().withHandle(handle -> {
+        submit(handle -> {
             String sql = "INSERT INTO DB(name, desc) VALUES (?, ?)";
             return handle.execute(sql, dbName, desc);
         });
@@ -123,7 +130,7 @@ public abstract class MetadataConnector {
                             String desc,
                             TableType type,
                             List<Column> columnList) {
-        get().withHandle(handle -> {
+        submit(handle -> {
 
             // 1. get dbId
             int dbId = handle.createQuery("Select id from DB where name= :name")
@@ -174,7 +181,7 @@ public abstract class MetadataConnector {
     /*-------------Metadata API for data building--------------*/
 
     public Table getTable(String dbName, String tableName) {
-        return get().withHandle(handle -> {
+        return submit(handle -> {
 
             Table table = handle.createQuery("Select TBL.* " +
                     "from TBL join DB on DB.id=TBL.dbId where DB.name=:dbName And TBL.name=tableName")
@@ -184,13 +191,19 @@ public abstract class MetadataConnector {
                     .one();
 //                    .orElseThrow(() -> new MetadataException("no TBL named " + tableName));
 
+            List<Column> columnList = handle.createQuery("select * from COLUMN where tableId=:tableId")
+                    .bind("tableId", table.getId())
+                    .mapToBean(Column.class)
+                    .list();
+
+            table.setColumns(columnList);
             return table;
         });
     }
 
 
     public void addSlice(Slice slice) {
-        get().withHandle(handle -> {
+        submit(handle -> {
 
             TableType tableType = handle.createQuery("select type from TBL where id=:tableId")
                     .bind("tableId", slice.getTableId())
@@ -232,11 +245,10 @@ public abstract class MetadataConnector {
                 dbName,
                 tableName);
 
-        return get().withHandle(handle -> {
-            List<Slice> sliceList = handle.createQuery(sqlGetSlices)
+        return submit(handle -> {
+            return handle.createQuery(sqlGetSlices)
                     .mapToBean(Slice.class)
                     .list();
-            return sliceList;
         });
     }
 
@@ -244,11 +256,10 @@ public abstract class MetadataConnector {
 
     public DB getDb(String dbName) {
         String sqlGetDb = String.format("Select * from DB where DB.name=%s", dbName);
-        return get().withHandle(handle -> {
-            DB db = handle.createQuery(sqlGetDb)
+        return submit(handle -> {
+            return handle.createQuery(sqlGetDb)
                     .mapToBean(DB.class)
                     .one();
-            return db;
         });
     }
 

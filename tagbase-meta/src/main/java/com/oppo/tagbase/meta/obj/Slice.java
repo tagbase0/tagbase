@@ -64,8 +64,12 @@ public class Slice {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Slice slice = (Slice) o;
         return tableId == slice.tableId &&
                 Objects.equals(name, slice.name);

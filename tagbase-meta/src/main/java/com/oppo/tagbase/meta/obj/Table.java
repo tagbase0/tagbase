@@ -1,5 +1,6 @@
 package com.oppo.tagbase.meta.obj;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -15,6 +16,9 @@ public class Table {
     private String latestSlice;
     private TableType type;
     private String desc;
+
+    private List<Column> columns;
+
 
     public long getId() {
         return id;
@@ -80,10 +84,22 @@ public class Table {
         this.desc = desc;
     }
 
+    public List<Column> getColumns() {
+        return columns;
+    }
+
+    public void setColumns(List<Column> columns) {
+        this.columns = columns;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Table table = (Table) o;
         return dbId == table.dbId &&
                 Objects.equals(name, table.name);

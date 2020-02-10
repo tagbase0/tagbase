@@ -11,7 +11,7 @@ import java.util.Properties;
 /**
  * Created by wujianchao on 2020/1/20.
  */
-public class PolyBind {
+public final class PolyBind {
 
     /**
      * 1. register an implementation
@@ -33,7 +33,7 @@ public class PolyBind {
     }
 
 
-    static class PolyProvider<T> implements Provider {
+    static final class PolyProvider<T> implements Provider {
 
         private final String propKey;
 

@@ -23,7 +23,7 @@ public class Metadata {
 
     /*-------------Metadata DDL part--------------*/
 
-    public void createDb(String dbName, String desc) {
+    public void createDb(String dbName, String desc)  {
         metadataConnector.createDb(dbName, desc);
     }
 

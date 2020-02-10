@@ -17,10 +17,11 @@ public class ResourceBindTest {
         Injector ij = GuiceInjectors.makeInjector(
                 new PropsModule(ImmutableList.of("tagbase.properties")),
                 new JacksonModule(),
+                new ValidatorModule(),
                 new AbstractModule() {
                     @Override
                     protected void configure() {
-                        ConfBind.bind(binder(), "tagbase.example.storage", HdfsStorageConfig.class);
+                        ConfBind.bind(binder(), "tagbase.example.storage.hdfs", HdfsStorageConfig.class);
                     }
                 }
         );
