@@ -2,7 +2,6 @@ package com.oppo.tagbase.module;
 
 import com.google.inject.AbstractModule;
 import com.oppo.tagbase.guice.ResourceBind;
-import com.oppo.tagbase.guice.StatusResource;
 import com.oppo.tagbase.server.QueryResource;
 
 /**

@@ -1,4 +1,4 @@
-package com.oppo.tagbase.query;
+package com.oppo.tagbase.query.node;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
@@ -7,7 +7,7 @@ import java.util.List;
 public class ComplexQuery implements Query{
 
 
-    private String output;
+    private OutputType output;
 
     @JsonProperty("operation")
     private Operator operation;
@@ -16,12 +16,7 @@ public class ComplexQuery implements Query{
     private List<Query> subQueries;
 
 
-    public void setOutput(String output) {
-        this.output = output;
-    }
-    public String getOutput() {
-        return output;
-    }
+
 
 
 
@@ -32,8 +27,19 @@ public class ComplexQuery implements Query{
         return subQueries;
     }
 
-    public static enum Operator{
-        intersect
+    @Override
+    public <R> R accept(QueryVisitor<R> visitor) {
+        return visitor.visitComplexQuery(this);
+    }
+
+    public OutputType getOutput() {
+        return output;
+    }
+
+    public  enum Operator{
+        intersect,
+        union,
+        diff
     }
 
 

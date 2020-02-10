@@ -1,13 +1,12 @@
 package com.oppo.tagbase.query.operator;
 
-import com.oppo.tagbase.query.Filter;
+import com.oppo.tagbase.query.node.Filter;
 import com.oppo.tagbase.query.TagBitmap;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * @author huangfeng
@@ -20,20 +19,17 @@ public class SingleQueryOperator {
     String table;
     Filter filter;
 
+    OperatorBuffer outPutBuffer;
+
     boolean needGroupby;
 
 
-    LinkedBlockingQueue<TagBitmap> output;
 
     SingleQueryOperator(List<String> dim){
         // 如果是标签表，dim没有定义， filter条件只有一个 直接输出
         //如果是标签表，dim没有定义，filter条件有多个值 需要汇总，输出一个
         //如果是标签表， dim定义了，不论如何都可以直接输出
-        //dim定义的列+filter列为=所有维度列， 且filter条件值的范围都为1
-
-
-
-
+        //dim定义的列+filter列为=所有维度列， 且filter条件值的范围都为1o
 
     }
 
@@ -71,18 +67,16 @@ public class SingleQueryOperator {
         // put result to output
 
         for(TagBitmap tagBitmap:map.values()){
-            output.offer(tagBitmap);
+            outPutBuffer.offer(tagBitmap);
         }
-        notifyOutputEnd();
 
+        outPutBuffer.offer(TagBitmap.EOF);
 
 
 
     }
 
-    private void notifyOutputEnd() {
 
-    }
 
 }
 

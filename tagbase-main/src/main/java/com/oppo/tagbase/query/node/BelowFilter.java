@@ -1,12 +1,14 @@
-package com.oppo.tagbase.query;
+package com.oppo.tagbase.query.node;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Created by 71518 on 2020/2/7.
- */
-public class GreaterFilter implements Filter {
 
+/**
+ * @author huangfeng
+ * @date 2020/2/7
+ */
+
+public class BelowFilter implements Filter{
 
     @JsonProperty("dimName")
     private String dimName;
@@ -27,5 +29,16 @@ public class GreaterFilter implements Filter {
     }
     public String getValues() {
         return value;
+    }
+
+
+    @Override
+    public String getColumn() {
+        return dimName;
+    }
+
+    @Override
+    public boolean isExact() {
+        return false;
     }
 }

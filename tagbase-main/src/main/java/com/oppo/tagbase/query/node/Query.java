@@ -1,11 +1,13 @@
-package com.oppo.tagbase.query;
+package com.oppo.tagbase.query.node;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * Created by 71518 on 2020/2/7.
+ * @author huangfeng
+ * @date 2020/2/7
  */
+
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "queryType")
 @JsonSubTypes(value = {
         @JsonSubTypes.Type(name = Query.COMPLEX, value = ComplexQuery.class),
@@ -17,5 +19,9 @@ public interface Query {
 
 
 
-
+  enum OutputType{
+        BITMAP,
+        COUNT
+    }
+  <R> R accept(QueryVisitor<R> visitor);
 }

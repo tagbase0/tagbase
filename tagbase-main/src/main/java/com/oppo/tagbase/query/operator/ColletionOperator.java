@@ -5,6 +5,8 @@ import com.oppo.tagbase.query.TagBitmap;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import static com.oppo.tagbase.query.TagBitmap.EOF;
+
 /**
  * @author huangfeng
  * @date 2020/2/8
@@ -12,35 +14,36 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class ColletionOperator {
 
     List<OperatorBuffer> buffers;
+
+    OperatorBuffer leftSource;
+    OperatorBuffer rightSource;
+
+
+    OperatorBuffer outputBuffer;
+
+
     String operator;
 
     LinkedBlockingQueue output;
 
 
-    public void  work(){
+    public void work() {
         //index 0 buffer
 
-        OperatorBuffer leftBuffer = buffers.get(0);
 
+        TagBitmap b = leftSource.next();
 
-        TagBitmap b = leftBuffer.getNext();
+        TagBitmap c;
+        while ((c = rightSource.next()) != null) {
 
+            c.getBitmap().and(b.getBitmap());
+            c.setKey(joinKey(b.getKey(), c.getKey()));
 
-        while(true){
-            for(int n= 1;n<buffers.size();n++){
-               if(buffers.get(n).isBlocked() && buffers.get(n).hasMore()){
-                   TagBitmap c = buffers.get(n).getNext();
-                   c.getBitmap().and(b.getBitmap());
-                   c.setKey(joinKey(b.getKey(),c.getKey()));
+            output.offer(c);
 
-                   output.offer(c);
-
-               }
-
-
-            }
         }
 
+        output.offer(EOF);
 
 
     }

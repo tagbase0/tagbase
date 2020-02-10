@@ -1,4 +1,4 @@
-package com.oppo.tagbase.query;
+package com.oppo.tagbase.query.node;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -10,15 +10,15 @@ import java.util.List;
 public class InFilter implements  Filter {
 
     @JsonProperty("dimName")
-    private String dimname;
+    private String dimName;
     private List<String> values;
 
 
-    public void setDimname(String dimname) {
-        this.dimname = dimname;
+    public void setDimName(String dimName) {
+        this.dimName = dimName;
     }
-    public String getDimname() {
-        return dimname;
+    public String getDimName() {
+        return dimName;
     }
 
     public void setValues(List<String> values) {
@@ -28,5 +28,13 @@ public class InFilter implements  Filter {
         return values;
     }
 
+    @Override
+    public String getColumn() {
+        return dimName;
+    }
 
+    @Override
+    public boolean isExact() {
+        return values.size() == 1;
+    }
 }

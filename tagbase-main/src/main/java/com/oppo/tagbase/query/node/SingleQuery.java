@@ -1,4 +1,4 @@
-package com.oppo.tagbase.query;
+package com.oppo.tagbase.query.node;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -13,7 +13,7 @@ public class SingleQuery implements  Query {
     @JsonProperty("dataSource")
     private String datasource;
 
-    private String output;
+    private OutputType output;
 
 
     private List<String> dimensions;
@@ -29,12 +29,6 @@ public class SingleQuery implements  Query {
         return datasource;
     }
 
-    public void setOutput(String output) {
-        this.output = output;
-    }
-    public String getOutput() {
-        return output;
-    }
 
     public void setDimensions(List<String> dimensions) {
         this.dimensions = dimensions;
@@ -50,4 +44,12 @@ public class SingleQuery implements  Query {
         return filters;
     }
 
+    public OutputType getOutput() {
+        return output;
+    }
+
+    @Override
+    public <R> R accept(QueryVisitor<R> visitor) {
+        return visitor.visitSingleQuery(this);
+    }
 }

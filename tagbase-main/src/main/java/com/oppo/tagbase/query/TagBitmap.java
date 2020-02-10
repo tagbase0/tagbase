@@ -2,8 +2,16 @@ package com.oppo.tagbase.query;
 
 import org.roaringbitmap.RoaringBitmap;
 
+/**
+ * @author huangfeng
+ * @date 2020/2/7
+ */
 
 public class TagBitmap {
+
+    public static final TagBitmap EOF = new TagBitmap();
+
+
     String key;
     RoaringBitmap bitmap;
 

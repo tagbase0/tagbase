@@ -12,17 +12,34 @@ public class OperatorBuffer {
 
     LinkedBlockingQueue<TagBitmap> buffer;
 
-    public boolean hasMore(){
-        return false;
+
+
+
+    int inputSourceCount;
+
+    int currentEOFCount;
+
+    public TagBitmap next(){
+
+        while(true) {
+            TagBitmap output = buffer.poll();
+            if (output == TagBitmap.EOF) {
+                currentEOFCount++;
+                if (currentEOFCount == inputSourceCount) {
+                    return null;
+                }
+            }else{
+                return output;
+            }
+        }
+
     }
 
 
-    public TagBitmap getNext(){
-        return null;
+    public void offer(TagBitmap bitmap){
+        buffer.offer(bitmap);
     }
 
-    public boolean isBlocked(){
-        return false;
-    }
+
 
 }

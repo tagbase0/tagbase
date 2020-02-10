@@ -11,17 +11,16 @@ import com.oppo.tagbase.guice.LifecycleModule;
 import com.oppo.tagbase.guice.ValidatorModule;
 import com.oppo.tagbase.module.QueryModule;
 import com.oppo.tagbase.query.*;
+import com.oppo.tagbase.query.node.Query;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 /**
- * Created by 71518 on 2020/2/7.
+ * @author huangfeng
+ * @date 2020/2/7
  */
 
 @Path("/tagbase/v1/")
@@ -67,6 +66,16 @@ public class QueryResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public QueryResponse cancel(@Context final HttpServletRequest req) {
+
+        return null;
+    }
+
+
+    @GET
+    @Path("cancel")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public QueryResponse showQueries() {
 
         return null;
     }
