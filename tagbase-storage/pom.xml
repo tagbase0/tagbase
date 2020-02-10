@@ -11,6 +11,12 @@
 
     <artifactId>tagbase-storage</artifactId>
 
+    <properties>
+        <roaringBitmap.version>0.8.12</roaringBitmap.version>
+        <hadoop.version>2.6.0-cdh5.11.2</hadoop.version>
+        <hbase.version>1.2.0-cdh5.11.2</hbase.version>
+        <zookeeper.version>3.4.6</zookeeper.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -18,6 +24,48 @@
             <artifactId>tagbase-core</artifactId>
             <version>${parent.version}</version>
         </dependency>
+
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.hbase</groupId>-->
+        <!--            <artifactId>hbase-client</artifactId>-->
+        <!--            <version>${hbase.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.hbase</groupId>-->
+        <!--            <artifactId>hbase-common</artifactId>-->
+        <!--            <version>${hbase.version}</version>-->
+        <!--        </dependency>-->
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-shaded-client</artifactId>
+            <version>${hbase.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>${zookeeper.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.roaringbitmap</groupId>
+            <artifactId>RoaringBitmap</artifactId>
+            <version>${roaringBitmap.version}</version>
+        </dependency>
     </dependencies>
 
+    <repositories>
+        <repository>
+            <id>cloudera</id>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+    </repositories>
 </project>
