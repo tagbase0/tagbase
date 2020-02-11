@@ -11,11 +11,15 @@
 
     <artifactId>tagbase-storage</artifactId>
 
-    <properties>
-        <roaringBitmap.version>0.8.12</roaringBitmap.version>
+    <properties>        
+		<!--
         <hadoop.version>2.6.0-cdh5.11.2</hadoop.version>
         <hbase.version>1.2.0-cdh5.11.2</hbase.version>
+		-->
+		<hadoop.version>2.6.0</hadoop.version>
+        <hbase.version>1.2.0</hbase.version>
         <zookeeper.version>3.4.6</zookeeper.version>
+		<roaringBitmap.version>0.8.12</roaringBitmap.version>
     </properties>
 
     <dependencies>
@@ -61,11 +65,12 @@
             <version>${roaringBitmap.version}</version>
         </dependency>
     </dependencies>
-
+    <!--
     <repositories>
         <repository>
             <id>cloudera</id>
             <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
         </repository>
     </repositories>
+	-->
 </project>
