@@ -4,7 +4,7 @@ import java.io.{ByteArrayOutputStream, DataOutputStream}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
-import org.apache.hadoop.hbase.mapreduce.{HFileOutputFormat2, TableOutputFormat}
+import org.apache.hadoop.hbase.mapreduce.{HFileOutputFormat2}
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{HBaseConfiguration, KeyValue}
 import org.apache.hadoop.mapreduce.Job
@@ -90,15 +90,15 @@ object BitmapBuildingTask {
     /*
        业务处理，开始部分的拼接sql，后续改为根据维度个数用CONCAT_WS动态拼接
      */
-    val cityDSTable = "cityTable"
+    val eventDSTable = "eventTable"
     val dictionaryDSTable = "dictionaryTable"
-    cityDS.createOrReplaceTempView(s"$cityDSTable")
+    cityDS.createOrReplaceTempView(s"$eventDSTable")
     dictionaryDS.createOrReplaceTempView(s"$dictionaryDSTable")
 
     val data = spark.sql(
       s"""
          |select CONCAT_WS('$rowkeyDelimiter',a.$tableAHiveDimColumName,a.$tableAHiveDim2ColumName,a.$tableAHiveDim3ColumName) as dimension,
-         |b.$tableBHiveDimColumName as index from $cityDSTable a join $dictionaryDSTable b
+         |b.$tableBHiveDimColumName as index from $eventDSTable a join $dictionaryDSTable b
          |on a.$tableAHiveImeiColumName=b.$tableBHiveImeiColumName
          |""".stripMargin)
       .rdd
