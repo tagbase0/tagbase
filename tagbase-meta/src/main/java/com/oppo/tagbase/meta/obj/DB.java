@@ -44,7 +44,7 @@ public class DB {
             return false;
         }
         DB db = (DB) o;
-        return name == db.name;
+        return Objects.equals(name, db.name);
     }
 
     @Override

@@ -5,8 +5,8 @@ package com.oppo.tagbase.utils;
  */
 public class RetryUtil {
 
-    interface Action<R, T extends Throwable> {
-        R doAction() throws T;
+    interface Task<R, T extends Throwable> {
+        R perform() throws T;
     }
 
     

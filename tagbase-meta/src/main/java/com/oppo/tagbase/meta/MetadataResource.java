@@ -21,16 +21,24 @@ public class MetadataResource {
     @Inject
     private Metadata metadata;
 
+
     @GET
     @Path("/dbs")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listTable() {
+    public Response listDb() {
         return Response.ok().entity(metadata.listDBs()).build();
+    }
+
+    @GET
+    @Path("/tables")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listTable(@QueryParam("dbName") @NotNull String dbName) {
+        return Response.ok().entity(metadata.listTables(dbName)).build();
     }
 
     //TODO bind javax validation to Jersey
     @POST
-    @Path("/tables")
+    @Path("/db")
     @Produces(MediaType.APPLICATION_JSON)
     public Response createDb(@QueryParam("dbName") @NotNull String dbName,
                              @QueryParam("desc") String desc) {
@@ -40,7 +48,7 @@ public class MetadataResource {
     }
 
     @POST
-    @Path("/tables")
+    @Path("/table")
     @Produces(MediaType.APPLICATION_JSON)
     public Response createTable(@QueryParam("dbName") @NotNull String dbName,
                                 @QueryParam("tableName") @NotNull String tableName,

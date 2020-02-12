@@ -1,6 +1,7 @@
 package com.oppo.tagbase.guice;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -26,7 +27,7 @@ public class StatusResource {
     @GET
     @Path("/detail")
     public Response detail(@Context final HttpServletRequest req,
-                           @QueryParam("p") @DefaultValue("Tagbase") String p) {
+                           @NotNull @QueryParam("p")  String p) {
         return Response.ok("detailed status of " + p).build();
     }
 
