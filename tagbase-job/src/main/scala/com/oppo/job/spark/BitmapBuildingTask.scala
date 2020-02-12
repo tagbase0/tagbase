@@ -29,7 +29,7 @@ object BitmapBuildingTask {
       windows下模拟测试，需要下载winutil,设置环境变量HADOOP_HOME
       https://github.com/amihalik/hadoop-common-2.6.0-bin
      */
-    System.setProperty("hadoop.home.dir", "D:\\workStation\\hadoop-common-2.6.0-bin-master");
+    System.setProperty("hadoop.home.dir", "D:\\workStation\\hadoop-common-2.6.0-bin-master")
 
     /*
        此处后续接收命令行相关参数,包括hive表元数据，hbase列簇等，具体参数待定，用来设置任务
@@ -71,7 +71,7 @@ object BitmapBuildingTask {
     /*
        此处先伪造本地数据模拟，后续从hive表获取
      */
-    val cityDS = Seq(
+    val eventDS = Seq(
       eventHiveTable("imeia", "wechat", "install", "5.2"),
       eventHiveTable("imeib", "qq", "install", "5.1"),
       eventHiveTable("imeie", "wechat", "uninstall", "5.0"),
@@ -92,7 +92,7 @@ object BitmapBuildingTask {
      */
     val eventDSTable = "eventTable"
     val dictionaryDSTable = "dictionaryTable"
-    cityDS.createOrReplaceTempView(s"$eventDSTable")
+    eventDS.createOrReplaceTempView(s"$eventDSTable")
     dictionaryDS.createOrReplaceTempView(s"$dictionaryDSTable")
 
     val data = spark.sql(
@@ -132,7 +132,7 @@ object BitmapBuildingTask {
     /*
        将数据写hfile到hdfs
      */
-    val hadoopConf = new Configuration();
+    val hadoopConf = new Configuration()
     val hbaseConf = HBaseConfiguration.create(hadoopConf)
     val job = Job.getInstance(hbaseConf)
     job.setMapOutputKeyClass(classOf[ImmutableBytesWritable])
