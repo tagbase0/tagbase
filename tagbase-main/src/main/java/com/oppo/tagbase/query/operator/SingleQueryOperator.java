@@ -12,7 +12,7 @@ import java.util.Map;
  * @author huangfeng
  * @date 2020/2/8
  */
-public class SingleQueryOperator {
+public class SingleQueryOperator implements Operator{
 
 
     List<String> dim;
@@ -77,7 +77,10 @@ public class SingleQueryOperator {
     }
 
 
-
+    @Override
+    public OperatorBuffer getOuputBuffer() {
+        return null;
+    }
 }
 
 

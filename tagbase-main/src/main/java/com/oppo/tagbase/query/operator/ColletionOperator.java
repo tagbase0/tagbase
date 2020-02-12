@@ -11,7 +11,7 @@ import static com.oppo.tagbase.query.TagBitmap.EOF;
  * @author huangfeng
  * @date 2020/2/8
  */
-public class ColletionOperator {
+public class ColletionOperator implements Operator {
 
     List<OperatorBuffer> buffers;
 
@@ -53,4 +53,8 @@ public class ColletionOperator {
     }
 
 
+    @Override
+    public OperatorBuffer getOuputBuffer() {
+        return null;
+    }
 }

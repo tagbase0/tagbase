@@ -17,9 +17,6 @@ public class ComplexQuery implements Query{
 
 
 
-
-
-
     public void setSubQueries(List<Query> subQueries) {
         this.subQueries = subQueries;
     }
