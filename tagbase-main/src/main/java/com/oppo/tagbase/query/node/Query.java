@@ -17,11 +17,10 @@ public interface Query {
     String COMPLEX = "complex";
     String SINGLE = "single";
 
-
-
-  enum OutputType{
+    enum OutputType {
         BITMAP,
         COUNT
     }
-  <R> R accept(QueryVisitor<R> visitor);
+
+    <R> R accept(QueryVisitor<R> visitor);
 }

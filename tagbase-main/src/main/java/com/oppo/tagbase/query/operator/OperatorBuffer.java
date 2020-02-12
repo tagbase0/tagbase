@@ -12,9 +12,6 @@ public class OperatorBuffer {
 
     LinkedBlockingQueue<TagBitmap> buffer;
 
-
-
-
     int inputSourceCount;
 
     int currentEOFCount;

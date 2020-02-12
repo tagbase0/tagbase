@@ -1,6 +1,5 @@
 package com.oppo.tagbase.query;
 
-import com.oppo.tagbase.IdGenerator;
 import com.oppo.tagbase.query.node.Query;
 
 import javax.inject.Inject;

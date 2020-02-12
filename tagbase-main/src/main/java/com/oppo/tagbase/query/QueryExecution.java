@@ -1,6 +1,10 @@
 package com.oppo.tagbase.query;
 
 import com.oppo.tagbase.query.node.Query;
+import com.oppo.tagbase.query.operator.Operator;
+import com.oppo.tagbase.query.operator.OperatorBuffer;
+
+import java.util.List;
 
 /**
  * @author huangfeng
@@ -11,6 +15,7 @@ public class QueryExecution {
 
     SemanticAnalyzer analyzer;
     PhysicalPlanner planner;
+    QueryEngine queryExecutor;
 
     QueryExecution(SemanticAnalyzer analyzer,PhysicalPlanner planner){
         this.analyzer = analyzer;
@@ -25,15 +30,22 @@ public class QueryExecution {
 
 
 
-
+        List<Operator> physicalPlan = planner.plan(query);
         // 优化， 目前应该就是知道能否一个一个输出，不影响后阶段的执行
 
+        for(Operator operator: physicalPlan){
+            queryExecutor.execute(operator);
+        }
+        
 
         //operator的执行
 
-        return null;
+        return wrapResult(physicalPlan.get(physicalPlan.size()-1).getOuputBuffer());
     }
 
+    private QueryResponse wrapResult(OperatorBuffer ouputBuffer) {
+        return null;
+    }
 
 
     public  enum QueryState{

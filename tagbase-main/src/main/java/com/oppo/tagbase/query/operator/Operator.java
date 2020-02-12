@@ -6,5 +6,6 @@ package com.oppo.tagbase.query.operator;
  */
 public interface Operator {
 
+    OperatorBuffer getOuputBuffer();
 }
 
