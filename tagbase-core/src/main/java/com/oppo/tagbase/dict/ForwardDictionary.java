@@ -1,7 +1,5 @@
 package com.oppo.tagbase.dict;
 
-import java.nio.ByteBuffer;
-
 /**
  * Created by wujianchao on 2020/2/11.
  */
