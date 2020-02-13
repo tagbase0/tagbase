@@ -16,6 +16,15 @@
         <module>tagbase-sql</module>
         <module>tool-assembly</module>
         <module>tagbase-core</module>
+        <module>core-common</module>
+        <module>core-metadata</module>
+        <module>core-storage</module>
+        <module>storage-hbase</module>
+        <module>core-dictionary</module>
+        <module>core-query</module>
+        <module>core-job</module>
+        <module>server</module>
+        <module>job-spark</module>
     </modules>
 
     <properties>
