@@ -1,8 +1,8 @@
 package com.oppo.tagbase.common.example.poly;
 
 import com.google.inject.AbstractModule;
-import com.oppo.tagbase.guice.ConfBind;
-import com.oppo.tagbase.guice.PolyBind;
+import com.oppo.tagbase.common.guice.ConfBind;
+import com.oppo.tagbase.common.guice.PolyBind;
 
 /**
  * Created by wujianchao on 2020/1/19.

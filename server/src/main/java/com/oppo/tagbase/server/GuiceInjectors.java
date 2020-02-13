@@ -1,11 +1,11 @@
-package com.oppo.tagbase.common.guice;
+package com.oppo.tagbase.server;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.oppo.tagbase.common.guice.*;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -24,7 +24,7 @@ public class GuiceInjectors {
     public static Collection<Module> defaultStartupModules() {
         return ImmutableList.of(
                 new JacksonModule(),
-                new PropsModule(Arrays.asList("tagbase.properties")),
+                new PropsModule(ImmutableList.of("tagbase.properties")),
                 new ValidatorModule(),
                 new LifecycleModule(),
                 new JettyModule(),

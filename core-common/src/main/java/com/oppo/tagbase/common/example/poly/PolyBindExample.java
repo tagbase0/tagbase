@@ -1,11 +1,8 @@
 package com.oppo.tagbase.common.example.poly;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
-import com.oppo.tagbase.guice.GuiceInjectors;
-import com.oppo.tagbase.guice.JacksonModule;
-import com.oppo.tagbase.guice.PropsModule;
-import com.oppo.tagbase.guice.ValidatorModule;
+import com.oppo.tagbase.common.guice.ExampleGuiceInjectors;
+import com.oppo.tagbase.common.guice.ValidatorModule;
 
 /**
  * Created by wujianchao on 2020/1/21.
@@ -13,9 +10,7 @@ import com.oppo.tagbase.guice.ValidatorModule;
 public class PolyBindExample {
 
     public static void main(String[] args) {
-        Injector ij = GuiceInjectors.makeInjector(
-                new PropsModule(ImmutableList.of("tagbase.properties")),
-                new JacksonModule(),
+        Injector ij = ExampleGuiceInjectors.makeInjector(
                 new ValidatorModule(),
                 new StorageModule(),
                 new HdfsStorageModule(),

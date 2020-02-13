@@ -1,6 +1,7 @@
 package com.oppo.tagbase.common.example.resource;
 
 import com.google.inject.Injector;
+import com.oppo.tagbase.common.guice.*;
 
 /**
  * Created by wujianchao on 2020/2/2.
@@ -8,7 +9,7 @@ import com.google.inject.Injector;
 public class ResourceExample {
 
     public static void main(String[] args) {
-        Injector ij = GuiceInjectors.makeInjector(
+        Injector ij = ExampleGuiceInjectors.makeInjector(
                 new JettyModule(),
                 new LifecycleModule(),
                 new ValidatorModule(),

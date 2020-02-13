@@ -1,7 +1,7 @@
 package com.oppo.tagbase.server;
 
 import com.google.inject.Injector;
-import com.oppo.tagbase.common.guice.GuiceInjectors;
+import com.oppo.tagbase.common.guice.ExampleGuiceInjectors;
 import com.oppo.tagbase.common.guice.Lifecycle;
 
 /**
@@ -13,7 +13,7 @@ public class TagbaseMain {
 
     public static void main(String[] args) throws InterruptedException {
 
-        Injector ij = GuiceInjectors.makeStartupInjector();
+        Injector ij = ExampleGuiceInjectors.makeInjector();
 
         Lifecycle lifecycle = ij.getInstance(Lifecycle.class);
 

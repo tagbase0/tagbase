@@ -1,7 +1,8 @@
 package com.oppo.tagbase.common.example.lifecycle;
 
-import com.oppo.tagbase.guice.LifecycleStart;
-import com.oppo.tagbase.guice.LifecycleStop;
+
+import com.oppo.tagbase.common.guice.LifecycleStart;
+import com.oppo.tagbase.common.guice.LifecycleStop;
 
 /**
  * Created by wujianchao on 2020/1/21.
