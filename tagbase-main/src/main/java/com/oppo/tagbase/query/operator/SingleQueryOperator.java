@@ -43,9 +43,6 @@ public class SingleQueryOperator implements Operator{
     public void work(){
 
 
-
-
-
         Map<String,TagBitmap> map = new HashMap<>();
 
 

@@ -26,20 +26,18 @@ public class QueryExecution {
 
         //semantic analyze
         analyzer.analyze(query);
+
         //转化为operator树
-
-
-
         List<Operator> physicalPlan = planner.plan(query);
-        // 优化， 目前应该就是知道能否一个一个输出，不影响后阶段的执行
+
+        // 优化， 目前应该能否一个一个输出，不影响后阶段的执行
+
 
         for(Operator operator: physicalPlan){
             queryExecutor.execute(operator);
         }
-        
 
         //operator的执行
-
         return wrapResult(physicalPlan.get(physicalPlan.size()-1).getOuputBuffer());
     }
 

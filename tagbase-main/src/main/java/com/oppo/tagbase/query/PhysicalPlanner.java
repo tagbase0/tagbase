@@ -49,7 +49,7 @@ public class PhysicalPlanner {
         @Override
         public Void visitSingleQuery(SingleQuery query) {
 
-            OperatorBuffer outPutBuffer = getContext();
+            OperatorBuffer outputBuffer = getContext();
 
 
 
