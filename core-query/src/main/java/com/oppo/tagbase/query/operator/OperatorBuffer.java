@@ -1,6 +1,5 @@
 package com.oppo.tagbase.query.operator;
 
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 import java.util.concurrent.LinkedBlockingQueue;
 

@@ -1,9 +1,7 @@
 package com.oppo.tagbase.query.operator;
 
-import com.google.common.collect.ImmutableTable;
 import com.oppo.tagbase.query.node.ComplexQuery;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
-import org.roaringbitmap.buffer.MutableRoaringArray;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 
 /**
@@ -31,6 +29,7 @@ public class AggregateRow extends AbstractRow {
                 case diff:
                     ((MutableRoaringBitmap) metric).andNot(bitmap);
                     break;
+                default:break;
             }
         } else {
             switch (operator) {
@@ -42,6 +41,8 @@ public class AggregateRow extends AbstractRow {
                     break;
                 case diff:
                     metric = ImmutableRoaringBitmap.andNot(bitmap, metric);
+                    break;
+                default:
                     break;
             }
         }

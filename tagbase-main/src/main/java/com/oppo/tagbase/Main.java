@@ -2,11 +2,7 @@ package com.oppo.tagbase;
 
 import com.google.inject.Injector;
 import com.oppo.tagbase.guice.GuiceInjectors;
-import com.oppo.tagbase.guice.JacksonModule;
-import com.oppo.tagbase.guice.JettyModule;
 import com.oppo.tagbase.guice.Lifecycle;
-import com.oppo.tagbase.guice.LifecycleModule;
-import com.oppo.tagbase.guice.ValidatorModule;
 
 /**
  * Just for test.
