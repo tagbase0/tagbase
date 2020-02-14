@@ -2,14 +2,7 @@ package com.oppo.tagbase.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.oppo.tagbase.guice.GuiceInjectors;
-import com.oppo.tagbase.guice.JacksonModule;
-import com.oppo.tagbase.guice.JettyModule;
-import com.oppo.tagbase.guice.Lifecycle;
-import com.oppo.tagbase.guice.LifecycleModule;
-import com.oppo.tagbase.guice.ValidatorModule;
-import com.oppo.tagbase.module.QueryModule;
+
 import com.oppo.tagbase.query.*;
 import com.oppo.tagbase.query.node.Query;
 
@@ -83,16 +76,6 @@ public class QueryResource {
 
 
 
-    public static void main(String[] args) {
-        Injector ij = GuiceInjectors.makeInjector(
-                new JettyModule(),
-                new LifecycleModule(),
-                new ValidatorModule(),
-                new JacksonModule(),
-                new QueryModule()
-        );
-        Lifecycle lifecycle = ij.getInstance(Lifecycle.class);
-        lifecycle.start();
-    }
+
 
 }

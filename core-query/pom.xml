@@ -27,6 +27,11 @@
             <artifactId>core-storage</artifactId>
             <version>${parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.roaringbitmap</groupId>
+            <artifactId>RoaringBitmap</artifactId>
+            <version>0.8.12</version>
+        </dependency>
     </dependencies>
 
 
