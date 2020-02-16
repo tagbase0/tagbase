@@ -1,12 +1,6 @@
 package com.oppo.tagbase.query.operator;
 
 
-import com.oppo.tagbase.query.node.ComplexQuery;
-import com.oppo.tagbase.query.node.Query;
-
-import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
-
 import static com.oppo.tagbase.query.operator.Row.EOF;
 
 
@@ -17,44 +11,24 @@ import static com.oppo.tagbase.query.operator.Row.EOF;
 public class ColletionOperator implements Operator {
 
     String id;
-    List<OperatorBuffer> buffers;
 
-    OperatorBuffer<AggregateRow> leftSource;
-    OperatorBuffer<AggregateRow> rightSource;
+    private OperatorBuffer<AggregateRow> leftSource;
+    private OperatorBuffer<AggregateRow> rightSource;
+    private OperatorBuffer outputBuffer;
+    private com.oppo.tagbase.query.node.Operator operator;
 
-
-    OperatorBuffer outputBuffer;
-
-
-    ComplexQuery.Operator operator;
-
-    LinkedBlockingQueue output;
-
-    Query.OutputType outputType;
-
-
-    public void work() {
+    public void run() {
         //index 0 buffer
-
-
-        Row b = leftSource.next();
+        AggregateRow b = leftSource.next();
 
         AggregateRow c;
 
-        if (outputType == Query.OutputType.BITMAP) {
-            while ((c = rightSource.next()) != null) {
-                c.combine(b, operator);
-            }
-
-        } else if (outputType == Query.OutputType.COUNT) {
-            while ((c = rightSource.next()) != null) {
-                c.combineAndOutputCardinality(b, operator);
-            }
-
+        while ((c = rightSource.next()) != null) {
+            c.combine(b, operator);
         }
 
 
-        output.offer(EOF);
+        outputBuffer.offer(EOF);
     }
 
     private String joinKey(String key, String key1) {

@@ -1,26 +1,25 @@
 package com.oppo.tagbase.query.node;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.common.collect.RangeSet;
 
 /**
- * @author huangfeng
- * @date 2020/2/7
+ * Created by huangfeng on 2020/2/15.
  */
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(value = {
         @JsonSubTypes.Type(name = Filter.IN, value = InFilter.class),
-        @JsonSubTypes.Type(name = Filter.GREATER, value = GreaterFilter.class),
-        @JsonSubTypes.Type(name = Filter.BELOW, value = BelowFilter.class),
+        @JsonSubTypes.Type(name = Filter.BOUND, value = BoundFilter.class)
 })
 public interface Filter {
     String IN = "in";
-    String GREATER = "greater";
-    String BELOW = "below";
-
-
+    String BOUND = "bound";
 
     String getColumn();
+
     boolean isExact();
+
+    RangeSet<String> getDimensionRangeSet();
 
 }

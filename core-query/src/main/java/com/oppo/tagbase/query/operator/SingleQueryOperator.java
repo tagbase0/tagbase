@@ -1,14 +1,10 @@
 package com.oppo.tagbase.query.operator;
 
-import com.oppo.tagbase.query.node.ComplexQuery;
 import com.oppo.tagbase.query.node.Filter;
-import com.oppo.tagbase.query.node.Query;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.oppo.tagbase.query.node.Query.OutputType.COUNT;
 
 /**
  * @author huangfeng
@@ -21,57 +17,55 @@ public class SingleQueryOperator implements Operator {
     String table;
     Filter filter;
 
-    OperatorBuffer outPutBuffer;
-
-    ComplexQuery.Operator operator;
+    OperatorBuffer outputBuffer;
 
     boolean needGroupby;
 
-    Query.OutputType outputType;
 
-    SingleQueryOperator(List<String> dim) {
-        // 如果是标签表，dim没有定义， filter条件只有一个 直接输出
-        //如果是标签表，dim没有定义，filter条件有多个值 需要汇总，输出一个
-        //如果是标签表， dim定义了，不论如何都可以直接输出
-        //dim定义的列+filter列为=所有维度列， 且filter条件值的范围都为1o
-
+    SingleQueryOperator(String table, Filter filter, List<String> dim, OperatorBuffer outputBuffer) {
+        this.table = table;
+        this.filter = filter;
+        this.dim = dim;
+        this.outputBuffer = outputBuffer;
     }
 
 
-    public void work() {
-        Map<String, AggregateRow> map = new HashMap<>();
+    // 如果是标签表，dim没有定义， filter条件只有一个 直接输出
+    //如果是标签表，dim没有定义，filter条件有多个值 需要汇总，输出一个
+    //如果是标签表， dim定义了，不论如何都可以直接输出
+    //dim定义的列+filter列为=所有维度列， 且filter条件值的范围都为1o
+
+
+    public void run() {
 
 
         // get output from storage module according table filter dim
         OperatorBuffer<AggregateRow> source = null;
-
         AggregateRow row;
 
+        if (!needGroupby) {
+            while ((row = source.next()) != null) {
+                outputBuffer.offer(row);
+            }
+            return;
+        }
 
+        //hash aggregate according dimensions of row
+        Map<String, AggregateRow> map = new HashMap<>();
         while ((row = source.next()) != null) {
             if (map.containsKey(row.getDim())) {
-                map.get(row.getDim().toString()).combine(row.getMetric(), operator);
+                map.get(row.getDim().toString()).combine(row.getMetric(), com.oppo.tagbase.query.node.Operator.UNION);
             } else {
                 map.put(row.getDim().toString(), row);
             }
         }
 
-
-        if (outputType == COUNT) {
-
-            for (AggregateRow outRow : map.values()) {
-                ResultRow resultRow = outRow.transitToResult();
-                outPutBuffer.offer(resultRow);
-            }
-
-        } else {
-            // put result to output
-            for (AggregateRow outRow : map.values()) {
-                outPutBuffer.offer(outRow.replaceSourceId(id));
-            }
+        // put result to output
+        for (AggregateRow outRow : map.values()) {
+            outputBuffer.offer(outRow.replaceSourceId(id));
         }
 
-        outPutBuffer.offer(Row.EOF);
+        outputBuffer.offer(Row.EOF);
 
 
     }

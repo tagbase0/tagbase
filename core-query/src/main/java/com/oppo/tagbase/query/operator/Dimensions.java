@@ -8,6 +8,10 @@ public class Dimensions {
 
     byte[][] interalDimensionValues;
 
+    public  Dimensions(byte[][] value){
+        this.interalDimensionValues = value;
+    }
+
     public String getString(int index) {
         return new String(interalDimensionValues[index]);
     }

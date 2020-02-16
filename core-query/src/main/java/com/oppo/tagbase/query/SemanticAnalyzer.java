@@ -38,7 +38,7 @@ public class SemanticAnalyzer {
             // 2. 单表需要指定查询时间段
 
             //validate whether table exist
-            Table table = meta.getTable(null, query.getDatasource());
+            Table table = meta.getTable(null, query.getTableName());
 
             int columnSize = 0;
 
@@ -87,7 +87,7 @@ public class SemanticAnalyzer {
             int count = 0;
             for (int n = 0; n < subQueries.size(); n++) {
                 SemanticAnalyzer.Analysis analysis = subQueries.get(n).accept(this);
-                if (analysis.getOutputType() != Query.OutputType.BITMAP) {
+                if (analysis.getOutputType() != OutputType.BITMAP) {
                     // complex input must bitmap
                 }
                 if (n == 0 && analysis.getOutPutSize() != 1) {
@@ -103,24 +103,24 @@ public class SemanticAnalyzer {
             }
 
             if(subQueries.size() == 2 && count == 1){
-                return new SemanticAnalyzer.Analysis(1, query.getOutput());
+                return new SemanticAnalyzer.Analysis(1, query.getOutputType());
             }
 
-            return new SemanticAnalyzer.Analysis(count, query.getOutput());
+            return new SemanticAnalyzer.Analysis(count, query.getOutputType());
         }
     }
 
 
     private static class Analysis {
         int outPutSize;
-        Query.OutputType outputType;
+        OutputType outputType;
 
-        Analysis(int outPutSize, Query.OutputType outputType) {
+        Analysis(int outPutSize, OutputType outputType) {
             this.outPutSize = outPutSize;
             this.outputType = outputType;
         }
 
-        Analysis(Query.OutputType output) {
+        Analysis(OutputType output) {
             this.outputType = output;
             outPutSize = Integer.MAX_VALUE;
         }
@@ -129,7 +129,7 @@ public class SemanticAnalyzer {
             return outPutSize;
         }
 
-        public Query.OutputType getOutputType() {
+        public OutputType getOutputType() {
             return outputType;
         }
     }

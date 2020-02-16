@@ -1,51 +1,64 @@
 package com.oppo.tagbase.query.node;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * Created by 71518 on 2020/2/7.
+ * Created by huangfeng on 2020/2/15.
  */
-public class SingleQuery implements  Query {
+public class SingleQuery implements Query {
 
+    private String dbName;
 
-    @JsonProperty("dataSource")
-    private String datasource;
+    private String tableName;
 
-    private OutputType output;
-
+    @JsonProperty("output")
+    private OutputType outputType;
 
     private List<String> dimensions;
 
-
     private List<Filter> filters;
 
+    @JsonCreator
+    public SingleQuery(
+            @JsonProperty("dbName") @Nullable String dbName,
+            @JsonProperty("tableName") String tableName,
+            @JsonProperty("output") OutputType outputType,
+            @JsonProperty("values") @Nullable List<String> dimensions,
+            @JsonProperty("filters") @Nullable List<Filter> filters
+    ) {
+        Preconditions.checkNotNull(tableName, "table name can not be null");
 
-    public void setDatasource(String datasource) {
-        this.datasource = datasource;
-    }
-    public String getDatasource() {
-        return datasource;
+        this.tableName = tableName;
+
+        this.dbName = dbName == null ? "default" : dbName;
+        this.dimensions = dimensions == null ? ImmutableList.of() : dimensions;
+        this.filters = filters == null ? ImmutableList.of() : filters;
+
+        this.outputType = outputType;
+
     }
 
 
-    public void setDimensions(List<String> dimensions) {
-        this.dimensions = dimensions;
+    public String getTableName() {
+        return tableName;
     }
+
     public List<String> getDimensions() {
         return dimensions;
     }
 
-    public void setFilters(List<Filter> filters) {
-        this.filters = filters;
-    }
     public List<Filter> getFilters() {
         return filters;
     }
 
     public OutputType getOutput() {
-        return output;
+        return outputType;
     }
 
     @Override

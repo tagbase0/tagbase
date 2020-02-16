@@ -1,45 +1,55 @@
 package com.oppo.tagbase.query.operator;
 
-import com.oppo.tagbase.query.node.ComplexQuery;
+import com.oppo.tagbase.query.node.Operator;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
+
+import java.nio.ByteBuffer;
 
 /**
  * Created by huangfeng on 2020/2/14.
  */
 public class AggregateRow extends AbstractRow {
 
+    int metaId;
     ImmutableRoaringBitmap metric;
+
+    public AggregateRow(byte[][] dims,byte[]  bitmap){
+
+        ByteBuffer byteBuffer = ByteBuffer.wrap(bitmap);
+        this.metric = new ImmutableRoaringBitmap(byteBuffer);
+        this.dims = new Dimensions(dims);
+    }
+
 
     public ImmutableRoaringBitmap getMetric() {
         return metric;
     }
 
-
-    public void combine(ImmutableRoaringBitmap bitmap, ComplexQuery.Operator operator) {
+    public void combine(ImmutableRoaringBitmap bitmap, Operator operator) {
 
         if (metric instanceof MutableRoaringBitmap) {
             switch (operator) {
-                case intersect:
+                case INTERSECT:
                     ((MutableRoaringBitmap) metric).and(bitmap);
                     break;
-                case union:
+                case UNION:
                     ((MutableRoaringBitmap) metric).or(bitmap);
                     break;
-                case diff:
+                case DIFF:
                     ((MutableRoaringBitmap) metric).andNot(bitmap);
                     break;
                 default:break;
             }
         } else {
             switch (operator) {
-                case intersect:
+                case INTERSECT:
                     metric = ImmutableRoaringBitmap.and(bitmap, metric);
                     break;
-                case union:
+                case UNION:
                     metric = ImmutableRoaringBitmap.or(bitmap, metric);
                     break;
-                case diff:
+                case DIFF:
                     metric = ImmutableRoaringBitmap.andNot(bitmap, metric);
                     break;
                 default:
@@ -50,10 +60,17 @@ public class AggregateRow extends AbstractRow {
 
     }
 
-    public void combine(Row row, ComplexQuery.Operator operator) {
+    public void combine(AggregateRow row, Operator operator) {
+
+
+
+
+
+
+
     }
 
-    public int combineAndOutputCardinality(Row b, ComplexQuery.Operator operator) {
+    public int combineAndOutputCardinality(Row b, Operator operator) {
         return 0;
     }
 
@@ -67,7 +84,6 @@ public class AggregateRow extends AbstractRow {
     }
 
     public AggregateRow replaceSourceId(String id) {
-        this.sourceId = id;
         return this;
     }
 }
