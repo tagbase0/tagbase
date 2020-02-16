@@ -11,5 +11,65 @@
 
     <artifactId>storage-hbase</artifactId>
 
+    <properties>
+        <!--
+        <hadoop.version>2.6.0-cdh5.11.2</hadoop.version>
+        <hbase.version>1.2.0-cdh5.11.2</hbase.version>
+        -->
+        <hadoop.version>2.6.0</hadoop.version>
+        <hbase.version>1.2.0</hbase.version>
+        <zookeeper.version>3.4.6</zookeeper.version>
+        <roaringBitmap.version>0.8.12</roaringBitmap.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.oppo</groupId>
+            <artifactId>core-common</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.oppo</groupId>
+            <artifactId>core-metadata</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.oppo</groupId>
+            <artifactId>core-storage</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-shaded-client</artifactId>
+            <version>${hbase.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>${zookeeper.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.roaringbitmap</groupId>
+            <artifactId>RoaringBitmap</artifactId>
+            <version>${roaringBitmap.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-server</artifactId>
+            <version>${hbase.version}</version>
+        </dependency>
+    </dependencies>
+
 
 </project>

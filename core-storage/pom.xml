@@ -11,7 +11,16 @@
 
     <artifactId>core-storage</artifactId>
 
+    <properties>
+        <roaringBitmap.version>0.8.12</roaringBitmap.version>
+    </properties>
+
     <dependencies>
+        <dependency>
+            <groupId>com.oppo</groupId>
+            <artifactId>core-common</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.oppo</groupId>
             <artifactId>core-metadata</artifactId>
@@ -21,6 +30,11 @@
             <groupId>com.oppo</groupId>
             <artifactId>core-dictionary</artifactId>
             <version>${parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.roaringbitmap</groupId>
+            <artifactId>RoaringBitmap</artifactId>
+            <version>${roaringBitmap.version}</version>
         </dependency>
     </dependencies>
 
