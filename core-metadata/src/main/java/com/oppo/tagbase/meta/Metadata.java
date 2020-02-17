@@ -77,14 +77,14 @@ public class Metadata {
     }
 
     /**
-     * get slices which lower than the value
+     * get slices which less than the value
      */
     public List<Slice> getSlicesLT(String dbName, String tableName, String value) {
         return metadataConnector.getSlicesLT(dbName, tableName, value);
     }
 
     /**
-     * get slices which lower or equal than the value
+     * get slices which less or equal than the value
      */
     public List<Slice> getSlicesLE(String dbName, String tableName, String value) {
         return metadataConnector.getSlicesLE(dbName, tableName, value);

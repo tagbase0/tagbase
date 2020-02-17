@@ -118,7 +118,7 @@ public abstract class MetadataConnector {
                             "\ttype  VARCHAR(128)\n" +
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
 
-                    // create table Task
+                    // create table TASK
                     "Create table  if not exist TASK (\n" +
                             "\tid VARCHAR(128) PRIMARY KEY, \n" +
                             "\tname VARCHAR(256),\n" +
@@ -128,6 +128,17 @@ public abstract class MetadataConnector {
                             "\tendTime DATETIME,\n" +
                             "\tstep tinyint,\n" +
                             "\tstate VARCHAR(128)\n" +
+                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
+
+                    // create table DICT
+                    "Create table  if not exist DICT (\n" +
+                            "\tid INTEGER PRIMARY KEY AUTO_INCREMENT, \n" +
+                            "\tversion VARCHAR(128),\n" +
+                            "\tstatus VARCHAR(128),\n" +
+                            "\tlocation VARCHAR(512),\n" +
+                            "\tlength BIGINT,\n" +
+                            "\tendTime createDate,\n" +
+                            "\ttype VARCHAR(128)\n" +
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1"
             );
 
@@ -237,12 +248,12 @@ public abstract class MetadataConnector {
                     .mapTo(TableType.class)
                     .one();
 
-            String sqlDisableSlice = String.format("Update SLICE set status=%s where tableId=%d"
+            String sqlDisableSlice = String.format("Update SLICE set status='%s' where tableId=%d"
                     , SliceStatus.DISABLED
                     , slice.getTableId());
 
             String sqlAddSlice = String.format("Insert into SLICE(name, tableId, status, sink, shardNum) " +
-                            "values(%s, %d, %s, %s, %d)",
+                            "values('%s', %d, '%s', '%s', %d)",
                     slice.getName(),
                     slice.getTableId(),
                     slice.getStatus(),
@@ -266,77 +277,70 @@ public abstract class MetadataConnector {
 
     public List<Slice> getSlices(String dbName, String tableName) {
 
-        String sqlGetSlices = String.format("Select SLICE.* from " +
-                        "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                        "where DB.name=%s And TBL .name=%s",
-                dbName,
-                tableName);
-
-        return submit(handle -> handle.createQuery(sqlGetSlices)
-                    .mapToBean(Slice.class)
-                    .list());
+        return submit(handle -> handle.createQuery("Select SLICE.* from " +
+                "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
+                "where DB.name=:dbName And TBL .name=:tableName")
+                .bind("dbName", dbName)
+                .bind("tableName", tableName)
+                .mapToBean(Slice.class)
+                .list());
     }
 
     /**
      * get slices which greater than the value
      */
     public List<Slice> getSlicesGT(String dbName, String tableName, String value) {
-        String sqlGetSlices = String.format("Select SLICE.* from " +
-                        "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                        "where DB.name=%s And TBL .name=%s and SLICE.name>%s",
-                dbName,
-                tableName,
-                value);
 
-        return submit(handle -> handle.createQuery(sqlGetSlices)
-                    .mapToBean(Slice.class)
-                    .list());
+        return submit(handle -> handle.createQuery("Select SLICE.* from " +
+                "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.name>:value")
+                .bind("dbName", dbName)
+                .bind("tableName", tableName)
+                .bind("value", value)
+                .mapToBean(Slice.class)
+                .list());
     }
 
     /**
      * get slices which greater or equal than the value
      */
     public List<Slice> getSlicesGE(String dbName, String tableName, String value) {
-        String sqlGetSlices = String.format("Select SLICE.* from " +
-                        "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                        "where DB.name=%s And TBL .name=%s and SLICE.name>=%s",
-                dbName,
-                tableName,
-                value);
-
-        return submit(handle -> handle.createQuery(sqlGetSlices)
+        return submit(handle -> handle.createQuery("Select SLICE.* from " +
+                "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.name>=:value")
+                .bind("dbName", dbName)
+                .bind("tableName", tableName)
+                .bind("value", value)
                 .mapToBean(Slice.class)
                 .list());
+
     }
 
     /**
-     * get slices which lower than the value
+     * get slices which less than the value
      */
     public List<Slice> getSlicesLT(String dbName, String tableName, String value) {
-        String sqlGetSlices = String.format("Select SLICE.* from " +
-                        "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                        "where DB.name=%s And TBL .name=%s and SLICE.name<%s",
-                dbName,
-                tableName,
-                value);
 
-        return submit(handle -> handle.createQuery(sqlGetSlices)
+        return submit(handle -> handle.createQuery("Select SLICE.* from " +
+                "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.name<:value")
+                .bind("dbName", dbName)
+                .bind("tableName", tableName)
+                .bind("value", value)
                 .mapToBean(Slice.class)
                 .list());
     }
 
     /**
-     * get slices which lower or equal than the value
+     * get slices which less or equal than the value
      */
     public List<Slice> getSlicesLE(String dbName, String tableName, String value) {
-        String sqlGetSlices = String.format("Select SLICE.* from " +
-                        "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                        "where DB.name=%s And TBL .name=%s and SLICE.name<=%s",
-                dbName,
-                tableName,
-                value);
-
-        return submit(handle -> handle.createQuery(sqlGetSlices)
+        return submit(handle -> handle.createQuery("Select SLICE.* from " +
+                "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.name<=:value")
+                .bind("dbName", dbName)
+                .bind("tableName", tableName)
+                .bind("value", value)
                 .mapToBean(Slice.class)
                 .list());
     }
@@ -354,7 +358,13 @@ public abstract class MetadataConnector {
                 lower,
                 upper);
 
-        return submit(handle -> handle.createQuery(sqlGetSlices)
+        return submit(handle -> handle.createQuery("Select SLICE.* from " +
+                "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.name between :lower and :upper")
+                .bind("dbName", dbName)
+                .bind("tableName", tableName)
+                .bind("lower", lower)
+                .bind("upper", upper)
                 .mapToBean(Slice.class)
                 .list());
     }
@@ -362,10 +372,10 @@ public abstract class MetadataConnector {
     /*-------------Metadata API for checking status--------------*/
 
     public DB getDb(String dbName) {
-        String sqlGetDb = String.format("Select * from DB where DB.name=%s", dbName);
-        return submit(handle ->  handle.createQuery(sqlGetDb)
-                    .mapToBean(DB.class)
-                    .one());
+        return submit(handle ->  handle.createQuery("Select * from DB where DB.name=:dbName")
+                .bind("dbName", dbName)
+                .mapToBean(DB.class)
+                .one());
     }
 
 
@@ -392,8 +402,8 @@ public abstract class MetadataConnector {
     public void deleteJOb(String jobId) {
         submit(handle -> {
             return handle.inTransaction(transaction -> {
-                String sqlDeleteJob = String.format("DELETE FROM JOB where id=%s", jobId);
-                String sqlDeleteTask = String.format("DELETE FROM TASK where jobId=%s", jobId);
+                String sqlDeleteJob = String.format("DELETE FROM JOB where id='%s'", jobId);
+                String sqlDeleteTask = String.format("DELETE FROM TASK where jobId='%s'", jobId);
                 Batch batch = transaction.createBatch();
                 batch.add(sqlDeleteJob);
                 batch.add(sqlDeleteTask);
@@ -450,6 +460,41 @@ public abstract class MetadataConnector {
             String sql = "Update TASK set state=? and endTime=? where id=?";
             return handle.execute(sql, state, endTime, taskId);
         });
+    }
+
+
+    /*-------------Metadata API for Dict module--------------*/
+
+    //TODO put two sql in transaction
+    public void createDict(Dict dict) {
+
+        submit(handle -> {
+
+            if(DictStatus.UNUSED == dict.getStatus()) {
+                throw new MCE("Newly added dict must be READY status.");
+            }
+
+            String sqlDisableDict = "UPDATE DICT set status=? where status=?";
+            handle.execute(sqlDisableDict, DictStatus.UNUSED, DictStatus.READY);
+
+            String sqlAddDict = "INSERT INTO DICT(version, status, location, length, createDate, type) " +
+                    "VALUES (?, ?, ?, ?, ?, ?)";
+
+            return handle.execute(sqlAddDict,
+                    dict.getVersion(),
+                    dict.getStatus(),
+                    dict.getLocation(),
+                    dict.getLength(),
+                    dict.getCreateDate(),
+                    dict.getType());
+        });
+    }
+
+    public Dict getDict() {
+        return submit(handle -> handle.createQuery("SELECT * from DICT where status=:status")
+                .bind("status", DictStatus.READY)
+                .mapToBean(Dict.class)
+                .one());
     }
 
 
