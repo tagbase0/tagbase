@@ -1,5 +1,7 @@
 package com.oppo.tagbase.meta.obj;
 
+import com.oppo.tagbase.meta.connector.MCE;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -90,6 +92,15 @@ public class Table {
 
     public void setColumns(List<Column> columns) {
         this.columns = columns;
+    }
+
+    public Column getColumn(String columnName) {
+        if(columns == null) {
+            throw new MCE("The instance initialized without column info.");
+        }
+        return getColumns().stream()
+                .filter(column -> Objects.equals(column.getName(), columnName))
+                .findFirst().get();
     }
 
     @Override

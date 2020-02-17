@@ -1,7 +1,7 @@
 package com.oppo.tagbase.utils;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by wujianchao on 2020/2/11.
@@ -9,7 +9,7 @@ import java.nio.charset.Charset;
 public class BytesUtil {
 
     public static void writeUTFString(ByteBuffer out, String s) {
-        byte[] bytes = s == null ? null : s.getBytes(Charset.forName("UTF-8"));
+        byte[] bytes = s == null ? null : s.getBytes(StandardCharsets.UTF_8);
         writeByteArray(out, bytes);
     }
 

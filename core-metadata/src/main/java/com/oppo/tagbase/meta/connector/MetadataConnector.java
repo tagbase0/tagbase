@@ -245,22 +245,104 @@ public abstract class MetadataConnector {
                 dbName,
                 tableName);
 
-        return submit(handle -> {
-            return handle.createQuery(sqlGetSlices)
+        return submit(handle -> handle.createQuery(sqlGetSlices)
                     .mapToBean(Slice.class)
-                    .list();
-        });
+                    .list());
+    }
+
+    /**
+     * get slices which greater than the value
+     */
+    public List<Slice> getSlicesGT(String dbName, String tableName, String value) {
+        String sqlGetSlices = String.format("Select SLICE.* from " +
+                        "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
+                        "where DB.name=%s And TBL .name=%s and SLICE.name>%s",
+                dbName,
+                tableName,
+                value);
+
+        return submit(handle -> handle.createQuery(sqlGetSlices)
+                    .mapToBean(Slice.class)
+                    .list());
+    }
+
+    /**
+     * get slices which greater or equal than the value
+     */
+    public List<Slice> getSlicesGE(String dbName, String tableName, String value) {
+        String sqlGetSlices = String.format("Select SLICE.* from " +
+                        "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
+                        "where DB.name=%s And TBL .name=%s and SLICE.name>=%s",
+                dbName,
+                tableName,
+                value);
+
+        return submit(handle -> handle.createQuery(sqlGetSlices)
+                .mapToBean(Slice.class)
+                .list());
+    }
+
+    /**
+     * get slices which lower than the value
+     */
+    public List<Slice> getSlicesLT(String dbName, String tableName, String value) {
+        String sqlGetSlices = String.format("Select SLICE.* from " +
+                        "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
+                        "where DB.name=%s And TBL .name=%s and SLICE.name<%s",
+                dbName,
+                tableName,
+                value);
+
+        return submit(handle -> handle.createQuery(sqlGetSlices)
+                .mapToBean(Slice.class)
+                .list());
+    }
+
+    /**
+     * get slices which lower or equal than the value
+     */
+    public List<Slice> getSlicesLE(String dbName, String tableName, String value) {
+        String sqlGetSlices = String.format("Select SLICE.* from " +
+                        "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
+                        "where DB.name=%s And TBL .name=%s and SLICE.name<=%s",
+                dbName,
+                tableName,
+                value);
+
+        return submit(handle -> handle.createQuery(sqlGetSlices)
+                .mapToBean(Slice.class)
+                .list());
+    }
+
+
+    /**
+     * get slices which between the lower and upper
+     */
+    public List<Slice> getSlicesBetween(String dbName, String tableName, String lower, String upper) {
+        String sqlGetSlices = String.format("Select SLICE.* from " +
+                        "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
+                        "where DB.name=%s And TBL .name=%s and SLICE.name between %s and %s",
+                dbName,
+                tableName,
+                lower,
+                upper);
+
+        return submit(handle -> handle.createQuery(sqlGetSlices)
+                .mapToBean(Slice.class)
+                .list());
     }
 
     /*-------------Metadata API for checking status--------------*/
 
     public DB getDb(String dbName) {
         String sqlGetDb = String.format("Select * from DB where DB.name=%s", dbName);
-        return submit(handle -> {
-            return handle.createQuery(sqlGetDb)
+        return submit(handle ->  handle.createQuery(sqlGetDb)
                     .mapToBean(DB.class)
-                    .one();
-        });
+                    .one());
     }
+
+
+    /*-------------Metadata API for Job module--------------*/
+
 
 }

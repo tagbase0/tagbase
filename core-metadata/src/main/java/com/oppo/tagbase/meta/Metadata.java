@@ -55,8 +55,47 @@ public class Metadata {
 
     /*-------------Metadata API for query--------------*/
 
-    protected List<Slice> getSlices(String dbName, String tableName) {
+    /**
+     * get all slices of a table
+     */
+    public List<Slice> getSlices(String dbName, String tableName) {
         return metadataConnector.getSlices(dbName, tableName);
+    }
+
+    /**
+     * get slices which greater than the value
+     */
+    public List<Slice> getSlicesGT(String dbName, String tableName, String value) {
+        return metadataConnector.getSlicesGT(dbName, tableName, value);
+    }
+
+    /**
+     * get slices which greater or equal than the value
+     */
+    public List<Slice> getSlicesGE(String dbName, String tableName, String value) {
+        return metadataConnector.getSlicesGE(dbName, tableName, value);
+    }
+
+    /**
+     * get slices which lower than the value
+     */
+    public List<Slice> getSlicesLT(String dbName, String tableName, String value) {
+        return metadataConnector.getSlicesLT(dbName, tableName, value);
+    }
+
+    /**
+     * get slices which lower or equal than the value
+     */
+    public List<Slice> getSlicesLE(String dbName, String tableName, String value) {
+        return metadataConnector.getSlicesLE(dbName, tableName, value);
+    }
+
+
+    /**
+     * get slices which between the lower and upper
+     */
+    public List<Slice> getSlicesBetween(String dbName, String tableName, String lower, String upper) {
+        return metadataConnector.getSlicesBetween(dbName, tableName, lower, upper);
     }
 
 
