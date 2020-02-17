@@ -15,6 +15,7 @@ public class MetadataModule extends AbstractModule {
         install(new ConnectorModule());
 
         binder().bind(Metadata.class).in(Scopes.SINGLETON);
+        binder().bind(MetadataJob.class).in(Scopes.SINGLETON);
         ResourceBind.bind(binder(), MetadataResource.class);
     }
 }

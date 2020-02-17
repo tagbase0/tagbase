@@ -1,5 +1,7 @@
 package com.oppo.tagbase.meta.obj;
 
+import com.oppo.tagbase.meta.type.DataType;
+
 import java.util.Objects;
 
 /**
@@ -12,7 +14,7 @@ public class Column {
     private String name;
     private String srcName;
     private int index;
-    private String dataType = "string";
+    private DataType dataType = DataType.STRING;
     private ColumnType type;
     private String desc;
 
@@ -56,11 +58,11 @@ public class Column {
         this.index = index;
     }
 
-    public String getDataType() {
+    public DataType getDataType() {
         return dataType;
     }
 
-    public void setDataType(String dataType) {
+    public void setDataType(DataType dataType) {
         this.dataType = dataType;
     }
 

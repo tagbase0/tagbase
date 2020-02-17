@@ -9,6 +9,7 @@ import org.jdbi.v3.guava.GuavaPlugin;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
 import javax.inject.Inject;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -101,7 +102,33 @@ public abstract class MetadataConnector {
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
 
                     // add index
-                    "CREATE UNIQUE INDEX nameAndTableId ON SLICE(name, tableId)"
+                    "CREATE UNIQUE INDEX nameAndTableId ON SLICE(name, tableId)",
+
+                    // create table JOB
+                    "Create table  if not exist JOB (\n" +
+                            "\tid VARCHAR(128) PRIMARY KEY, \n" +
+                            "\tname VARCHAR(256),\n" +
+                            "\tdbName VARCHAR(128),\n" +
+                            "\ttableName VARCHAR(128),\n" +
+                            "\tsliceName VARCHAR(128),\n" +
+                            "\tstartTime DATETIME,\n" +
+                            "\tendTime DATETIME,\n" +
+                            "\tlatestTask VARCHAR(128),\n" +
+                            "\tstate VARCHAR(128),\n" +
+                            "\ttype  VARCHAR(128)\n" +
+                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
+
+                    // create table Task
+                    "Create table  if not exist TASK (\n" +
+                            "\tid VARCHAR(128) PRIMARY KEY, \n" +
+                            "\tname VARCHAR(256),\n" +
+                            "\tjobId VARCHAR(128),\n" +
+                            "\tappId VARCHAR(128),\n" +
+                            "\tstartTime DATETIME,\n" +
+                            "\tendTime DATETIME,\n" +
+                            "\tstep tinyint,\n" +
+                            "\tstate VARCHAR(128)\n" +
+                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1"
             );
 
             Batch batch = handle.createBatch();
@@ -343,6 +370,87 @@ public abstract class MetadataConnector {
 
 
     /*-------------Metadata API for Job module--------------*/
+
+    public void createJob(Job job) {
+        submit(handle -> {
+            String sql = "INSERT INTO JOB(id, name, dbName, tableName, sliceName, startTime, endTime, latestTask, state, type) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            return handle.execute(sql,
+                    job.getId(),
+                    job.getName(),
+                    job.getDbName(),
+                    job.getTableName(),
+                    job.getSliceName(),
+                    job.getStartTime(),
+                    job.getEndTime(),
+                    job.getLatestTask(),
+                    job.getState(),
+                    job.getType());
+        });
+    }
+
+    public void deleteJOb(String jobId) {
+        submit(handle -> {
+            return handle.inTransaction(transaction -> {
+                String sqlDeleteJob = String.format("DELETE FROM JOB where id=%s", jobId);
+                String sqlDeleteTask = String.format("DELETE FROM TASK where jobId=%s", jobId);
+                Batch batch = transaction.createBatch();
+                batch.add(sqlDeleteJob);
+                batch.add(sqlDeleteTask);
+                return batch.execute();
+            });
+        });
+    }
+
+    public void completeJOb(String jobId, JobState state, Date endTime) {
+        submit(handle -> {
+            String sql = "Update JOB set state=? and endTime=? where id=?";
+            return handle.execute(sql, state, endTime, jobId);
+        });
+    }
+
+    public Job getJob(String jobId) {
+        return submit(handle -> {
+
+            Job job = handle.createQuery("Select JOB.* from JOB where JOB.id=:jobId")
+                    .bind("jobId", jobId)
+                    .mapToBean(Job.class)
+                    .one();
+
+            List<Task> tasks = handle.createQuery("select * from TASK where jobId=:jobId")
+                    .bind("jobId", jobId)
+                    .mapToBean(Task.class)
+                    .list();
+
+            job.setTasks(tasks);
+            return job;
+        });
+
+    }
+
+
+    public void createTask(Task task) {
+        submit(handle -> {
+            String sql = "INSERT INTO TASK(id, name, jobId, appId, startTime, endTime, step, state) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            return handle.execute(sql,
+                    task.getId(),
+                    task.getName(),
+                    task.getJobId(),
+                    task.getAppId(),
+                    task.getStartTime(),
+                    task.getEndTime(),
+                    task.getStep(),
+                    task.getState());
+        });
+    }
+
+    public void completeTask(String taskId, TaskState state, Date endTime) {
+        submit(handle -> {
+            String sql = "Update TASK set state=? and endTime=? where id=?";
+            return handle.execute(sql, state, endTime, taskId);
+        });
+    }
 
 
 }

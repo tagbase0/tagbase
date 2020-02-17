@@ -94,12 +94,18 @@ public class Table {
         this.columns = columns;
     }
 
+    /**
+     * Get column of the table, as to TAG table slice column is a virtual column and is invisible
+     *
+     * @return column, or null if column not exist.
+     */
     public Column getColumn(String columnName) {
         if(columns == null) {
             throw new MCE("The instance initialized without column info.");
         }
         return getColumns().stream()
                 .filter(column -> Objects.equals(column.getName(), columnName))
+                .filter(column -> !(TableType.TAG == getType() && ColumnType.SLICE_COLUMN == column.getType()))
                 .findFirst().get();
     }
 
