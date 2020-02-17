@@ -6,9 +6,8 @@ package com.oppo.tagbase.dict;
 public class InvertedDictionary extends AbstractDictionary {
 
 
-
     @Override
-    public byte[] value(int id) {
-        throw new UnsupportedOperationException("Inverted dictionary doesn't support search value by id");
+    public byte[] element(int id) {
+        throw new UnsupportedOperationException("Inverted dictionary doesn't support search element by id");
     }
 }

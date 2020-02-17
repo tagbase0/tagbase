@@ -11,14 +11,10 @@ public interface Dictionary {
      *
      * 当向字典添加数据的时候需要用到该方法。
      *
-     * @return next value id
+     * @return next element id
      */
     int nextId();
 
-    /**
-     * 向字典中添加一个值
-     */
-    void add(byte[] v);
 
     /**
      * 字典的正向查找，查找编号对应的值
@@ -26,15 +22,15 @@ public interface Dictionary {
      * @param id 编号
      * @return id对应的值
      */
-    byte[] value(int id);
+    byte[] element(int id);
 
 
     /**
      *字典的反向查找，查找值对应的编号
      *
-     * @param v 值v
-     * @return v对应的编号
+     * @param element 值
+     * @return element对应的编号
      */
-    int id(byte[] v);
+    int id(byte[] element);
 
 }
