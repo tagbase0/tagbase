@@ -1,5 +1,8 @@
 package com.oppo.tagbase.job.spark
 
+import java.text.SimpleDateFormat
+import java.util.Date
+
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
@@ -7,16 +10,16 @@ import org.roaringbitmap.buffer.ImmutableRoaringBitmap
 
 /**
   * Created by daikai on 2020/2/16.
-  * 该spark任务功能：构建反向字典,并保存到 hdfs
+  * 该spark任务功能：构建反向字典数据, 并将数据插入到 hive 表中
   */
 
-case class ImeiHiveTable(database: String, table: String, column: String)
-case class ImeiTagTable(database: String, table: String, column: String)
 
 object InvertedDictBuildingTask {
   def main(args: Array[String]): Unit = {
 
-    val appName = "DictBuildJob_20200211_task"
+    var date = new SimpleDateFormat("yyyyMMdd").format(new Date)
+
+    val appName = "DictBuildJob_" + date + "_task"
     val parallelism = 5 //任务并行度
 
     val imeiSrc_dbName = "default";
@@ -40,7 +43,6 @@ object InvertedDictBuildingTask {
       .config(sparkConf)
       //      .enableHiveSupport()
       .getOrCreate()
-    import spark.implicits._
 
 
     // 计算出当前新增的imei
@@ -49,13 +51,26 @@ object InvertedDictBuildingTask {
       " except " +
       "select distinct" + imeiTag_colName +
       " from " + imeiTag_dbName + "." + imeiTag_tableName
-      ).rdd
+    )
+
+    val newlist = rddNew.collect().map(_ (0)).toList
 
     // 记录当前反向字典最大的id值
-    val rddImeiNum = spark.sql("select max(id) " +
+    val imeiNum = spark.sql("select max(id) as num" +
       " from " + imeiTag_dbName + "." + imeiTag_tableName
-    ).rdd.foreach(x => x)
+    ).collect()(0).getInt(0)
 
+    // 反向字典下一行 id 应加1
+    var startNum = imeiNum + 1
+
+    for (elem <- newlist) {
+      println(elem, startNum)
+      spark.sql("insert into table " + imeiTag_dbName + "." + imeiTag_tableName +
+        " PARTITION(dayno=" + date +
+        ") values(" + elem + "," + startNum + ")"
+      )
+      startNum += 1
+    }
 
   }
 
