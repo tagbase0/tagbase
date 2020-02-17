@@ -5,6 +5,10 @@ package com.oppo.tagbase.meta.obj;
  */
 public enum SliceStatus {
     /**
+     * Slice is in building progress, which can not serve a query
+     */
+    BUILDING,
+    /**
      * slices who can serve a query
      */
     READY,

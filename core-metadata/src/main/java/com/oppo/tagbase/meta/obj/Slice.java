@@ -1,5 +1,6 @@
 package com.oppo.tagbase.meta.obj;
 
+import java.sql.Date;
 import java.util.Objects;
 
 /**
@@ -8,10 +9,11 @@ import java.util.Objects;
 public class Slice {
 
     private long id;
-    private String name;
+    private Date startTime;
+    private Date endTime;
     private long tableId;
     private String sink;
-    private SliceStatus status;
+    private SliceStatus status = SliceStatus.BUILDING;
     private int shardNum = 1;
 
     public long getId() {
@@ -22,12 +24,20 @@ public class Slice {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public Date getStartTime() {
+        return startTime;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
+    }
+
+    public Date getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
     }
 
     public long getTableId() {
@@ -71,13 +81,14 @@ public class Slice {
             return false;
         }
         Slice slice = (Slice) o;
-        return tableId == slice.tableId &&
-                Objects.equals(name, slice.name);
+        return tableId == slice.getTableId() &&
+                Objects.equals(startTime, slice.startTime) &&
+                Objects.equals(endTime, slice.endTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, tableId);
+        return Objects.hash(tableId, startTime, endTime);
     }
 
 }

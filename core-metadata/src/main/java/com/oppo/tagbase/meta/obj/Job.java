@@ -16,9 +16,10 @@ public class Job {
     private String name;
     private String dbName;
     private String tableName;
-    private String sliceName;
     private Date startTime;
     private Date endTime;
+    private Date dataLowerTime; // include
+    private Date dataUpperTime; // exclude
     private String latestTask;
     private JobState state;
     private JobType type;
@@ -57,14 +58,6 @@ public class Job {
         this.tableName = tableName;
     }
 
-    public String getSliceName() {
-        return sliceName;
-    }
-
-    public void setSliceName(String sliceName) {
-        this.sliceName = sliceName;
-    }
-
     public Date getStartTime() {
         return startTime;
     }
@@ -79,6 +72,22 @@ public class Job {
 
     public void setEndTime(Date endTime) {
         this.endTime = endTime;
+    }
+
+    public Date getDataLowerTime() {
+        return dataLowerTime;
+    }
+
+    public void setDataLowerTime(Date dataLowerTime) {
+        this.dataLowerTime = dataLowerTime;
+    }
+
+    public Date getDataUpperTime() {
+        return dataUpperTime;
+    }
+
+    public void setDataUpperTime(Date dataUpperTime) {
+        this.dataUpperTime = dataUpperTime;
     }
 
     public String getLatestTask() {

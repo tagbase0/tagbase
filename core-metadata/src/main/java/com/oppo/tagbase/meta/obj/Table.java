@@ -118,12 +118,11 @@ public class Table {
             return false;
         }
         Table table = (Table) o;
-        return dbId == table.dbId &&
-                Objects.equals(name, table.name);
+        return dbId == table.getDbId() && Objects.equals(name, table.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, dbId);
+        return Objects.hash(dbId, name);
     }
 }

@@ -5,6 +5,7 @@ import com.oppo.tagbase.meta.connector.MetadataConnector;
 import com.oppo.tagbase.meta.obj.*;
 
 import javax.inject.Inject;
+import java.sql.Date;
 import java.util.List;
 
 /**
@@ -65,36 +66,36 @@ public class Metadata {
     /**
      * get slices which greater than the value
      */
-    public List<Slice> getSlicesGT(String dbName, String tableName, String value) {
+    public List<Slice> getSlicesGT(String dbName, String tableName, Date value) {
         return metadataConnector.getSlicesGT(dbName, tableName, value);
     }
 
     /**
      * get slices which greater or equal than the value
      */
-    public List<Slice> getSlicesGE(String dbName, String tableName, String value) {
+    public List<Slice> getSlicesGE(String dbName, String tableName, Date value) {
         return metadataConnector.getSlicesGE(dbName, tableName, value);
     }
 
     /**
      * get slices which less than the value
      */
-    public List<Slice> getSlicesLT(String dbName, String tableName, String value) {
+    public List<Slice> getSlicesLT(String dbName, String tableName, Date value) {
         return metadataConnector.getSlicesLT(dbName, tableName, value);
     }
 
     /**
      * get slices which less or equal than the value
      */
-    public List<Slice> getSlicesLE(String dbName, String tableName, String value) {
-        return metadataConnector.getSlicesLE(dbName, tableName, value);
+    public List<Slice> getSlicesLE(String dbName, String tableName, Date time) {
+        return metadataConnector.getSlicesLE(dbName, tableName, time);
     }
 
 
     /**
      * get slices which between the lower and upper
      */
-    public List<Slice> getSlicesBetween(String dbName, String tableName, String lower, String upper) {
+    public List<Slice> getSlicesBetween(String dbName, String tableName, Date lower, Date upper) {
         return metadataConnector.getSlicesBetween(dbName, tableName, lower, upper);
     }
 

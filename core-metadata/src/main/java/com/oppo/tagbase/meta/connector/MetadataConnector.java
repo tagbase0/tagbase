@@ -2,6 +2,7 @@ package com.oppo.tagbase.meta.connector;
 
 import com.google.common.collect.ImmutableList;
 import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.util.SqlDateUtil;
 import org.jdbi.v3.core.HandleCallback;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.Batch;
@@ -9,7 +10,7 @@ import org.jdbi.v3.guava.GuavaPlugin;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
 import javax.inject.Inject;
-import java.util.Date;
+import java.sql.Date;
 import java.util.List;
 
 /**
@@ -93,16 +94,18 @@ public abstract class MetadataConnector {
                     // create table SLICE
                     "Create table  if not exist SLICE (\n" +
                             "\tid INTEGER PRIMARY KEY AUTO_INCREMENT, \n" +
-                            "\tname VARCHAR(128),\n" +
+                            "\tstartTime DATETIME,\n" +
+                            "\tendTime DATETIME,\n" +
                             "\ttableId INTEGER,\n" +
                             "\tstatus VARCHAR(128),\n" +
                             "\tsrcTable VARCHAR(128),\n" +
-                            "\tsink VARCHAR(128),\n" +
+                            "\tsink VARCHAR(128) unique,\n" +
                             "\tshardNum  TINYINT\n" +
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
 
                     // add index
-                    "CREATE UNIQUE INDEX nameAndTableId ON SLICE(name, tableId)",
+                    "CREATE UNIQUE INDEX nameAndTableId ON SLICE(tableId, startTime)",
+                    "CREATE UNIQUE INDEX nameAndTableId ON SLICE(tableId, endTime)",
 
                     // create table JOB
                     "Create table  if not exist JOB (\n" +
@@ -110,8 +113,9 @@ public abstract class MetadataConnector {
                             "\tname VARCHAR(256),\n" +
                             "\tdbName VARCHAR(128),\n" +
                             "\ttableName VARCHAR(128),\n" +
-                            "\tsliceName VARCHAR(128),\n" +
                             "\tstartTime DATETIME,\n" +
+                            "\tdataLowerTime VARCHAR(128),\n" +
+                            "\tdataUpperTime DATETIME,\n" +
                             "\tendTime DATETIME,\n" +
                             "\tlatestTask VARCHAR(128),\n" +
                             "\tstate VARCHAR(128),\n" +
@@ -240,36 +244,55 @@ public abstract class MetadataConnector {
     }
 
 
+    //TODO transaction
     public void addSlice(Slice slice) {
         submit(handle -> {
+
+            if(slice.getStatus() != SliceStatus.READY) {
+                throw new MCE("Newly added slice must be READY status.");
+            }
 
             TableType tableType = handle.createQuery("select type from TBL where id=:tableId")
                     .bind("tableId", slice.getTableId())
                     .mapTo(TableType.class)
                     .one();
 
-            String sqlDisableSlice = String.format("Update SLICE set status='%s' where tableId=%d"
-                    , SliceStatus.DISABLED
-                    , slice.getTableId());
+//            String sqlDisableSlice = String.format("Update SLICE set status='%s' where tableId=%d and status=%s"
+//                    , SliceStatus.DISABLED
+//                    , slice.getTableId());
+//
+//            String sqlAddSlice = String.format("Insert into SLICE(name, tableId, status, sink, shardNum) " +
+//                            "values('%s', %d, '%s', '%s', %d)",
+//                    slice.getStartTime(),
+//                    slice.getTableId(),
+//                    slice.getStatus(),
+//                    slice.getSink(),
+//                    slice.getShardNum());
+//
+//            if (tableType == TableType.TAG) {
+//                return handle.inTransaction(transaction -> {
+//                    Batch batch = transaction.createBatch();
+//                    batch.add(sqlDisableSlice);
+//                    batch.add(sqlAddSlice);
+//                    return batch.execute();
+//                });
+//            } else {
+//                return handle.execute(sqlAddSlice);
+//            }
 
-            String sqlAddSlice = String.format("Insert into SLICE(name, tableId, status, sink, shardNum) " +
-                            "values('%s', %d, '%s', '%s', %d)",
-                    slice.getName(),
+            handle.execute("Update SLICE set status=? where tableId=? and status=?",
+                    SliceStatus.DISABLED,
+                    slice.getTableId(),
+                    SliceStatus.READY);
+
+            return handle.execute("Insert into SLICE(startTime, endTime, tableId, status, sink, shardNum) " +
+                            "values(?, ?, ?, ?, ?, ?)",
+                    slice.getStartTime(),
+                    slice.getEndTime(),
                     slice.getTableId(),
                     slice.getStatus(),
                     slice.getSink(),
                     slice.getShardNum());
-
-            if (tableType == TableType.TAG) {
-                return handle.inTransaction(transaction -> {
-                    Batch batch = transaction.createBatch();
-                    batch.add(sqlDisableSlice);
-                    batch.add(sqlAddSlice);
-                    return batch.execute();
-                });
-            } else {
-                return handle.execute(sqlAddSlice);
-            }
         });
     }
 
@@ -289,28 +312,28 @@ public abstract class MetadataConnector {
     /**
      * get slices which greater than the value
      */
-    public List<Slice> getSlicesGT(String dbName, String tableName, String value) {
+    public List<Slice> getSlicesGT(String dbName, String tableName, Date time) {
 
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                "where DB.name=:dbName And TBL.name=:tableName and SLICE.name>:value")
+                "where DB.name=:dbName And TBL.name=:tableName and (SLICE.startTime>:time or SLICE.endTime<:time)")
                 .bind("dbName", dbName)
                 .bind("tableName", tableName)
-                .bind("value", value)
+                .bind("time", time)
                 .mapToBean(Slice.class)
                 .list());
     }
 
     /**
-     * get slices which greater or equal than the value
+     * get slices which greater than or equal the value
      */
-    public List<Slice> getSlicesGE(String dbName, String tableName, String value) {
+    public List<Slice> getSlicesGE(String dbName, String tableName, Date time) {
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                "where DB.name=:dbName And TBL.name=:tableName and SLICE.name>=:value")
+                "where DB.name=:dbName And TBL.name=:tableName and (SLICE.startTime>=:time or SLICE.endTime>:time)")
                 .bind("dbName", dbName)
                 .bind("tableName", tableName)
-                .bind("value", value)
+                .bind("time", time)
                 .mapToBean(Slice.class)
                 .list());
 
@@ -319,14 +342,14 @@ public abstract class MetadataConnector {
     /**
      * get slices which less than the value
      */
-    public List<Slice> getSlicesLT(String dbName, String tableName, String value) {
+    public List<Slice> getSlicesLT(String dbName, String tableName, Date time) {
 
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                "where DB.name=:dbName And TBL.name=:tableName and SLICE.name<:value")
+                "where DB.name=:dbName And TBL.name=:tableName and (SLICE.endTime<=:time)")
                 .bind("dbName", dbName)
                 .bind("tableName", tableName)
-                .bind("value", value)
+                .bind("time", time)
                 .mapToBean(Slice.class)
                 .list());
     }
@@ -334,13 +357,13 @@ public abstract class MetadataConnector {
     /**
      * get slices which less or equal than the value
      */
-    public List<Slice> getSlicesLE(String dbName, String tableName, String value) {
+    public List<Slice> getSlicesLE(String dbName, String tableName, Date time) {
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                "where DB.name=:dbName And TBL.name=:tableName and SLICE.name<=:value")
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.startTime<=:time")
                 .bind("dbName", dbName)
                 .bind("tableName", tableName)
-                .bind("value", value)
+                .bind("time", time)
                 .mapToBean(Slice.class)
                 .list());
     }
@@ -349,22 +372,16 @@ public abstract class MetadataConnector {
     /**
      * get slices which between the lower and upper
      */
-    public List<Slice> getSlicesBetween(String dbName, String tableName, String lower, String upper) {
-        String sqlGetSlices = String.format("Select SLICE.* from " +
-                        "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                        "where DB.name=%s And TBL .name=%s and SLICE.name between %s and %s",
-                dbName,
-                tableName,
-                lower,
-                upper);
+    public List<Slice> getSlicesBetween(String dbName, String tableName, Date lower, Date upper) {
+        Date nextUpperDate = SqlDateUtil.addSomeDates(upper, 1);
 
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                "where DB.name=:dbName And TBL.name=:tableName and SLICE.name between :lower and :upper")
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.startTime>=:lower and SLICE.endTIme<=:upper")
                 .bind("dbName", dbName)
                 .bind("tableName", tableName)
                 .bind("lower", lower)
-                .bind("upper", upper)
+                .bind("upper", nextUpperDate)
                 .mapToBean(Slice.class)
                 .list());
     }
@@ -372,7 +389,7 @@ public abstract class MetadataConnector {
     /*-------------Metadata API for checking status--------------*/
 
     public DB getDb(String dbName) {
-        return submit(handle ->  handle.createQuery("Select * from DB where DB.name=:dbName")
+        return submit(handle -> handle.createQuery("Select * from DB where DB.name=:dbName")
                 .bind("dbName", dbName)
                 .mapToBean(DB.class)
                 .one());
@@ -383,16 +400,17 @@ public abstract class MetadataConnector {
 
     public void createJob(Job job) {
         submit(handle -> {
-            String sql = "INSERT INTO JOB(id, name, dbName, tableName, sliceName, startTime, endTime, latestTask, state, type) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO JOB(id, name, dbName, tableName, startTime, endTime, dataLowerTime, dataUpperTime, latestTask, state, type) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             return handle.execute(sql,
                     job.getId(),
                     job.getName(),
                     job.getDbName(),
                     job.getTableName(),
-                    job.getSliceName(),
                     job.getStartTime(),
                     job.getEndTime(),
+                    job.getDataLowerTime(),
+                    job.getDataUpperTime(),
                     job.getLatestTask(),
                     job.getState(),
                     job.getType());
@@ -470,7 +488,7 @@ public abstract class MetadataConnector {
 
         submit(handle -> {
 
-            if(DictStatus.UNUSED == dict.getStatus()) {
+            if (DictStatus.UNUSED == dict.getStatus()) {
                 throw new MCE("Newly added dict must be READY status.");
             }
 
