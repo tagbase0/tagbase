@@ -1,5 +1,7 @@
 package com.oppo.tagbase.dict;
 
+import java.io.File;
+
 /**
  * Created by wujianchao on 2020/2/11.
  */
@@ -8,9 +10,12 @@ public class ForwardDictionary extends AbstractDictionary{
     public static final String MAGIC = "TAGBASE_FORWARD_DICT";
     public static final String VERSION = "1.0.0";
 
+    private File file;
+
     private String magic;
     private String checkSum;
     private String version;
+
     /**
      * must yyyyMMdd format
      */
@@ -25,7 +30,10 @@ public class ForwardDictionary extends AbstractDictionary{
 
     private int totalElements;
 
-    private int[] groupElementSizes;
+    /**
+     * first element id of group in the whole dictionary
+     */
+    private int[] firstElementId;
 
     // calculated metadata
 
@@ -44,10 +52,18 @@ public class ForwardDictionary extends AbstractDictionary{
 
     private Group[] groups;
 
+    public ForwardDictionary(File file) {
+        //TODO
 
+    }
 
     @Override
-    public int id(byte[] v) {
-        throw new UnsupportedOperationException("Forward dictionary doesn't support search id by value");
+    public byte[] element(int id) {
+        return super.element(id);
+    }
+
+    @Override
+    public int id(byte[] element) {
+        throw new UnsupportedOperationException("Forward dictionary doesn't support search id by element");
     }
 }

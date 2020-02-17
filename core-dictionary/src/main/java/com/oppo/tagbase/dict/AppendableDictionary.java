@@ -6,4 +6,9 @@ package com.oppo.tagbase.dict;
  */
 public interface AppendableDictionary extends Dictionary {
 
+    /**
+     * 向字典中添加一个值
+     */
+    int add(byte[] element);
+
 }
