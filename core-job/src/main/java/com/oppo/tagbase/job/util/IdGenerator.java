@@ -58,15 +58,15 @@ public final class IdGenerator {
         return String.format("%s_%s_%06d_%s", start, lastTimestamp, counter++, id);
     }
 
-    public synchronized String nextQueryId(String start, String date) {
+    public synchronized String nextQueryId(String start, String dateFormat) {
         // if it has been a second since the last id was generated, generate a new timestamp
         long now = nowInMillis();
 
-        String lastDate = new SimpleDateFormat(date).format(now);
+        String lastDate = new SimpleDateFormat(dateFormat).format(now);
         return String.format("%s_%s", start, lastDate);
     }
 
-    private long nowInMillis(){
+    private long nowInMillis() {
         return System.currentTimeMillis();
     }
 }

@@ -427,7 +427,7 @@ public abstract class MetadataConnector {
                     .mapToBean(Job.class)
                     .one();
 
-            List<Task> tasks = handle.createQuery("select * from TASK where jobId=:jobId")
+            List<Task> tasks = handle.createQuery("select * from TASK where jobId=:jobId order by step")
                     .bind("jobId", jobId)
                     .mapToBean(Task.class)
                     .list();
