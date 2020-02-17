@@ -25,7 +25,7 @@ public class LanuncherExample {
         //指定需要提交到集群执行的jar包,通过mvn clean package编译后会产生该jar，相关依赖同时被打进去
 
         String applicationJar = "D:\\workStation\\tagbaseGithup\\tagbase\\job-spark\\target\\job-spark-1.0-jar-with-dependencies.jar";
-        String mainClass = "com.oppo.job.spark.BitmapBuildingTask";
+        String mainClass = "com.oppo.tagbase.job.spark.BitmapBuildingTask";
         //本地调试指定临时目录，官方有个问题windows下spark任务执行完无法删除临时文件，不影响测试
         String sparkLocalDir = "D:\\workStation\\sparkTemp";
 

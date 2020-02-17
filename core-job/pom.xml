@@ -14,6 +14,7 @@
     <properties>
         <spark.version>2.3.2</spark.version>
         <jackson.version>2.10.0</jackson.version>
+        <commonscodec.version>1.10</commonscodec.version>
     </properties>
 
     <dependencies>
@@ -31,6 +32,12 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.11</artifactId>
             <version>${spark.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${commonscodec.version}</version>
         </dependency>
     </dependencies>
 

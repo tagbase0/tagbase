@@ -249,7 +249,7 @@ public class HbaseStorageConnector extends StorageConnector {
     private void bulkLoad(String tableName, String dataPath) throws Exception {
 
         LoadIncrementalHFiles loader = new LoadIncrementalHFiles(connection.getConfiguration());
-        TableName table = TableName.valueOf(tableName);
+        TableName table = TableName.valueOf(config.getNameSpace(), tableName);
         loader.doBulkLoad(new Path(dataPath),admin,connection.getTable(table),connection.getRegionLocator(table));
     }
 
