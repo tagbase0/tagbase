@@ -144,7 +144,7 @@ public abstract class MetadataConnector {
                             "\tversion VARCHAR(128),\n" +
                             "\tstatus VARCHAR(128),\n" +
                             "\tlocation VARCHAR(512),\n" +
-                            "\tlength BIGINT,\n" +
+                            "\telementCount BIGINT,\n" +
                             "\tendTime createDate,\n" +
                             "\ttype VARCHAR(128)\n" +
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1"
@@ -550,14 +550,14 @@ public abstract class MetadataConnector {
             String sqlDisableDict = "UPDATE DICT set status=? where status=?";
             handle.execute(sqlDisableDict, DictStatus.UNUSED, DictStatus.READY);
 
-            String sqlAddDict = "INSERT INTO DICT(version, status, location, length, createDate, type) " +
+            String sqlAddDict = "INSERT INTO DICT(version, status, location, elementCount, createDate, type) " +
                     "VALUES (?, ?, ?, ?, ?, ?)";
 
             return handle.execute(sqlAddDict,
                     dict.getVersion(),
                     dict.getStatus(),
                     dict.getLocation(),
-                    dict.getLength(),
+                    dict.getElementCount(),
                     dict.getCreateDate(),
                     dict.getType());
         });
