@@ -8,7 +8,7 @@ import java.util.Calendar;
  */
 public class SqlDateUtil {
 
-    public static Date addSomeDates(Date date, int nDays) {
+    public static Date addSomeDays(Date date, int nDays) {
         Calendar c = Calendar.getInstance();
         c.setTime(date);
         c.add(Calendar.DATE, nDays);

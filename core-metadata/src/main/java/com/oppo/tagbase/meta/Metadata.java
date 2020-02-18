@@ -54,6 +54,14 @@ public class Metadata {
         metadataConnector.addSlice(slice);
     }
 
+    public void updateSliceStatus(long id, long tableId, SliceStatus status) {
+        metadataConnector.updateSliceStatus(id, tableId, status);
+    }
+
+    public void updateSliceSinkStatistics(long id, long sinkSizeMb, long sinkCount) {
+        metadataConnector.updateSliceSinkStatistics(id, sinkSizeMb, sinkCount);
+    }
+
     /*-------------Metadata API for query--------------*/
 
     /**
@@ -114,11 +122,6 @@ public class Metadata {
     //TODO
     public ImmutableList<Table> listTables(String dbName) {
         return null;
-    }
-
-    //TODO
-    public void createDB(String dbName, String desc) {
-
     }
 
 

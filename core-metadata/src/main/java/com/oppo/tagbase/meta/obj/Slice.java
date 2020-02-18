@@ -15,6 +15,10 @@ public class Slice {
     private String sink;
     private SliceStatus status = SliceStatus.BUILDING;
     private int shardNum = 1;
+    private long srcSizeMb;
+    private long srcCount;
+    private long sinkSizeMb;
+    private long sinkCount;
 
     public long getId() {
         return id;
@@ -70,6 +74,38 @@ public class Slice {
 
     public void setShardNum(int shardNum) {
         this.shardNum = shardNum;
+    }
+
+    public long getSrcSizeMb() {
+        return srcSizeMb;
+    }
+
+    public void setSrcSizeMb(long srcSizeMb) {
+        this.srcSizeMb = srcSizeMb;
+    }
+
+    public long getSrcCount() {
+        return srcCount;
+    }
+
+    public void setSrcCount(long srcCount) {
+        this.srcCount = srcCount;
+    }
+
+    public long getSinkSizeMb() {
+        return sinkSizeMb;
+    }
+
+    public void setSinkSizeMb(long sinkSizeMb) {
+        this.sinkSizeMb = sinkSizeMb;
+    }
+
+    public long getSinkCount() {
+        return sinkCount;
+    }
+
+    public void setSinkCount(long sinkCount) {
+        this.sinkCount = sinkCount;
     }
 
     @Override

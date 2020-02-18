@@ -100,7 +100,11 @@ public abstract class MetadataConnector {
                             "\tstatus VARCHAR(128),\n" +
                             "\tsrcTable VARCHAR(128),\n" +
                             "\tsink VARCHAR(128) unique,\n" +
-                            "\tshardNum  TINYINT\n" +
+                            "\tshardNum  TINYINT,\n" +
+                            "\tsrcSizeMb  BIGINT,\n" +
+                            "\tsrcCount  BIGINT,\n" +
+                            "\tsinkSizeMb  BIGINT,\n" +
+                            "\tsinkCount  BIGINT\n" +
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
 
                     // add index
@@ -248,8 +252,8 @@ public abstract class MetadataConnector {
     public void addSlice(Slice slice) {
         submit(handle -> {
 
-            if(slice.getStatus() != SliceStatus.READY) {
-                throw new MCE("Newly added slice must be READY status.");
+            if(slice.getStatus() != SliceStatus.BUILDING) {
+                throw new MCE("Newly added slice must be BUILDING status.");
             }
 
             TableType tableType = handle.createQuery("select type from TBL where id=:tableId")
@@ -280,21 +284,61 @@ public abstract class MetadataConnector {
 //                return handle.execute(sqlAddSlice);
 //            }
 
-            handle.execute("Update SLICE set status=? where tableId=? and status=?",
-                    SliceStatus.DISABLED,
-                    slice.getTableId(),
-                    SliceStatus.READY);
+            if(tableType == TableType.TAG) {
+                handle.execute("Update SLICE set status=? where tableId=? and status=?",
+                        SliceStatus.DISABLED,
+                        slice.getTableId(),
+                        SliceStatus.READY);
+            }
 
-            return handle.execute("Insert into SLICE(startTime, endTime, tableId, status, sink, shardNum) " +
-                            "values(?, ?, ?, ?, ?, ?)",
+            return handle.execute("Insert into SLICE(startTime, endTime, tableId, status, sink, shardNum, srcSizeMb, srcCount, sinkSizeMb, sinkCount) " +
+                            "values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     slice.getStartTime(),
                     slice.getEndTime(),
                     slice.getTableId(),
                     slice.getStatus(),
                     slice.getSink(),
-                    slice.getShardNum());
+                    slice.getShardNum(),
+                    slice.getSrcSizeMb(),
+                    slice.getSrcCount(),
+                    slice.getSinkSizeMb(),
+                    slice.getSinkCount()
+            );
         });
     }
+
+    public void updateSliceStatus(long id, long tableId, SliceStatus status) {
+
+        submit(handle -> {
+
+            if (status == SliceStatus.READY) {
+                TableType tableType = handle.createQuery("select type from TBL where id=:tableId")
+                        .bind("tableId", tableId)
+                        .mapTo(TableType.class)
+                        .one();
+                if(tableType == TableType.TAG) {
+                    handle.execute("Update SLICE set status=? where tableId=? and status=?",
+                            SliceStatus.DISABLED,
+                            tableId,
+                            status);
+                }
+            }
+
+            return handle.execute("Update SLICE set status=? where id=?",
+                    status,
+                    tableId);
+        });
+    }
+
+    public void updateSliceSinkStatistics(long id, long sinkSizeMb, long sinkCount) {
+        submit(handle -> handle.execute("Update SLICE set sinkSizeMb=? and sinkCount=? where id=?",
+                    sinkSizeMb,
+                    sinkCount,
+                    id)
+        );
+    }
+
+
 
     /*-------------Metadata API for query--------------*/
 
@@ -302,9 +346,10 @@ public abstract class MetadataConnector {
 
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                "where DB.name=:dbName And TBL .name=:tableName")
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.status=:sliceStatus")
                 .bind("dbName", dbName)
                 .bind("tableName", tableName)
+                .bind("sliceStatus", SliceStatus.READY)
                 .mapToBean(Slice.class)
                 .list());
     }
@@ -316,9 +361,11 @@ public abstract class MetadataConnector {
 
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                "where DB.name=:dbName And TBL.name=:tableName and (SLICE.startTime>:time or SLICE.endTime<:time)")
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.status=:sliceStatus and " +
+                "(SLICE.startTime>:time or SLICE.endTime<:time)")
                 .bind("dbName", dbName)
                 .bind("tableName", tableName)
+                .bind("sliceStatus", SliceStatus.READY)
                 .bind("time", time)
                 .mapToBean(Slice.class)
                 .list());
@@ -330,9 +377,11 @@ public abstract class MetadataConnector {
     public List<Slice> getSlicesGE(String dbName, String tableName, Date time) {
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                "where DB.name=:dbName And TBL.name=:tableName and (SLICE.startTime>=:time or SLICE.endTime>:time)")
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.status=:sliceStatus and " +
+                "(SLICE.startTime>=:time or SLICE.endTime>:time)")
                 .bind("dbName", dbName)
                 .bind("tableName", tableName)
+                .bind("sliceStatus", SliceStatus.READY)
                 .bind("time", time)
                 .mapToBean(Slice.class)
                 .list());
@@ -346,9 +395,11 @@ public abstract class MetadataConnector {
 
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                "where DB.name=:dbName And TBL.name=:tableName and (SLICE.endTime<=:time)")
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.status=:sliceStatus and" +
+                " (SLICE.endTime<=:time)")
                 .bind("dbName", dbName)
                 .bind("tableName", tableName)
+                .bind("sliceStatus", SliceStatus.READY)
                 .bind("time", time)
                 .mapToBean(Slice.class)
                 .list());
@@ -360,9 +411,11 @@ public abstract class MetadataConnector {
     public List<Slice> getSlicesLE(String dbName, String tableName, Date time) {
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                "where DB.name=:dbName And TBL.name=:tableName and SLICE.startTime<=:time")
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.status=:sliceStatus and" +
+                " SLICE.startTime<=:time")
                 .bind("dbName", dbName)
                 .bind("tableName", tableName)
+                .bind("sliceStatus", SliceStatus.READY)
                 .bind("time", time)
                 .mapToBean(Slice.class)
                 .list());
@@ -373,13 +426,15 @@ public abstract class MetadataConnector {
      * get slices which between the lower and upper
      */
     public List<Slice> getSlicesBetween(String dbName, String tableName, Date lower, Date upper) {
-        Date nextUpperDate = SqlDateUtil.addSomeDates(upper, 1);
+        Date nextUpperDate = SqlDateUtil.addSomeDays(upper, 1);
 
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
-                "where DB.name=:dbName And TBL.name=:tableName and SLICE.startTime>=:lower and SLICE.endTIme<=:upper")
+                "where DB.name=:dbName And TBL.name=:tableName and SLICE.status=:sliceStatus and" +
+                " SLICE.startTime>=:lower and SLICE.endTIme<=:upper")
                 .bind("dbName", dbName)
                 .bind("tableName", tableName)
+                .bind("sliceStatus", SliceStatus.READY)
                 .bind("lower", lower)
                 .bind("upper", nextUpperDate)
                 .mapToBean(Slice.class)
