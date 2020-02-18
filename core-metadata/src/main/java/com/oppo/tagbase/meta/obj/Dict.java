@@ -12,7 +12,7 @@ public class Dict {
     private String version = "1.0.0";
     private DictStatus status;
     private String location;
-    private long length;
+    private long elementCount;
     private Date createDate;
     private DictType type;
 
@@ -48,12 +48,12 @@ public class Dict {
         this.location = location;
     }
 
-    public long getLength() {
-        return length;
+    public long getElementCount() {
+        return elementCount;
     }
 
-    public void setLength(long length) {
-        this.length = length;
+    public void setElementCount(long elementCount) {
+        this.elementCount = elementCount;
     }
 
     public Date getCreateDate() {

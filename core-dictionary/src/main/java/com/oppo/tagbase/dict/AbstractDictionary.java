@@ -15,17 +15,17 @@ public abstract class AbstractDictionary implements AppendableDictionary {
     }
 
     @Override
-    public void add(byte[] v) {
-
+    public int add(byte[] v) {
+        return 0;
     }
 
     @Override
-    public byte[] value(int id) {
+    public byte[] element(int id) {
         return null;
     }
 
     @Override
-    public int id(byte[] v) {
+    public int id(byte[] element) {
         return 0;
     }
 
