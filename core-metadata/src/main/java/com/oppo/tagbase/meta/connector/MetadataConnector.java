@@ -135,7 +135,8 @@ public abstract class MetadataConnector {
                             "\tstartTime DATETIME,\n" +
                             "\tendTime DATETIME,\n" +
                             "\tstep tinyint,\n" +
-                            "\tstate VARCHAR(128)\n" +
+                            "\tstate VARCHAR(128),\n" +
+                            "\toutput VARCHAR(1024)\n" +
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
 
                     // create table DICT
@@ -162,20 +163,20 @@ public abstract class MetadataConnector {
 
     /*-------------Metadata DDL part--------------*/
 
-    public void createDb(String dbName, String desc) {
+    public void addDb(String dbName, String desc) {
         submit(handle -> {
             String sql = "INSERT INTO DB(name, desc) VALUES (?, ?)";
             return handle.execute(sql, dbName, desc);
         });
     }
 
-    public void createTable(String dbName,
-                            String tableName,
-                            String srcDb,
-                            String srcTable,
-                            String desc,
-                            TableType type,
-                            List<Column> columnList) {
+    public void addTable(String dbName,
+                         String tableName,
+                         String srcDb,
+                         String srcTable,
+                         String desc,
+                         TableType type,
+                         List<Column> columnList) {
         submit(handle -> {
 
             // 1. get dbId
@@ -453,7 +454,7 @@ public abstract class MetadataConnector {
 
     /*-------------Metadata API for Job module--------------*/
 
-    public void createJob(Job job) {
+    public void addJob(Job job) {
         submit(handle -> {
             String sql = "INSERT INTO JOB(id, name, dbName, tableName, startTime, endTime, dataLowerTime, dataUpperTime, latestTask, state, type) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -512,9 +513,9 @@ public abstract class MetadataConnector {
     }
 
 
-    public void createTask(Task task) {
+    public void addTask(Task task) {
         submit(handle -> {
-            String sql = "INSERT INTO TASK(id, name, jobId, appId, startTime, endTime, step, state) " +
+            String sql = "INSERT INTO TASK(id, name, jobId, appId, startTime, endTime, step, state, output) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             return handle.execute(sql,
                     task.getId(),
@@ -524,14 +525,16 @@ public abstract class MetadataConnector {
                     task.getStartTime(),
                     task.getEndTime(),
                     task.getStep(),
-                    task.getState());
+                    task.getState(),
+                    task.getOutput()
+            );
         });
     }
 
-    public void completeTask(String taskId, TaskState state, Date endTime) {
+    public void completeTask(String taskId, TaskState state, Date endTime, String output) {
         submit(handle -> {
-            String sql = "Update TASK set state=? and endTime=? where id=?";
-            return handle.execute(sql, state, endTime, taskId);
+            String sql = "Update TASK set state=? and endTime=? and output=? where id=?";
+            return handle.execute(sql, state, endTime, output, taskId);
         });
     }
 
@@ -539,7 +542,7 @@ public abstract class MetadataConnector {
     /*-------------Metadata API for Dict module--------------*/
 
     //TODO put two sql in transaction
-    public void createDict(Dict dict) {
+    public void addDict(Dict dict) {
 
         submit(handle -> {
 
@@ -567,6 +570,13 @@ public abstract class MetadataConnector {
         return submit(handle -> handle.createQuery("SELECT * from DICT where status=:status")
                 .bind("status", DictStatus.READY)
                 .mapToBean(Dict.class)
+                .one());
+    }
+
+    public long getDictElementCount() {
+        return submit(handle -> handle.createQuery("SELECT elementCount from DICT where status=:status")
+                .bind("status", DictStatus.READY)
+                .mapTo(Long.class)
                 .one());
     }
 

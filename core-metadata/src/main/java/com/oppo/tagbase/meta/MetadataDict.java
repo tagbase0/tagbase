@@ -15,11 +15,15 @@ public class MetadataDict {
     @Inject
     private MetadataConnector metadataConnector;
 
-    public void createDict(Dict dict) {
-        metadataConnector.createDict(dict);
+    public void addDict(Dict dict) {
+        metadataConnector.addDict(dict);
     }
 
     public Dict getDict() {
         return metadataConnector.getDict();
+    }
+
+    public long getDictElementCount() {
+        return metadataConnector.getDictElementCount();
     }
 }

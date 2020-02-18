@@ -24,18 +24,18 @@ public class Metadata {
 
     /*-------------Metadata DDL part--------------*/
 
-    public void createDb(String dbName, String desc)  {
-        metadataConnector.createDb(dbName, desc);
+    public void addDb(String dbName, String desc)  {
+        metadataConnector.addDb(dbName, desc);
     }
 
-    public void createTable(String dbName,
+    public void addTable(String dbName,
                             String tableName,
                             String srcDb,
                             String srcTable,
                             String desc,
                             TableType type,
                             List<Column> columnList) {
-        metadataConnector.createTable(dbName,
+        metadataConnector.addTable(dbName,
                 tableName,
                 srcDb,
                 srcTable,

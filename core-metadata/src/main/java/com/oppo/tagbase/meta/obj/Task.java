@@ -19,6 +19,7 @@ public class Task {
     private Date endTime;
     private byte step;
     private TaskState state;
+    private String output;
 
     public String getId() {
         return id;
@@ -82,6 +83,14 @@ public class Task {
 
     public void setState(TaskState state) {
         this.state = state;
+    }
+
+    public String getOutput() {
+        return output;
+    }
+
+    public void setOutput(String output) {
+        this.output = output;
     }
 
     @Override
