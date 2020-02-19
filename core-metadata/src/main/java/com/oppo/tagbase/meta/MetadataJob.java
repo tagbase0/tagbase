@@ -7,7 +7,7 @@ import com.oppo.tagbase.meta.obj.Task;
 import com.oppo.tagbase.meta.obj.TaskState;
 
 import javax.inject.Inject;
-import java.util.Date;
+import java.sql.Date;
 
 /**
  * Metadata service for job
@@ -19,8 +19,8 @@ public class MetadataJob {
     @Inject
     private MetadataConnector metadataConnector;
 
-    public void createJob(Job job) {
-        metadataConnector.createJob(job);
+    public void addJob(Job job) {
+        metadataConnector.addJob(job);
     }
 
     public void deleteJOb(String jobId) {
@@ -35,11 +35,11 @@ public class MetadataJob {
         return metadataConnector.getJob(jobId);
     }
 
-    public void createTask(Task task) {
-        metadataConnector.createTask(task);
+    public void addTask(Task task) {
+        metadataConnector.addTask(task);
     }
 
-    public void completeTask(String taskId, TaskState state, Date endTime) {
-        metadataConnector.completeTask(taskId, state, endTime);
+    public void completeTask(String taskId, TaskState state, Date endTime, String output) {
+        metadataConnector.completeTask(taskId, state, endTime, output);
     }
 }
