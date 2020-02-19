@@ -20,11 +20,14 @@ public class BitMapJob implements AbstractJob {
 
     @Override
     public boolean succeed(String jobId) {
+        if (JobState.SUCCESS == new MetadataJob().getJob(jobId).getState()) {
+            return true;
+        }
         return false;
     }
 
     @Override
-    public String buildDict(String dbName, String tableName) {
+    public void buildDict(String dbName, String tableName) {
         throw new UnsupportedOperationException("Data build job  doesn't support build dictionary !");
     }
 
@@ -64,8 +67,30 @@ public class BitMapJob implements AbstractJob {
         new MetadataJob().addJob(bitMapJob);
 
         // 定义子任务 tasks
+        iniTasks(bitMapJob);
 
         return bitMapJob;
+    }
+
+    private void iniTasks(Job bitMapJob) {
+        // task1 for Hfile
+        // 定义两个task，分别构建反向字典和正向字典
+        Task hFileTask = new Task();
+        hFileTask.setId(new IdGenerator().nextQueryId("DataBuildHfileTask"));
+        hFileTask.setName("DataBuildHfileTask_" + bitMapJob.getName());
+        hFileTask.setJobId(bitMapJob.getId());
+        hFileTask.setStep((byte)0);
+        String outputHfile = "";
+        hFileTask.setOutput(outputHfile);
+
+        // task2 for bulkload
+        Task loadTask = new Task();
+        loadTask.setId(new IdGenerator().nextQueryId("DataBuildLoadTask"));
+        loadTask.setName("DataBuildLoadTask_" + bitMapJob.getName());
+        loadTask.setJobId(bitMapJob.getId());
+        loadTask.setStep((byte)1);
+        String outputLoad = "";
+        loadTask.setOutput(outputLoad);
     }
 
 
@@ -90,7 +115,15 @@ public class BitMapJob implements AbstractJob {
 
     public boolean readytoBuild() {
         // 若反向字典已经构建完成，且当前负载不高时，从pending队列取一个到running队列
-        return succeed(DictJob.DICT_JOB_ID) && AbstractJob.RUNNING_JOBS_QUEUE.size() <= RUNNING_JOBS_LIMIT;
+        return invertedDictSucceed(DictJob.DICT_JOB_ID) &&
+                AbstractJob.RUNNING_JOBS_QUEUE.size() <= RUNNING_JOBS_LIMIT;
+    }
+
+    public boolean invertedDictSucceed(String jobId) {
+        if (TaskState.SUCCESS == new MetadataJob().getJob(jobId).getTasks().get(0).getState()) {
+            return true;
+        }
+        return false;
     }
 
 }

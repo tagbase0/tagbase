@@ -1,5 +1,6 @@
 package com.oppo.tagbase.job;
 
+import com.oppo.tagbase.job.util.TaskHelper;
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.*;
 
@@ -34,18 +35,6 @@ public class BitMapBuildJob extends Task implements Callable<Slice> {
         this.jobId = jobId;
     }
 
-    /**
-     * 检查这个任务的前置任务是否正常执行成功
-     */
-    public boolean preTaskFinish(List<Task> tasks, int step) {
-
-        for (int i = 0; i < step; i++) {
-            if (TaskState.SUCCESS != tasks.get(i).getState()) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     @Override
     public Slice call() {
@@ -63,20 +52,15 @@ public class BitMapBuildJob extends Task implements Callable<Slice> {
             switch (i) {
                 case 0:
                     // 仅仅当前任务的前置任务都正常执行成功，才开启这个任务
-                    if (preTaskFinish(tasks, i)) {
+                    if (new TaskHelper().preTaskFinish(tasks, i)) {
                         // BitmapBuildingTask();
+
                     }
                     break;
                 case 1:
-                    if (preTaskFinish(tasks, i)) {
-                        // bulkload();
-                    }
-                    break;
-                case 2:
-                    if (preTaskFinish(tasks, i)) {
-                        //addSlice()
+                    if (new TaskHelper().preTaskFinish(tasks, i)) {
+                        // bulkload() && addSlice();
 
-                        // 所有子任务都success, 则将这个job标记为success
                         jobRunning.setState(JobState.SUCCESS);
                     }
                     break;

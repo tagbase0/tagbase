@@ -30,9 +30,8 @@ public interface AbstractJob {
      * 对外提供一个字典的构建接口
      *
      * @param: 标签hive数据的dbName和tableName
-     * @return: 返回这个构建job的jobId
      */
-    String buildDict(String dbName, String tableName);
+    void buildDict(String dbName, String tableName);
 
     /**
      * 对外提供一个标签的构建接口
