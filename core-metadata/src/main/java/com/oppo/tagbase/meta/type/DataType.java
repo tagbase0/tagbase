@@ -5,7 +5,19 @@ package com.oppo.tagbase.meta.type;
  */
 public enum  DataType {
 
+    /**
+     * dim type
+     */
     STRING,
+    /**
+     * slice column type
+     * format yyyyMMdd
+     */
+    DATE,
+
+    /**
+     * metric type
+     */
     LONG,
     BITMAP
 }
