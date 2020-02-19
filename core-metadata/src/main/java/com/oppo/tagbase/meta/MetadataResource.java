@@ -40,9 +40,9 @@ public class MetadataResource {
     @POST
     @Path("/db")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createDb(@QueryParam("dbName") @NotNull String dbName,
+    public Response addDb(@QueryParam("dbName") @NotNull String dbName,
                              @QueryParam("desc") String desc) {
-        metadata.createDB(dbName, desc);
+        metadata.addDb(dbName, desc);
         DB db = metadata.getDb(dbName);
         return Response.ok(db).build();
     }
@@ -50,14 +50,14 @@ public class MetadataResource {
     @POST
     @Path("/table")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createTable(@QueryParam("dbName") @NotNull String dbName,
+    public Response addTable(@QueryParam("dbName") @NotNull String dbName,
                                 @QueryParam("tableName") @NotNull String tableName,
                                 @QueryParam("srcDb") @NotNull String srcDb,
                                 @QueryParam("srcTable") @NotNull String srcTable,
                                 @QueryParam("desc") String desc,
                                 @QueryParam("type") @NotNull TableType type,
                                 @QueryParam("columnList") @NotNull List<Column> columnList) {
-        metadata.createTable(dbName,
+        metadata.addTable(dbName,
                 tableName,
                 srcDb,
                 srcTable,
