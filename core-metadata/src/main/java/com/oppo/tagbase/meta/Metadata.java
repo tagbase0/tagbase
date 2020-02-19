@@ -1,6 +1,7 @@
 package com.oppo.tagbase.meta;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.RangeSet;
 import com.oppo.tagbase.meta.connector.MetadataConnector;
 import com.oppo.tagbase.meta.obj.*;
 
@@ -72,8 +73,16 @@ public class Metadata {
     }
 
     /**
+     * get slices with filter
+     */
+    public List<Slice> getSlices(String dbName, String tableName, RangeSet<Date> range) {
+        return metadataConnector.getSlices(dbName, tableName, range);
+    }
+
+    /**
      * get slices which greater than the value
      */
+    @Deprecated
     public List<Slice> getSlicesGT(String dbName, String tableName, Date value) {
         return metadataConnector.getSlicesGT(dbName, tableName, value);
     }
@@ -81,6 +90,7 @@ public class Metadata {
     /**
      * get slices which greater or equal than the value
      */
+    @Deprecated
     public List<Slice> getSlicesGE(String dbName, String tableName, Date value) {
         return metadataConnector.getSlicesGE(dbName, tableName, value);
     }
@@ -88,6 +98,7 @@ public class Metadata {
     /**
      * get slices which less than the value
      */
+    @Deprecated
     public List<Slice> getSlicesLT(String dbName, String tableName, Date value) {
         return metadataConnector.getSlicesLT(dbName, tableName, value);
     }
@@ -95,6 +106,7 @@ public class Metadata {
     /**
      * get slices which less or equal than the value
      */
+    @Deprecated
     public List<Slice> getSlicesLE(String dbName, String tableName, Date time) {
         return metadataConnector.getSlicesLE(dbName, tableName, time);
     }
@@ -103,6 +115,7 @@ public class Metadata {
     /**
      * get slices which between the lower and upper
      */
+    @Deprecated
     public List<Slice> getSlicesBetween(String dbName, String tableName, Date lower, Date upper) {
         return metadataConnector.getSlicesBetween(dbName, tableName, lower, upper);
     }

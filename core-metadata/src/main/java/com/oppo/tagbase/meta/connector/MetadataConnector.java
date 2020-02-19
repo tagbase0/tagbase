@@ -1,6 +1,8 @@
 package com.oppo.tagbase.meta.connector;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
 import com.oppo.tagbase.meta.obj.*;
 import com.oppo.tagbase.meta.util.SqlDateUtil;
 import org.jdbi.v3.core.HandleCallback;
@@ -12,6 +14,7 @@ import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 import javax.inject.Inject;
 import java.sql.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by wujianchao on 2020/2/4.
@@ -355,9 +358,19 @@ public abstract class MetadataConnector {
                 .list());
     }
 
+    //TODO use a more efficient fashion
+    public List<Slice> getSlices(String dbName, String tableName, RangeSet<Date> range) {
+        List<Slice> sliceList = getSlices(dbName, tableName);
+        List<Slice> ret = sliceList.stream()
+                .filter(slice -> range.encloses(Range.closedOpen(slice.getStartTime(), slice.getEndTime())))
+                .collect(Collectors.toList());
+        return ret;
+    }
+
     /**
      * get slices which greater than the value
      */
+    @Deprecated
     public List<Slice> getSlicesGT(String dbName, String tableName, Date time) {
 
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
@@ -375,6 +388,7 @@ public abstract class MetadataConnector {
     /**
      * get slices which greater than or equal the value
      */
+    @Deprecated
     public List<Slice> getSlicesGE(String dbName, String tableName, Date time) {
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
@@ -392,6 +406,7 @@ public abstract class MetadataConnector {
     /**
      * get slices which less than the value
      */
+    @Deprecated
     public List<Slice> getSlicesLT(String dbName, String tableName, Date time) {
 
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
@@ -409,6 +424,7 @@ public abstract class MetadataConnector {
     /**
      * get slices which less or equal than the value
      */
+    @Deprecated
     public List<Slice> getSlicesLE(String dbName, String tableName, Date time) {
         return submit(handle -> handle.createQuery("Select SLICE.* from " +
                 "DB join TBL on DB.id=TBL.dbId join SLICE on TBL.id=SLICE.tableId " +
@@ -426,6 +442,7 @@ public abstract class MetadataConnector {
     /**
      * get slices which between the lower and upper
      */
+    @Deprecated
     public List<Slice> getSlicesBetween(String dbName, String tableName, Date lower, Date upper) {
         Date nextUpperDate = SqlDateUtil.addSomeDays(upper, 1);
 

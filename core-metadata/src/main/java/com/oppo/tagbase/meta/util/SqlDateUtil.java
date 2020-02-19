@@ -14,4 +14,11 @@ public class SqlDateUtil {
         c.add(Calendar.DATE, nDays);
         return new Date(c.getTime().getTime());
     }
+
+    public static Date create(int year, int month, int day) {
+        Calendar.Builder builder = new Calendar.Builder()
+                .setDate(year, month, day)
+                .setTimeOfDay(0, 0, 0, 0);
+        return new Date(builder.build().getTime().getTime());
+    }
 }
