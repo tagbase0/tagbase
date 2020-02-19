@@ -1,7 +1,7 @@
 package com.oppo.tagbase.job;
 
+import com.oppo.tagbase.job.util.DateFormat;
 import com.oppo.tagbase.job.util.IdGenerator;
-import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.*;
 import org.slf4j.Logger;
@@ -24,46 +24,56 @@ public class BitMapJob implements AbstractJob {
     }
 
     @Override
-    public String build(String dbName, String tableName, String jobType) {
-        if ("data".equalsIgnoreCase(jobType)) {
-            return build(dbName, tableName);
-        } else {
-            return null;
-        }
+    public String buildDict(String dbName, String tableName) {
+        throw new UnsupportedOperationException("Data build job  doesn't support build dictionary !");
     }
 
     @Override
-    public void iniJob(Job job) {
-        new MetadataJob().createJob(job);
+    public String buildData(String dbName, String tableName, String lowerDate, String upperDate) {
+        Job job = iniJob(dbName, tableName, lowerDate, upperDate);
+        return build(job);
+    }
 
-        // 定义子任务 tasks
-
+    @Override
+    public Job jobInfo(String jobId) {
+        return new MetadataJob().getJob(jobId);
     }
 
 
-    public String build(String dbName, String tableName) {
-        Table table = new Metadata().getTable(dbName, tableName);
+    public Job iniJob(String dbName, String tableName, String lowerDate, String upperDate) {
         Job bitMapJob = new Job();
 
+        Date dataLowerDate = new DateFormat().toDate(dbName, tableName, lowerDate);
+        Date dataUpperDate = new DateFormat().toDate(dbName, tableName, upperDate);
+
         String bitMapJobId = new IdGenerator().nextQueryId("BitMapBuildJob");
-        String jobName = "BitMapBuildJob_" + table.getSrcDb() + "_" + table.getSrcTable() +
-                table.getName() + "_" + table.getDesc();
+        String jobName = dbName + "_" + tableName + "_" + dataLowerDate + "_" + dataUpperDate;
 
         bitMapJob.setId(bitMapJobId);
         bitMapJob.setName(jobName);
         bitMapJob.setDbName(dbName);
         bitMapJob.setTableName(tableName);
-        bitMapJob.setSliceName("");
         bitMapJob.setStartTime(new Date(System.currentTimeMillis()));
+        bitMapJob.setDataLowerTime(dataLowerDate);
+        bitMapJob.setDataUpperTime(dataUpperDate);
         bitMapJob.setLatestTask("");
         bitMapJob.setState(JobState.PENDING);
         bitMapJob.setType(JobType.DATA);
 
-        iniJob(bitMapJob);
+
+        new MetadataJob().addJob(bitMapJob);
+
+        // 定义子任务 tasks
+
+        return bitMapJob;
+    }
+
+
+    public String build(Job bitMapJob) {
 
         // 将此 job 放到 pending 队列
         PENDING_JOBS_QUEUE.offer(bitMapJob);
-        log.info("{} is pending", bitMapJobId);
+        log.info("{} is pending", bitMapJob.getId());
 
         // 若已准备好 构建
         while (readytoBuild()) {
@@ -74,7 +84,7 @@ public class BitMapJob implements AbstractJob {
 
         }
 
-        return bitMapJobId;
+        return bitMapJob.getId();
 
     }
 

@@ -31,22 +31,23 @@ public class DictJob implements AbstractJob {
     }
 
     @Override
-    public String build(String dbName, String tableName, String jobType) {
-        if ("dictionary".equalsIgnoreCase(jobType)) {
-            return build(dbName, tableName);
-        } else {
-            return null;
-        }
+    public String buildDict(String dbName, String tableName) {
+        Job job = iniJob(dbName, tableName);
+        return build(job);
     }
 
     @Override
-    public void iniJob(Job job) {
-
-        new MetadataJob().createJob(job);
-
+    public String buildData(String dbName, String tableName, String lowerDate, String upperDate) {
+        throw new UnsupportedOperationException("Dict build job  doesn't support build data !");
     }
 
-    public String build(String dbName, String tableName) {
+    @Override
+    public Job jobInfo(String jobId) {
+        return new MetadataJob().getJob(jobId);
+    }
+
+
+    public Job iniJob(String dbName, String tableName) {
 
         Job dictJob = new Job();
 
@@ -54,16 +55,21 @@ public class DictJob implements AbstractJob {
         String today = new SimpleDateFormat("yyyyMMdd").format(System.currentTimeMillis());
 
         dictJob.setId(DICT_JOB_ID);
-        dictJob.setName("DictBuildJob_" + today);
+        dictJob.setName(dbName + "_" + tableName + "_" + today);
         dictJob.setDbName(dbName);
         dictJob.setTableName(tableName);
-        dictJob.setSliceName("");
         dictJob.setStartTime(new Date(System.currentTimeMillis()));
         dictJob.setLatestTask("");
         dictJob.setState(JobState.PENDING);
         dictJob.setType(JobType.DICTIONARY);
 
-        iniJob(dictJob);
+        new MetadataJob().addJob(dictJob);
+
+        return dictJob;
+
+    }
+
+    public String build(Job dictJob) {
 
         // 将此 job 放到 pending 队列
 //        PENDING_JOBS_QUEUE.offer(dictJob);

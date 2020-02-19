@@ -27,16 +27,28 @@ public interface AbstractJob {
 
 
     /**
-     * 对外提供一个标签的build接口
+     * 对外提供一个字典的构建接口
      *
-     * @param: 标签hive数据的dbName和tableName，以及此job的类型
+     * @param: 标签hive数据的dbName和tableName
      * @return: 返回这个构建job的jobId
      */
-    String build(String dbName, String tableName, String jobType);
+    String buildDict(String dbName, String tableName);
 
     /**
-     * 初始化 job, 完成元数据模块的相关创建工作
+     * 对外提供一个标签的构建接口
+     *
+     * @param: 标签hive数据的dbName和tableName，以及构建的时间区间
+     * @return: 返回这个构建job的jobId
      */
-    void iniJob(Job job);
+    String buildData(String dbName, String tableName, String lowerDate, String upperDate);
+
+    /**
+     * 对外提供一个查询构建job信息的接口
+     *
+     * @param: 构建任务的 jobId
+     * @return: 返回这个构建job的具体信息
+     */
+    Job jobInfo(String jobId);
+
 
 }
