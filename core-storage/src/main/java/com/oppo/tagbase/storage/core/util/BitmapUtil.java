@@ -28,7 +28,7 @@ public class BitmapUtil {
 
     public static ImmutableRoaringBitmap deSerializeBitmap(byte[] value, int offset, int length) {
         if (offset < 0 || length > value.length) {
-            throw new StorageException("illegal parameter");
+            throw new StorageException("deSerializeBitmap error, illegal parameter");
         }
         ByteBuffer buffer = ByteBuffer.wrap(value, offset, length);
         return new ImmutableRoaringBitmap(buffer);

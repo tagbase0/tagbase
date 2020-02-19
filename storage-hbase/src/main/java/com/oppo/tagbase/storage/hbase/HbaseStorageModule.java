@@ -5,6 +5,7 @@ import com.google.inject.Binder;
 import com.oppo.tagbase.common.guice.ConfBind;
 import com.oppo.tagbase.common.guice.PolyBind;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
+import com.oppo.tagbase.storage.core.connector.StorageConnectorConfig;
 
 /**
  * Created by liangjingya on 2020/2/8.
@@ -18,6 +19,11 @@ public class HbaseStorageModule extends AbstractModule {
         ConfBind.bind(binder,
                 "tagbase.bitmap.storage.hbase",
                 HbaseStorageConnectorConfig.class
+        );
+
+        ConfBind.bind(binder,
+                "tagbase.bitmap.storage.common",
+                StorageConnectorConfig.class
         );
 
         PolyBind.bind(

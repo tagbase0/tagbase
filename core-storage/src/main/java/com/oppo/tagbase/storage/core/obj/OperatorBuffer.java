@@ -1,14 +1,13 @@
-package com.oppo.tagbase.storage.core.example.testobj;
+package com.oppo.tagbase.storage.core.obj;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * @author huangfeng
- * @date 2020/2/8
+ * Created by liangjingya on 2020/2/19.
  */
 public class OperatorBuffer {
 
-    LinkedBlockingQueue<TagBitmap> buffer = new LinkedBlockingQueue<>();
+    LinkedBlockingQueue<AggregateRow> buffer = new LinkedBlockingQueue<>();
 
     int inputSourceCount;
 
@@ -18,11 +17,10 @@ public class OperatorBuffer {
         this.inputSourceCount = inputSourceCount;
     }
 
-    public TagBitmap next() throws InterruptedException {
-
+    public AggregateRow next() throws InterruptedException {
         while(true) {
-            TagBitmap output = buffer.take();
-            if (output == TagBitmap.EOF) {
+            AggregateRow output = buffer.take();
+            if (output == AggregateRow.EOF) {
                 currentEOFCount++;
                 if (currentEOFCount >= inputSourceCount) {
                     return null;
@@ -31,7 +29,6 @@ public class OperatorBuffer {
                 return output;
             }
         }
-
     }
 
     public boolean hasNext(){
@@ -41,7 +38,7 @@ public class OperatorBuffer {
         return false;
     }
 
-    public void offer(TagBitmap bitmap){
+    public void offer(AggregateRow bitmap){
         buffer.offer(bitmap);
     }
 

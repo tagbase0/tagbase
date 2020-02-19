@@ -1,12 +1,13 @@
 package com.oppo.tagbase.storage.hbase;
 
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
-import com.oppo.tagbase.storage.core.example.testobj.OperatorBuffer;
+import com.oppo.tagbase.storage.core.connector.StorageException;
+import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 import com.oppo.tagbase.storage.core.util.BitmapUtil;
-import com.oppo.tagbase.storage.core.example.testobj.TagBitmap;
-import com.oppo.tagbase.storage.core.obj.FilterMeta;
-import com.oppo.tagbase.storage.core.obj.ScanMeta;
-import com.oppo.tagbase.storage.core.util.ConstantStorageUtil;
+import com.oppo.tagbase.storage.core.obj.AggregateRow;
+import com.oppo.tagbase.storage.core.obj.DimensionContext;
+import com.oppo.tagbase.storage.core.obj.StorageQueryContext;
+import com.oppo.tagbase.storage.core.util.StorageConstantUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.*;
@@ -28,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 public class HbaseStorageConnector extends StorageConnector {
 
     @Inject
-    private HbaseStorageConnectorConfig config;
+    private HbaseStorageConnectorConfig hbaseConfig;
 
     private Connection connection = null;
 
@@ -39,6 +40,7 @@ public class HbaseStorageConnector extends StorageConnector {
     @Override
     protected void initConnector() {
         log.info("init hbase Connector!");
+        log.info(hbaseConfig.toString());
         initHbaseConnection();
     }
 
@@ -49,77 +51,84 @@ public class HbaseStorageConnector extends StorageConnector {
     }
 
     @Override
-    protected void createTable(String tableName, int partition) throws IOException {
+    protected void createTable(String dbName, String tableName, int partition) {
         List<String> familys = new ArrayList<>();
-        familys.add(config.getFamily());
-        createTable(config.getNameSpace(), tableName, familys, getSplitKeys(partition));
+        familys.add(hbaseConfig.getFamily());
+        createHbaseTableIfNotExist(dbName, tableName, familys, getSplitKeys(partition));
     }
 
     @Override
-    public void deleteTable(String tableName) throws IOException {
-        deleteTable(config.getNameSpace(), tableName);
+    public void deleteTable(String dbName, String tableName)  {
+        deleteHbaseTable(hbaseConfig.getNameSpace(), tableName);
     }
 
     @Override
-    public void createRecord(String tableName, String key, ImmutableRoaringBitmap value) throws IOException {
-        put(config.getNameSpace(), tableName, key, config.getFamily(), config.getQualifier(), BitmapUtil.serializeBitmap(value));
+    public void createRecord(String dbName, String tableName, String key, ImmutableRoaringBitmap value) {
+        try {
+            byte[] metric = BitmapUtil.serializeBitmap(value);
+            put(hbaseConfig.getNameSpace(), tableName, key, hbaseConfig.getFamily(), hbaseConfig.getQualifier(), metric);
+        } catch (Exception e) {
+            throw new StorageException("hbaseStorageConnector createRecord error",e);
+        }
 
     }
 
     @Override
-    public void createBatchRecords(String tableName, String dataPath) throws Exception {
-        createTable(tableName);
+    public void createBatchRecords(String dbName, String tableName, String dataPath)  {
+        createTable(hbaseConfig.getNameSpace(), tableName);
         bulkLoad(tableName, dataPath);
     }
 
     @Override
-    protected void createQuery(ScanMeta scanMeta, OperatorBuffer buffer) throws IOException {
+    protected void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer buffer) {
 
-        String tableName = scanMeta.getSlicePartition().getHbaseTable();
-        String dayNumValue = scanMeta.getSlicePartition().getDate();
-        FilterList rowFilterList = new FilterList();//构造scan filter
-        Map<Integer,Integer> indexMap = new HashMap<>();//维度索引(index,returnIndex)
-        String scanRegexStr = createRegexStr(scanMeta, indexMap);
-        System.out.println("scan regex:" + scanRegexStr);
+        String tableName = storageQueryContext.getSliceSegment().getTableName();
+        String dayNumValue = storageQueryContext.getSliceSegment().getSliceDate();
+        //构造scan filter
+        FilterList rowFilterList = new FilterList();
+        //dim索引关系(index,returnIndex)
+        Map<Integer,Integer> indexMap = new HashMap<>();
+        String scanRegexStr = createScanRegexStr(storageQueryContext, indexMap);
+        log.debug("scan regex str: " + scanRegexStr);
         Filter regexFilter = new RowFilter(CompareFilter.CompareOp.EQUAL,new RegexStringComparator(scanRegexStr));
         rowFilterList.addFilter(regexFilter);
 
-        scan(config.getNameSpace(), tableName, config.getFamily(), config.getQualifier(), config.getRowkeyDelimiter(), rowFilterList, indexMap, dayNumValue, buffer);
+        scan(hbaseConfig.getNameSpace(), tableName, hbaseConfig.getFamily(), hbaseConfig.getQualifier(), hbaseConfig.getRowkeyDelimiter(), rowFilterList, indexMap, dayNumValue, buffer);
     }
 
 
-    private String createRegexStr(ScanMeta scanMeta, Map<Integer,Integer> indexMap){
+    private String createScanRegexStr(StorageQueryContext storageQueryContext, Map<Integer,Integer> indexMap){
 
-        int partition = scanMeta.getSlicePartition().getPattition();
+        int segmentId = storageQueryContext.getSliceSegment().getSegmentId();
         int index = 0;
         StringBuilder builder = new StringBuilder();
-        String regexStart = ConstantStorageUtil.REGEX_START_STR;
-        String regexEnd = ConstantStorageUtil.REGEX_END_STR;
-        String regexAny = ConstantStorageUtil.REGEX_ANY_STR;
-        builder.append(regexStart + partition + config.getRowkeyDelimiter());
-        for(FilterMeta meta : scanMeta.getFilterMetaList()){
-            if(meta.getReturnIndex() != ConstantStorageUtil.FLAG_NO_NEED_RETURN_DIM){
-                indexMap.put(index,meta.getReturnIndex());
+        String regexStart = StorageConstantUtil.REGEX_START_STR;
+        String regexEnd = StorageConstantUtil.REGEX_END_STR;
+        String regexAny = StorageConstantUtil.REGEX_ANY_STR;
+        builder.append(regexStart + segmentId + hbaseConfig.getRowkeyDelimiter());
+        for(DimensionContext meta : storageQueryContext.getDimensionContextList()){
+            if(meta.getDimReturnIndex() != StorageConstantUtil.FLAG_NO_NEED_RETURN){
+                indexMap.put(index,meta.getDimReturnIndex());
             }
             if(index > 0 ) {
-                if (meta.getValues() == null) {
+                if (meta.getDimValues() == null) {
                     if (!builder.toString().endsWith(regexAny)) {
                         builder.append(regexAny);
                     }
                 } else {
-                    if (meta.getValues().size() > 0) {
+                    if (meta.getDimValues().size() > 0) {
                         builder.append("(");
                         int k = 1;
-                        for (String value : meta.getValues()) {
+                        for (String value : meta.getDimValues()) {
                             builder.append(value);
-                            if(k != meta.getValues().size()){
+                            if(k != meta.getDimValues().size()){
                                 builder.append("|");
                             }
                             k++;
                         }
                         builder.append(")");
-                        if (index != (scanMeta.getFilterMetaList().size()-1)) {
-                            builder.append(config.getRowkeyDelimiter());
+                        if (index != (storageQueryContext.getDimensionContextList().size()-1)) {
+                            builder.append(hbaseConfig.getRowkeyDelimiter());
                         }
                     }
                 }
@@ -135,14 +144,14 @@ public class HbaseStorageConnector extends StorageConnector {
     private void initHbaseConnection() {
         try {
             Configuration conf = HBaseConfiguration.create();
-            conf.set("hbase.zookeeper.property.clientPort", config.getZkPort());
-            conf.set("hbase.zookeeper.quorum", config.getZkQuorum());
-            conf.set("hbase.rootdir", config.getRootDir());
+            conf.set("hbase.zookeeper.property.clientPort", hbaseConfig.getZkPort());
+            conf.set("hbase.zookeeper.quorum", hbaseConfig.getZkQuorum());
+            conf.set("hbase.rootdir", hbaseConfig.getRootDir());
             synchronized (HbaseStorageConnector.class) {
                 if (hbasePool == null) {
-                    int maxThreads = 10;
-                    int coreThreads = 5;
-                    long keepAliveTime = 300;
+                    int maxThreads = hbaseConfig.getThreadPoolmaxThread();
+                    int coreThreads = hbaseConfig.getThreadPoolcoreThread();
+                    long keepAliveTime = hbaseConfig.getThreadPoolkeepAliveSecond();
                     LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>();
                     hbasePool = new ThreadPoolExecutor(coreThreads, maxThreads, keepAliveTime, TimeUnit.SECONDS, workQueue);
                 }
@@ -150,7 +159,7 @@ public class HbaseStorageConnector extends StorageConnector {
             connection = ConnectionFactory.createConnection(conf, hbasePool);
             admin = connection.getAdmin();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("init hbase connection error", e);
         }
     }
 
@@ -163,7 +172,7 @@ public class HbaseStorageConnector extends StorageConnector {
                 admin.close();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("close hbase connection error", e);
         }
 
         hbasePool.shutdownNow();
@@ -172,7 +181,7 @@ public class HbaseStorageConnector extends StorageConnector {
                 hbasePool.shutdownNow();
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.error("hbasePool shutdown error" , e);
         }
     }
 
@@ -187,70 +196,112 @@ public class HbaseStorageConnector extends StorageConnector {
         return splitKeys;
     }
 
-    private void createTable(String nameSpace, String tableName, List<String> familys, byte[][] splitKeys) throws IOException {
+    private void createHbaseTableIfNotExist(String nameSpace, String tableName, List<String> familys, byte[][] splitKeys) {
 
-        createNamespaceIfExist(nameSpace);
-        TableName tName = TableName.valueOf(nameSpace, tableName);
-        if (!admin.tableExists(tName)) {
-            HTableDescriptor tableDesc = new HTableDescriptor(tName);
-            for(String family : familys) {
-                HColumnDescriptor colDesc = new HColumnDescriptor(family.getBytes());
-                tableDesc.addFamily(colDesc);
-                colDesc.setMaxVersions(1);
-                colDesc.setBloomFilterType(BloomType.ROW);
+        try {
+            createNamespaceIfNotExist(nameSpace);
+            TableName tName = TableName.valueOf(nameSpace, tableName);
+            if (!admin.tableExists(tName)) {
+                HTableDescriptor tableDesc = new HTableDescriptor(tName);
+                for (String family : familys) {
+                    HColumnDescriptor colDesc = new HColumnDescriptor(family.getBytes());
+                    tableDesc.addFamily(colDesc);
+                    colDesc.setMaxVersions(1);
+                    colDesc.setBloomFilterType(BloomType.ROW);
+                }
+                admin.createTable(tableDesc, splitKeys);
             }
-            admin.createTable(tableDesc, splitKeys);
+        }catch (Exception e){
+            throw new StorageException("hbaseStorageConnector createTable error",e);
         }
     }
 
-    private void createNamespaceIfExist(String nameSpace) throws IOException {
+    private void createNamespaceIfNotExist(String nameSpace) {
 
-        for(NamespaceDescriptor space : admin.listNamespaceDescriptors()){
-            if(space.getName().equals(nameSpace)){
-                return;
+        try {
+            for(NamespaceDescriptor space : admin.listNamespaceDescriptors()){
+                if(space.getName().equals(nameSpace)){
+                    return;
+                }
             }
+            admin.createNamespace(NamespaceDescriptor.create(nameSpace).build());
+        } catch (Exception e) {
+            throw new StorageException("hbaseStorageConnector createNamespace error",e);
         }
-        admin.createNamespace(NamespaceDescriptor.create(nameSpace).build());
+
     }
 
 
-    private void deleteTable(String nameSpace, String tableName) throws IOException {
+    private void deleteHbaseTable(String nameSpace, String tableName) {
 
         TableName tName = TableName.valueOf(nameSpace, tableName);
-        if (admin.tableExists(tName)) {
-            admin.disableTable(tName);
-            admin.deleteTable(tName);
+        try {
+            if (admin.tableExists(tName)) {
+                admin.disableTable(tName);
+                admin.deleteTable(tName);
+            }
+        } catch (Exception e) {
+            throw new StorageException("hbaseStorageConnector deleteHbaseTable error",e);
         }
     }
 
-    public void put(String nameSpace, String tableName, String rowKey, String family, String qualifier, byte[] value) throws IOException {
+    public void put(String nameSpace, String tableName, String rowKey, String family, String qualifier, byte[] value) {
 
-        Table table = connection.getTable(TableName.valueOf(nameSpace, tableName));
-        Put put = new Put(Bytes.toBytes(rowKey));
-        put.addColumn(Bytes.toBytes(family), Bytes.toBytes(qualifier), value);
-        table.put(put);
-        table.close();
+        Table table = null;
+        try {
+            table = connection.getTable(TableName.valueOf(nameSpace, tableName));
+            Put put = new Put(Bytes.toBytes(rowKey));
+            put.addColumn(Bytes.toBytes(family), Bytes.toBytes(qualifier), value);
+            table.put(put);
+        }catch (IOException e){
+            throw new StorageException("hbaseStorageConnector put error",e);
+        }finally {
+            if(table != null) {
+                try {
+                    table.close();
+                } catch (IOException e) {
+                    log.error("hbase table close error", e);
+                }
+            }
+        }
+
     }
 
-    public String get(String nameSpace, String tableName, String rowKey, String family, String qualifier) throws IOException {
+    public String get(String nameSpace, String tableName, String rowKey, String family, String qualifier) {
 
-        Table table = connection.getTable(TableName.valueOf(nameSpace, tableName));
-        Get get = new Get(rowKey.getBytes());
-        get.addColumn(family.getBytes(), qualifier.getBytes());
-        Result rs = table.get(get);
-        Cell cell = rs.getColumnLatestCell(family.getBytes(), qualifier.getBytes());
-        if (cell != null) {
-            return Bytes.toString(CellUtil.cloneValue(cell));
+        Table table = null;
+        try {
+            connection.getTable(TableName.valueOf(nameSpace, tableName));
+            Get get = new Get(rowKey.getBytes());
+            get.addColumn(family.getBytes(), qualifier.getBytes());
+            Result rs = table.get(get);
+            Cell cell = rs.getColumnLatestCell(family.getBytes(), qualifier.getBytes());
+            if (cell != null) {
+                return Bytes.toString(CellUtil.cloneValue(cell));
+            }
+        }catch (Exception e){
+            throw new StorageException("hbaseStorageConnector get error",e);
+        }finally {
+            if(table != null) {
+                try {
+                    table.close();
+                } catch (IOException e) {
+                    log.error("hbase table close error", e);
+                }
+            }
         }
-        table.close();
         return null;
     }
 
-    private void bulkLoad(String tableName, String dataPath) throws Exception {
+    private void bulkLoad(String tableName, String dataPath){
 
-        LoadIncrementalHFiles loader = new LoadIncrementalHFiles(connection.getConfiguration());
-        TableName table = TableName.valueOf(config.getNameSpace(), tableName);
-        loader.doBulkLoad(new Path(dataPath),admin,connection.getTable(table),connection.getRegionLocator(table));
+        try {
+            LoadIncrementalHFiles loader = new LoadIncrementalHFiles(connection.getConfiguration());
+            TableName table = TableName.valueOf(hbaseConfig.getNameSpace(), tableName);
+            loader.doBulkLoad(new Path(dataPath), admin, connection.getTable(table), connection.getRegionLocator(table));
+        }catch (Exception e){
+            throw new StorageException("hbaseStorageConnector bulkLoad error",e);
+        }
     }
 
 
@@ -260,8 +311,8 @@ public class HbaseStorageConnector extends StorageConnector {
         try {
             Table table = connection.getTable(TableName.valueOf(nameSpace, tableName));
             Scan scan = new Scan();
-            scan.setCaching(100);
-            scan.setMaxResultSize(5 * 1024 * 1024);
+            scan.setCaching(hbaseConfig.getScanCacheSize());
+            scan.setMaxResultSize(hbaseConfig.getScanMaxResultSize());
             scan.setFilter(filterList);
             scan.addColumn(family.getBytes(), qualifier.getBytes());
             scanner = table.getScanner(scan);
@@ -269,15 +320,14 @@ public class HbaseStorageConnector extends StorageConnector {
                 Iterator<Result> iterator = scanner.iterator();
                 while (iterator.hasNext()) {
                     for (Cell cell : iterator.next().rawCells()) {
-                        //切分rowkey,shardnum_app_event_version
+                        //切分rowkey
                         String[] dimValueArr = Bytes.toString(cell.getRowArray(), cell.getRowOffset(), cell.getRowLength()).split(delimiter);
 
-                        //List<String> dimValues = new ArrayList<>();
                         byte[][] dimValues = null;
                         if(indexMap.size() > 0 ) {
                             dimValues = new byte[indexMap.size()][];
                             for (int index : indexMap.keySet()) {
-                                if(index == 0){//如果需要返回daynum
+                                if(index == 0){//如果需要返回sliceColumn
                                     dimValues[indexMap.get(index)-1] = dayNumValue.getBytes();
                                 }else {
                                     dimValues[indexMap.get(index)-1] = dimValueArr[index].getBytes();
@@ -285,16 +335,16 @@ public class HbaseStorageConnector extends StorageConnector {
                             }
                         }
                         ImmutableRoaringBitmap bitmap = BitmapUtil.deSerializeBitmap(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength());
-                        TagBitmap tagBitmap = new TagBitmap(dimValues, bitmap);
-                        buffer.offer(tagBitmap);
+                        AggregateRow aggregateRow = new AggregateRow(dimValues, bitmap);
+                        buffer.offer(aggregateRow);
 
                     }
                 }
             }
-        }catch (IOException e){
-            log.error("hbase scan error",e);
+        }catch (Exception e){
+            throw new StorageException("hbaseStorageConnector scan error",e);
         }finally {
-            buffer.offer(TagBitmap.EOF);
+            buffer.offer(AggregateRow.EOF);
             if(scanner != null){
                 scanner.close();
             }

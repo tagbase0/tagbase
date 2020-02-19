@@ -6,12 +6,12 @@ import com.google.inject.Scopes;
 /**
  * Created by wujianchao on 2020/2/5.
  */
-public class MetadataModule extends AbstractModule {
+public class TestMetadataModule extends AbstractModule {
 
     @Override
     protected void configure() {
 
-        binder().bind(Metadata.class).in(Scopes.SINGLETON);
+        binder().bind(TestMetadata.class).in(Scopes.SINGLETON);
 
     }
 }
