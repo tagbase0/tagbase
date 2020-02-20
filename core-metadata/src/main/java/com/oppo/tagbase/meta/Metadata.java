@@ -75,6 +75,7 @@ public class Metadata {
     /**
      * get slices with filter
      */
+    //TODO replace RangeSet and Range with self defined implementations for it is too important.
     public List<Slice> getSlices(String dbName, String tableName, RangeSet<Date> range) {
         return metadataConnector.getSlices(dbName, tableName, range);
     }
