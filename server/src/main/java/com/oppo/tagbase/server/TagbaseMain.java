@@ -14,16 +14,15 @@ public class TagbaseMain {
     public static void main(String[] args) throws InterruptedException {
 
 
-//        Injector ij = GuiceInjectors.makeInjector(
-//                new JettyModule(),
-//                new LifecycleModule(),
-//                new ValidatorModule(),
-//                new QueryModule()
-//        );
-//        Lifecycle lifecycle = ij.getInstance(Lifecycle.class);
-//        lifecycle.start();
-//        System.out.println("start");
-//        lifecycle.join();
-        System.out.println(System.currentTimeMillis());
+        Injector ij = GuiceInjectors.makeInjector(
+                new JettyModule(),
+                new LifecycleModule(),
+                new ValidatorModule(),
+                new QueryModule()
+        );
+        Lifecycle lifecycle = ij.getInstance(Lifecycle.class);
+        lifecycle.start();
+        System.out.println("start");
+        lifecycle.join();
     }
 }
