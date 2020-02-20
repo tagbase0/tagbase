@@ -6,31 +6,20 @@ package com.oppo.tagbase.dict;
 public interface Dictionary {
 
     /**
-     * 获取下一个值的编号。对于正向字典来说下一个值得编号以加入字典的顺序为准。
-     * 因为字典值得编号从0开始，所以下一个值的编号取值为字典的值的个数。
-     *
-     * 当向字典添加数据的时候需要用到该方法。
-     *
-     * @return next element id
+     * @return total element num
      */
-    int nextId();
+    long elementNum();
 
 
     /**
-     * 字典的正向查找，查找编号对应的值
-     *
-     * @param id 编号
-     * @return id对应的值
+     * search element by id
      */
-    byte[] element(int id);
+    byte[] element(long id);
 
 
     /**
-     *字典的反向查找，查找值对应的编号
-     *
-     * @param element 值
-     * @return element对应的编号
+     *search id by element
      */
-    int id(byte[] element);
+    long id(byte[] element);
 
 }

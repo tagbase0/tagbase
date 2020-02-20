@@ -5,15 +5,15 @@ package com.oppo.tagbase.dict.util;
  */
 public class UnsignedTypes {
 
-    public static int unsignedByte(byte v) {
-        return v & 0xFF;
+    public static int unsignedByte(byte x) {
+        return ((int) x) & 0xff;
     }
 
-    public static int unsignedShort(short v) {
-        return v & 0xFFFF;
+    public static int unsignedShort(short x) {
+        return ((int) x) & 0xffff;
     }
 
-    public static long unsignedInt(int v) {
-        return v & 0xFFFFFFFFL;
+    public static long unsignedInt(int x) {
+        return ((long) x) & 0xffffffffL;
     }
 }

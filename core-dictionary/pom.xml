@@ -11,6 +11,8 @@
 
     <artifactId>core-dictionary</artifactId>
 
+
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>

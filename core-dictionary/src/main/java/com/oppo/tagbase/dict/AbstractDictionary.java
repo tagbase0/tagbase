@@ -10,22 +10,22 @@ public abstract class AbstractDictionary implements AppendableDictionary {
     protected ByteBuffer data;
 
     @Override
-    public int nextId() {
+    public long elementNum() {
         return 0;
     }
 
     @Override
-    public int add(byte[] v) {
+    public long add(byte[] v) {
         return 0;
     }
 
     @Override
-    public byte[] element(int id) {
+    public byte[] element(long id) {
         return null;
     }
 
     @Override
-    public int id(byte[] element) {
+    public long id(byte[] element) {
         return 0;
     }
 

@@ -4,6 +4,8 @@ import com.oppo.tagbase.dict.util.UnsignedTypes;
 
 import java.nio.ByteBuffer;
 
+import static com.oppo.tagbase.dict.GroupMeta.GROUP_LENGTH;
+
 /**
  * Created by wujianchao on 2020/2/12.
  */
@@ -12,14 +14,9 @@ public class Group {
     public static final int TYPE_INT_WIDTH = 4;
     public static final int TYPE_SHORT_WIDTH = 2;
 
-    /**
-     * group length, default 64KB
-     */
-    public static final int GROUP_LENGTH = 2 << 15;
-
     private ByteBuffer data;
 
-    private int elementSize;
+    private int elementNum;
 
     /**
      * remaining space
@@ -41,34 +38,40 @@ public class Group {
     /**
      * group total length, default 64KB
      */
-    private int totalLength;
+    private int totalLength = GROUP_LENGTH;
 
-    Group(ByteBuffer data){
-        this.data = data;
-        this.totalLength = data.capacity();
-        this.elementSize = data.getInt(0);
+    Group(byte[] data, boolean isBlank){
+        checkGroup(data);
+
+        this.data = ByteBuffer.wrap(data);
+        elementNum = isBlank ? 0 : this.data.getInt(0);
 
         calculateRemaining();
         calculateMetaLength();
     }
 
 
-    public Group createGroup(ByteBuffer data) {
-        return new Group(data);
+    public static Group createGroup(byte[] data) {
+        return new Group(data, false);
     }
 
     //TODO add config to identify direct or JVM heap memory
-    public Group createBlankGroup() {
-        return createGroup(ByteBuffer.allocate(GROUP_LENGTH));
+    public static Group createBlankGroup() {
+        return new Group(new byte[GROUP_LENGTH], true);
     }
 
+    private void checkGroup(byte[] data) {
+        if(data.length != GROUP_LENGTH) {
+            throw new DictionaryException("Invalid forward dictionary group length");
+        }
+    }
 
     private void calculateRemaining() {
-        remaining = totalLength - elementOffset(elementSize);
+        remaining = totalLength - elementOffset(elementNum);
     }
 
     private void calculateMetaLength() {
-        metaLength = TYPE_INT_WIDTH + elementSize * TYPE_SHORT_WIDTH;
+        metaLength = TYPE_INT_WIDTH + elementNum * TYPE_SHORT_WIDTH;
     }
 
     /**
@@ -110,8 +113,8 @@ public class Group {
         return remaining;
     }
 
-    public int getElementSize() {
-        return elementSize;
+    public int getElementNum() {
+        return elementNum;
     }
 
     ByteBuffer getData() {
