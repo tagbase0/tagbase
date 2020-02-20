@@ -43,6 +43,7 @@
         <hibernate.version>6.0.2.Final</hibernate.version>
         <jdbi.version>3.12.0</jdbi.version>
         <mysql.version>5.1.48</mysql.version>
+        <RoaringBitmap.version>0.8.12</RoaringBitmap.version>
     </properties>
 
 

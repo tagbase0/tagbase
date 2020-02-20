@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.concurrent.Future;
 
 /**
@@ -73,26 +74,30 @@ public class BitMapJob implements AbstractJob {
     }
 
     private void iniTasks(Job bitMapJob) {
+
         // task1 for Hfile
-        // 定义两个task，分别构建反向字典和正向字典
         Task hFileTask = new Task();
-        hFileTask.setId(new IdGenerator().nextQueryId("DataBuildHfileTask"));
-        hFileTask.setName("DataBuildHfileTask_" + bitMapJob.getName());
-        hFileTask.setJobId(bitMapJob.getId());
-        hFileTask.setStep((byte)0);
         String outputHfile = "";
-        hFileTask.setOutput(outputHfile);
+        iniTask(bitMapJob.getId(), hFileTask, "DataBuildHfileTask", (byte) 0, outputHfile);
 
         // task2 for bulkload
         Task loadTask = new Task();
-        loadTask.setId(new IdGenerator().nextQueryId("DataBuildLoadTask"));
-        loadTask.setName("DataBuildLoadTask_" + bitMapJob.getName());
-        loadTask.setJobId(bitMapJob.getId());
-        loadTask.setStep((byte)1);
         String outputLoad = "";
-        loadTask.setOutput(outputLoad);
+        iniTask(bitMapJob.getId(), loadTask, "DataBuildLoadTask", (byte) 1, outputLoad);
+
+        new MetadataJob().addTask(hFileTask);
+        new MetadataJob().addTask(loadTask);
     }
 
+    private void iniTask(String jobId, Task task, String name, byte step, String output) {
+        String today = new SimpleDateFormat("yyyyMMdd").format(System.currentTimeMillis());
+        task.setId(new IdGenerator().nextQueryId(name, "yyyyMMdd"));
+        task.setName(name + "_" + today);
+        task.setJobId(jobId);
+        task.setStep(step);
+        task.setOutput(output);
+        task.setState(TaskState.PENDING);
+    }
 
     public String build(Job bitMapJob) {
 
