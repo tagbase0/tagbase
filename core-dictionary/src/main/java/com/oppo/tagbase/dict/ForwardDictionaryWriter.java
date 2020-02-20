@@ -18,7 +18,7 @@ import static com.oppo.tagbase.dict.GroupWriter.GROUP_NO_ENOUGH_SPACE;
 /**
  * Created by wujianchao on 2020/2/14.
  */
-public final class ForwardDictionaryWriter {
+public final class ForwardDictionaryWriter implements DictionaryWriter {
 
     public static final int ELEMENT_IS_OK =  0;
     public static final int ELEMENT_IS_BLANK =  -1;
