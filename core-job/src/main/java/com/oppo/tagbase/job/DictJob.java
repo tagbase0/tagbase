@@ -68,36 +68,42 @@ public class DictJob implements AbstractJob {
 
         new MetadataJob().addJob(dictJob);
 
-        // 定义两个task，分别构建反向字典和正向字典
-        Task invertedTask = new Task();
-        Task forwardTask = new Task();
-
-        invertedTask.setId(new IdGenerator().nextQueryId("InvertedDictBuildTask", "yyyyMMdd"));
-        invertedTask.setName("InvertedDictBuildTask_"+today);
-        invertedTask.setJobId(DICT_JOB_ID);
-        invertedTask.setStep((byte)0);
-        String outputInverted = "";
-        invertedTask.setOutput(outputInverted);
-
-
-        forwardTask.setId(new IdGenerator().nextQueryId("ForwardDictBuildTask", "yyyyMMdd"));
-        forwardTask.setName("ForwardDictBuildTask_"+today);
-        forwardTask.setJobId(DICT_JOB_ID);
-        forwardTask.setStep((byte)1);
-        String outputForward = "";
-        forwardTask.setOutput(outputForward);
-
-        new MetadataJob().addTask(invertedTask);
-        new MetadataJob().addTask(forwardTask);
+        // 定义子任务 tasks
+        iniTasks(dictJob);
 
         return dictJob;
 
     }
 
+    private void iniTasks(Job dictJob) {
+        // task invertedTask 初始化反向字典
+        Task invertedTask = new Task();
+        String outputInverted = "";
+        iniTask(dictJob.getId(), invertedTask, "InvertedDictBuildTask", (byte) 0, outputInverted);
+
+        // task forwardTask 初始化正向字典
+        Task forwardTask = new Task();
+        String outputForward = "";
+        iniTask(dictJob.getId(), forwardTask, "ForwardDictBuildTask", (byte) 1, outputForward);
+
+        new MetadataJob().addTask(invertedTask);
+        new MetadataJob().addTask(forwardTask);
+    }
+
+    private void iniTask(String jobId, Task task, String name, byte step, String output) {
+        String today = new SimpleDateFormat("yyyyMMdd").format(System.currentTimeMillis());
+        task.setId(new IdGenerator().nextQueryId(name, "yyyyMMdd"));
+        task.setName(name + "_" + today);
+        task.setJobId(jobId);
+        task.setStep(step);
+        task.setOutput(output);
+        task.setState(TaskState.PENDING);
+    }
+
     public String build(Job dictJob) {
 
         // 将此 job 放到 pending 队列
-//        PENDING_JOBS_QUEUE.offer(dictJob);
+        // PENDING_JOBS_QUEUE.offer(dictJob);
         log.info("{} is pending", DICT_JOB_ID);
 
         // 若已准备好构建
@@ -171,8 +177,6 @@ public class DictJob implements AbstractJob {
         new MetadataJob().completeJOb(dictJob.getId(), JobState.SUCCESS, new Date(System.currentTimeMillis()));
 
     }
-
-
 
 
 }

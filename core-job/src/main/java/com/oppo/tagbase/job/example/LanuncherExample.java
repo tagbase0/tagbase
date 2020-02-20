@@ -55,7 +55,7 @@ public class LanuncherExample {
                         if (sparkAppHandle.getState() == SparkAppHandle.State.RUNNING) {
                             //当任务提交成功，记录appid
                             System.out.println("task appid is :" + sparkAppHandle.getAppId());
-                        }else if (sparkAppHandle.getState().isFinal()) {
+                        } else if (sparkAppHandle.getState().isFinal()) {
                             System.out.println("task final state :" + sparkAppHandle.getState().toString());
                             //countDown只是用于本地调试，等spark任务执行完，主线程退出
                             countDownLatch.countDown();
@@ -75,7 +75,7 @@ public class LanuncherExample {
             @Override
             public void run() {
                 System.out.println("hook shut down");
-                if(handle.getAppId() == null){
+                if (handle.getAppId() == null) {
                     handle.kill();
                 }
             }
