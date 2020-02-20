@@ -5,7 +5,7 @@ import com.oppo.tagbase.storage.core.connector.StorageException;
 import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 import com.oppo.tagbase.storage.core.util.BitmapUtil;
 import com.oppo.tagbase.storage.core.obj.AggregateRow;
-import com.oppo.tagbase.storage.core.obj.DimensionContext;
+import com.oppo.tagbase.storage.core.obj.DimContext;
 import com.oppo.tagbase.storage.core.obj.StorageQueryContext;
 import com.oppo.tagbase.storage.core.util.StorageConstantUtil;
 import org.apache.hadoop.conf.Configuration;
@@ -106,7 +106,7 @@ public class HbaseStorageConnector extends StorageConnector {
         String regexEnd = StorageConstantUtil.REGEX_END_STR;
         String regexAny = StorageConstantUtil.REGEX_ANY_STR;
         builder.append(regexStart + segmentId + hbaseConfig.getRowkeyDelimiter());
-        for(DimensionContext meta : storageQueryContext.getDimensionContextList()){
+        for(DimContext meta : storageQueryContext.getDimContextList()){
             if(meta.getDimReturnIndex() != StorageConstantUtil.FLAG_NO_NEED_RETURN){
                 indexMap.put(index,meta.getDimReturnIndex());
             }
@@ -127,7 +127,7 @@ public class HbaseStorageConnector extends StorageConnector {
                             k++;
                         }
                         builder.append(")");
-                        if (index != (storageQueryContext.getDimensionContextList().size()-1)) {
+                        if (index != (storageQueryContext.getDimContextList().size()-1)) {
                             builder.append(hbaseConfig.getRowkeyDelimiter());
                         }
                     }

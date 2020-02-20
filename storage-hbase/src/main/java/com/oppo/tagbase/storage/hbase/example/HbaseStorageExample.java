@@ -43,7 +43,7 @@ public class HbaseStorageExample {
 //            addFlowData(connector);
 
             metadata.setType(TestMetadata.MetaDataType.EVENT);
-            SingleQueryManager query = queryEventData(connector);
+            QueryHandler query = queryEventData(connector);
 
 //            metadata.setType(TestMetadata.MetaDataType.TAG);
 //            SingleQueryManager query = queryTagData(connector);
@@ -62,45 +62,45 @@ public class HbaseStorageExample {
     }
 
 
-    public static SingleQueryManager queryEventData(StorageConnector connector){
+    public static QueryHandler queryEventData(StorageConnector connector){
 
-        List<Query> dimQueryList = new ArrayList<>();
+        List<ColumnDomain<String>> dimQueryList = new ArrayList<>();
 //        RangeSet<String> appColumnRange = TreeRangeSet.create();
 //        appColumnRange.add(Range.singleton("tenxun"));appColumnRange.add(Range.singleton("wechat"));
 //        dimQueryList.add(new InQuery("app", appColumnRange));
 
         RangeSet<String> eventColumnRange = TreeRangeSet.create();
         eventColumnRange.add(Range.singleton("install"));
-        dimQueryList.add(new InQuery("event", eventColumnRange));
+        dimQueryList.add(new ColumnDomain<String>(eventColumnRange, "event"));
 
         RangeSet<String> versionColumnRange = TreeRangeSet.create();
         versionColumnRange.add(Range.singleton("5.4"));
-        dimQueryList.add(new InQuery("version", versionColumnRange));
+        dimQueryList.add(new ColumnDomain<String>(versionColumnRange, "version"));
 
         RangeSet<Date> sliceRange = TreeRangeSet.create();
         sliceRange.add(Range.lessThan(new Date(System.currentTimeMillis())));
-        SliceQuery sliceQuery = new SliceQuery(sliceRange,"daynum");
+        ColumnDomain<Date> sliceQuery = new ColumnDomain<Date>(sliceRange,"daynum");
 
         List<String> dims = new ArrayList<String>(){{add("app");add("event");add("version");add("daynum");}};
       //  List<String> dims = null;
 
-        SingleQueryManager query = new SingleQueryManager("default","event_20200210",dims,dimQueryList,sliceQuery);
+        QueryHandler query = new QueryHandler("default","event_20200210",dims,dimQueryList,sliceQuery);
 
         return query;
     }
 
 
-    public static SingleQueryManager queryTagData(StorageConnector connector){
+    public static QueryHandler queryTagData(StorageConnector connector){
 
-        List<Query> dimQueryList = new ArrayList<>();
+        List<ColumnDomain<String>> dimQueryList = new ArrayList<>();
         RangeSet<String> appColumnRange = TreeRangeSet.create();
         appColumnRange.add(Range.singleton("beijing"));appColumnRange.add(Range.singleton("shenzhen"));
-        dimQueryList.add(new InQuery("city", appColumnRange));
+        dimQueryList.add(new ColumnDomain<String>(appColumnRange, "city"));
 
         List<String> dims = new ArrayList<String>(){{add("city");}};
         //  List<String> dims = null;
 
-        SingleQueryManager query = new SingleQueryManager("default","city_20200210",dims,dimQueryList,null);
+        QueryHandler query = new QueryHandler("default","city_20200210",dims,dimQueryList,null);
 
         return query;
     }

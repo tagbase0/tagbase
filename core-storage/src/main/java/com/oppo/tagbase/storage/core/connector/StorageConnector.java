@@ -67,7 +67,7 @@ public abstract class StorageConnector {
     protected abstract void destroyConnector();
 
     public void createTable(String dbName, String tableName) {
-        //从元数据slice获取分片数,默认为1
+        //从元数据slice获取分片数,目前默认为1
         int partition = 1;
         createTable(dbName, tableName, partition);
     }
@@ -80,10 +80,10 @@ public abstract class StorageConnector {
 
     public abstract void createBatchRecords(String dbName, String tableName, String dataPath) ;
 
-    public OperatorBuffer createQuery(SingleQueryManager queryManager) {
+    public OperatorBuffer createQuery(QueryHandler queryHandler) {
 
-        Table metaTable = meta.getTable(queryManager.getDbName(), queryManager.getDbName());
-        List<SliceSegment> sliceList = getSliceSegments(metaTable, queryManager);
+        Table metaTable = meta.getTable(queryHandler.getDbName(), queryHandler.getDbName());
+        List<SliceSegment> sliceList = getSliceSegments(metaTable, queryHandler);
         OperatorBuffer buffer = new OperatorBuffer(sliceList.size());
         //假如没有slice符合查询条件，直接返回
         if(sliceList.size() == 0){
@@ -91,44 +91,45 @@ public abstract class StorageConnector {
             buffer.offer(AggregateRow.EOF);
             return buffer;
         }
-        List<DimensionContext> dimensionContextList = getDimensionContexts(metaTable, queryManager);
+        List<DimContext> dimContextList = getDimContexts(metaTable, queryHandler);
 
         for (SliceSegment slice : sliceList){
-            int totalShard = slice.getTotalShard();
-            //默认totalShard是只有1个
+            //目前默认totalShard是只有1个
+            //int totalShard = slice.getTotalShard();
+            int totalShard = 1;
             for(int i=1; i<=totalShard; i++){
                 slice.setSegmentId(i);
-                StorageQueryContext storageQueryContext = new StorageQueryContext(dimensionContextList, slice);
+                StorageQueryContext storageQueryContext = new StorageQueryContext(dimContextList, slice);
                 queryExecutor.execute(new QueryTask(storageQueryContext, buffer));
             }
         }
         return buffer;
     }
 
-    private List<DimensionContext>  getDimensionContexts(Table metaTable, SingleQueryManager query){
-        Map<String, DimensionContext> dimContextMap = new HashMap<>();
+    private List<DimContext>  getDimContexts(Table metaTable, QueryHandler queryHandler){
+        Map<String, DimContext> dimContextMap = new HashMap<>();
 
         String sliceColumnName = "defaultSliceColumn";
-        if(query.hasSliceQuery()) {
-            sliceColumnName = query.getSliceQuery().getColumn();
+        if(queryHandler.hasSliceColumn()) {
+            sliceColumnName = queryHandler.getSliceColumn().getColumnName();
         }
-        dimContextMap.put(sliceColumnName, new DimensionContext(StorageConstantUtil.FLAG_SLICE_COLUMN_INDEX, sliceColumnName));
+        dimContextMap.put(sliceColumnName, new DimContext(StorageConstantUtil.FLAG_SLICE_COLUMN_INDEX, sliceColumnName));
 
         metaTable.getColumns().stream().filter(column -> column.getType()== ColumnType.DIM_COLUMN)
-        .forEach(column -> dimContextMap.put(column.getName(), new DimensionContext(column.getIndex(), column.getName())));
+        .forEach(column -> dimContextMap.put(column.getName(), new DimContext(column.getIndex(), column.getName())));
 
-        if(query.hasdimQuery()){
-            query.getDimQueryList().stream().filter(dimQuery -> (dimQuery instanceof InQuery && dimContextMap.containsKey(dimQuery.getColumn())))
-                    .forEach(dimQuery -> {
-                        List<String> dimValues = ((InQuery) dimQuery).getColumnRange().asRanges()
+        if(queryHandler.hasDimColumnList()){
+            queryHandler.getDimColumnList().stream().filter(dimColumn -> dimContextMap.containsKey(dimColumn.getColumnName()))
+                    .forEach(dimColumn -> {
+                        List<String> dimValues = dimColumn.getColumnRange().asRanges()
                                 .stream().map(range -> range.lowerEndpoint()).collect(Collectors.toList());
-                        dimContextMap.get(dimQuery.getColumn()).setDimValues(dimValues);
+                        dimContextMap.get(dimColumn.getColumnName()).setDimValues(dimValues);
                     });
         }
 
         int returnIndex = 1;
-        if(query.getDimensions() != null) {
-            for (String dimName : query.getDimensions()) {
+        if(queryHandler.getDimensions() != null) {
+            for (String dimName : queryHandler.getDimensions()) {
                 if (dimContextMap.containsKey(dimName)) {
                     dimContextMap.get(dimName).setDimReturnIndex(returnIndex);
                 }
@@ -136,26 +137,26 @@ public abstract class StorageConnector {
             }
         }
 
-        List<DimensionContext> dimensionContextList = dimContextMap.values().stream()
-                .sorted(new DimensionComparator()).collect(Collectors.toList());
+        List<DimContext> dimContextList = dimContextMap.values().stream()
+                .sorted(new DimComparator()).collect(Collectors.toList());
 
-        return dimensionContextList;
+        return dimContextList;
     }
 
 
-    private List<SliceSegment> getSliceSegments(Table metaTable, SingleQueryManager queryManager){
+    private List<SliceSegment> getSliceSegments(Table metaTable, QueryHandler queryHandler){
         List<SliceSegment> sliceSegments = new ArrayList<>();
         List<Slice> sliceList = null;
         switch (metaTable.getType()){
             case TAG:
-                sliceList = meta.getSlices(queryManager.getDbName(), queryManager.getTableName());
+                sliceList = meta.getSlices(queryHandler.getDbName(), queryHandler.getTableName());
                 break;
             case ACTION:
-                if(queryManager.hasSliceQuery()){
-                    sliceList = meta.getSlices(queryManager.getDbName(), queryManager.getTableName(), queryManager.getSliceQuery().getSliceRange());
+                if(queryHandler.hasSliceColumn()){
+                    sliceList = meta.getSlices(queryHandler.getDbName(), queryHandler.getTableName(), queryHandler.getSliceColumn().getColumnRange());
 
                 }else {
-                    sliceList = meta.getSlices(queryManager.getDbName(), queryManager.getTableName());
+                    sliceList = meta.getSlices(queryHandler.getDbName(), queryHandler.getTableName());
                 }
                 break;
             default:
@@ -185,7 +186,7 @@ public abstract class StorageConnector {
             log.debug("start QueryTask, Thread name:" + Thread.currentThread().getName());
             try {
                 createStorageQuery(storageQueryContext, buffer);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.error("QueryTask createStorageQuery error", e);
             }
             log.debug("finish QueryTask, Thread name:" + Thread.currentThread().getName());

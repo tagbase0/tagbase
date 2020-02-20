@@ -4,21 +4,21 @@ import java.util.List;
 
 public class StorageQueryContext {
 
-    List<DimensionContext> dimensionContextList;
+    List<DimContext> dimContextList;
 
     private SliceSegment sliceSegment;
 
-    public StorageQueryContext(List<DimensionContext> dimensionContextList, SliceSegment sliceSegment) {
-        this.dimensionContextList = dimensionContextList;
+    public StorageQueryContext(List<DimContext> dimContextList, SliceSegment sliceSegment) {
+        this.dimContextList = dimContextList;
         this.sliceSegment = sliceSegment;
     }
 
-    public List<DimensionContext> getDimensionContextList() {
-        return dimensionContextList;
+    public List<DimContext> getDimContextList() {
+        return dimContextList;
     }
 
-    public void setDimensionContextList(List<DimensionContext> dimensionContextList) {
-        this.dimensionContextList = dimensionContextList;
+    public void setDimContextList(List<DimContext> dimContextList) {
+        this.dimContextList = dimContextList;
     }
 
     public SliceSegment getSliceSegment() {

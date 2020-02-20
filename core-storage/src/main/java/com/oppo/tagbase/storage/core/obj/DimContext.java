@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Created by liangjingya on 2020/2/14.
  */
-public class DimensionContext {
+public class DimContext {
 
     private int dimIndex;//标志原始的维度索引
 
@@ -17,7 +17,7 @@ public class DimensionContext {
 
     private List<String> dimValues;//标志取值
 
-    public DimensionContext(int dimIndex, String dimName) {
+    public DimContext(int dimIndex, String dimName) {
         this.dimIndex = dimIndex;
         this.dimName = dimName;
     }
