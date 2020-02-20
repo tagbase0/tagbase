@@ -12,9 +12,9 @@ import java.util.List;
 public class GroupWriter {
 
     public static final byte [] NULL_ELEMENT =  {2};
-    public static final int NO_ENOUGH_SPACE =  -1;
+    public static final int GROUP_NO_ENOUGH_SPACE =  -1;
 
-    private int elementSize;
+    private int elementNum;
 
     private List<Integer> offsets = new ArrayList<>();
     private List<byte[]> elements = new ArrayList<>();
@@ -26,10 +26,11 @@ public class GroupWriter {
      */
     private int remaining;
 
+
     public GroupWriter(Group group) {
         this.group = group;
 
-        this.elementSize = group.getElementSize();
+        this.elementNum = group.getElementNum();
         this.remaining = group.getRemaining();
 
         fillExistedOff();
@@ -37,15 +38,19 @@ public class GroupWriter {
     }
 
     private void fillExistedOff(){
-        for(int i=0; i< elementSize; i++){
+        for(int i = 0; i< elementNum; i++){
             offsets.add(group.index(i));
         }
     }
 
     private void fillExistedEle(){
-        for(int i=0; i< elementSize; i++){
+        for(int i = 0; i< elementNum; i++){
             elements.add(group.element(i));
         }
+    }
+
+    public int getElementNum() {
+        return elementNum;
     }
 
     /**
@@ -60,40 +65,40 @@ public class GroupWriter {
         }
 
         if(remaining < element.length){
-            return NO_ENOUGH_SPACE;
+            return GROUP_NO_ENOUGH_SPACE;
         }
 
-        int previousElementOff = elementSize == 0 ? 0 : offsets.get(elementSize -1);
+        int previousElementOff = elementNum == 0 ? 0 : offsets.get(elementNum -1);
         int elementOff = previousElementOff + element.length;
 
         offsets.add(elementOff);
 
         remaining -= element.length;
-        elementSize ++;
+        elementNum++;
 
-        return elementSize;
+        return elementNum;
     }
 
 
     /**
-     * flush offsets and elements into a new Group
+     * serialize a group
      */
-    public Group flush() {
+    public byte[] serialize() {
 
         ByteBuffer buffer = group.getData();
         buffer.clear();
 
-        buffer.putInt(elementSize);
+        buffer.putInt(elementNum);
 
-        for(int i=0; i<elementSize; i ++) {
+        for(int i = 0; i< elementNum; i ++) {
             buffer.putShort(offsets.get(i).shortValue());
         }
 
-        for(int i=0; i<elementSize; i ++) {
+        for(int i = 0; i< elementNum; i ++) {
             buffer.put(elements.get(i));
         }
 
-        return group.createGroup(buffer);
+        return buffer.array();
     }
 
 }

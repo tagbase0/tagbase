@@ -11,5 +11,8 @@ public class Test0 {
     public void test() {
         System.out.println(1 << 15 + 1);
         System.out.println(2 << 15 );
+        System.out.println(0 << 16 );
+
+        System.out.println("TAGBASE_FORWARD_DICT".length());
     }
 }
