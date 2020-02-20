@@ -8,7 +8,8 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.oppo.tagbase.dict.GroupMeta.GROUP_LENGTH;
+import static com.oppo.tagbase.dict.Group.GROUP_LENGTH;
+
 
 /**
  *

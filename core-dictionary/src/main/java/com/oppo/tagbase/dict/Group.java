@@ -4,8 +4,6 @@ import com.oppo.tagbase.dict.util.UnsignedTypes;
 
 import java.nio.ByteBuffer;
 
-import static com.oppo.tagbase.dict.GroupMeta.GROUP_LENGTH;
-
 /**
  * Created by wujianchao on 2020/2/12.
  */
@@ -13,6 +11,11 @@ public class Group {
 
     public static final int TYPE_INT_WIDTH = 4;
     public static final int TYPE_SHORT_WIDTH = 2;
+
+    /**
+     * group length, default 64KB
+     */
+    public static final int GROUP_LENGTH = 2 << 15;
 
     private ByteBuffer data;
 

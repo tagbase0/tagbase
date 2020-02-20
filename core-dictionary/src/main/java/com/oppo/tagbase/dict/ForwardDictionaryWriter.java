@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.oppo.tagbase.dict.ForwardDictionary.MAX_ELEMENT;
 import static com.oppo.tagbase.dict.ForwardDictionary.groupOffset;
-import static com.oppo.tagbase.dict.GroupMeta.GROUP_LENGTH;
+import static com.oppo.tagbase.dict.Group.GROUP_LENGTH;
 import static com.oppo.tagbase.dict.GroupWriter.GROUP_NO_ENOUGH_SPACE;
 
 /**
