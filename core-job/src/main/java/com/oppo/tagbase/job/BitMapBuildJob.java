@@ -4,6 +4,7 @@ import com.oppo.tagbase.job.util.TaskHelper;
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.*;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -54,13 +55,23 @@ public class BitMapBuildJob extends Task implements Callable<Slice> {
                     // 仅仅当前任务的前置任务都正常执行成功，才开启这个任务
                     if (new TaskHelper().preTaskFinish(tasks, i)) {
                         // BitmapBuildingTask();
+                        // 参数反向字典hdfs路径, dbName 和 tableName
+                        Task task = tasks.get(i);
 
+
+                        new MetadataJob().completeTask(task.getId(), task.getState(),
+                                new Date(System.currentTimeMillis()), task.getOutput());
                     }
                     break;
                 case 1:
                     if (new TaskHelper().preTaskFinish(tasks, i)) {
-                        // bulkload() && addSlice();
+                        // bulkload() && 构建Slice addSlice();
+                        // 参数task0的输出路径
+                        Task task = tasks.get(i);
 
+
+                        new MetadataJob().completeTask(task.getId(), task.getState(),
+                                new Date(System.currentTimeMillis()), task.getOutput());
                         jobRunning.setState(JobState.SUCCESS);
                     }
                     break;

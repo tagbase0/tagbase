@@ -35,7 +35,11 @@ public class BitMapJob implements AbstractJob {
     @Override
     public String buildData(String dbName, String tableName, String lowerDate, String upperDate) {
         Job job = iniJob(dbName, tableName, lowerDate, upperDate);
-        return build(job);
+        String jobId = build(job);
+        // 更新元数据模块内容
+        new MetadataJob().completeJOb(jobId, JobState.SUCCESS, new Date(System.currentTimeMillis()));
+
+        return jobId;
     }
 
     @Override
@@ -120,7 +124,7 @@ public class BitMapJob implements AbstractJob {
 
     public boolean readytoBuild() {
         // 若反向字典已经构建完成，且当前负载不高时，从pending队列取一个到running队列
-        return invertedDictSucceed(DictJob.DICT_JOB_ID) &&
+        return invertedDictSucceed(new IdGenerator().nextQueryId("DictBuildJob", "yyyyMMdd")) &&
                 AbstractJob.RUNNING_JOBS_QUEUE.size() <= RUNNING_JOBS_LIMIT;
     }
 
