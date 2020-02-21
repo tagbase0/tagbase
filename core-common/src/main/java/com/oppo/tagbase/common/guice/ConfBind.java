@@ -6,6 +6,7 @@ import com.google.inject.Binder;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
+import com.google.inject.name.Names;
 
 import javax.validation.Validator;
 import java.util.Map;
@@ -28,6 +29,10 @@ public class ConfBind {
 
     public static <T> void bind(Binder binder, String confKeyPrefix, Class<T> configClazz) {
         binder.bind(configClazz).toProvider(new ConfigProvider<T>(confKeyPrefix, configClazz)).in(Scopes.SINGLETON);
+    }
+
+    public static <T> void bind(Binder binder, String confKeyPrefix, Class<T> configClazz, String name) {
+        binder.bind(configClazz).annotatedWith(Names.named(name)).toProvider(new ConfigProvider<T>(confKeyPrefix, configClazz)).in(Scopes.SINGLETON);
     }
 
     static class ConfigProvider<T> implements Provider {

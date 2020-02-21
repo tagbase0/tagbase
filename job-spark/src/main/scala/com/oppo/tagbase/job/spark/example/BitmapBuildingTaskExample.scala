@@ -1,4 +1,4 @@
-package com.oppo.tagbase.job.spark
+package com.oppo.tagbase.job.spark.example
 
 import java.io.{ByteArrayOutputStream, DataOutputStream}
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
@@ -13,31 +13,25 @@ import org.apache.hadoop.mapreduce.Job
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.roaringbitmap.buffer.{ImmutableRoaringBitmap, MutableRoaringBitmap}
-import org.slf4j.{Logger, LoggerFactory}
 import scala.collection.JavaConverters._
 
 /**
  * Created by liangjingya on 2020/2/11.
- * 该spark任务功能：读取反向字典hive表和维度hive表，批量生成hfile
+ * 该spark任务功能：读取反向字典hive表和维度hive表，批量生成hfile，本地可执行调试
  */
-object BitmapBuildingTask {
 
-  val log: Logger = LoggerFactory.getLogger(getClass)
+object BitmapBuildingTaskExample {
+
+  case class eventHiveTable(imei: String, app: String, event: String, version: String, daynum: String)
+
+  case class dictionaryHiveTable(imei: String, id: Long)
 
   def main(args: Array[String]): Unit = {
 
-    if (args == null || args.size > 1){
-      log.error("illeal parameter, not found hiveMeataJson")
-      System.exit(1)
-    }
-
-    val hiveMeataJson = args(0)
-    log.info("hiveMeataJson: " + hiveMeataJson)
-
+    val hiveMeataJson = "{\"hiveDictTable\":{\"dbName\":\"tagbase\",\"tableName\":\"imeiTable\",\"imeiColumnName\":\"imei\",\"idColumnName\":\"id\",\"sliceColumnName\":\"daynum\",\"maxId\":0},\"hiveSrcTable\":{\"dbName\":\"tagbase\",\"tableName\":\"eventTable\",\"dimColumns\":[\"app\",\"event\",\"version\"],\"sliceColumn\":{\"columnName\":\"daynum\",\"columnValue\":\"20200220\"},\"imeiColumnName\":\"imei\"},\"output\":\"D:\\\\workStation\\\\sparkTaskHfile\\\\city_20200211_task\"}";
     val objectMapper = new ObjectMapper
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     val hiveMeata = objectMapper.readValue(hiveMeataJson, classOf[HiveMeta])
-    log.info("hiveMeata: " + hiveMeata)
 
     val outputPath = hiveMeata.getOutput
     val dbA = hiveMeata.getHiveDictTable.getDbName
@@ -57,16 +51,19 @@ object BitmapBuildingTask {
     val rowkeyDelimiter = "_" //rowkey分隔符
     val familyName = "f1" //hbase的列簇
     val qualifierName = "q1" //hbase的列名
-    val appName = dbA + "_" +  tableA + "_bitmap_task" //appName命名规范？
+    val appName = dbA + "_" +  tableA + "_bitmap_task" //appName
 
     val sparkConf = new SparkConf()
       .setAppName(appName)
+      .setMaster("local[4]")
+      .set("spark.default.parallelism", "4")
+      .set("spark.sql.shuffle.partitions", "4")
       .set("spark.sql.crossJoin.enabled", "true")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .registerKryoClasses(Array(classOf[ImmutableBytesWritable], classOf[ImmutableRoaringBitmap]))
     val spark = SparkSession.builder()
       .config(sparkConf)
-      .enableHiveSupport()
+//      .enableHiveSupport()
       .getOrCreate()
     import spark.implicits._
 
@@ -75,10 +72,30 @@ object BitmapBuildingTask {
     val qualifierNameBroadcast = spark.sparkContext.broadcast(qualifierName)
     val rowkeyDelimiterBroadcast = spark.sparkContext.broadcast(rowkeyDelimiter)
 
+    //此处先伪造本地数据模拟，后续从hive表获取
+    val eventDS = Seq(
+      eventHiveTable("imeia", "wechat", "install", "5.2", "20200220"),
+      eventHiveTable("imeib", "qq", "install", "5.1", "20200220"),
+      eventHiveTable("imeie", "wechat", "uninstall", "5.0", "20200220"),
+      eventHiveTable("imeig", "qq", "install", "5.1", "20200220")
+    ).toDS()
+    val dictionaryDS = Seq(
+      dictionaryHiveTable("imeia", 1),
+      dictionaryHiveTable("imeib", 2),
+      dictionaryHiveTable("imeic", 3),
+      dictionaryHiveTable("imeid", 4),
+      dictionaryHiveTable("imeie", 5),
+      dictionaryHiveTable("imeif", 6),
+      dictionaryHiveTable("imeig", 7)
+    ).toDS()
+
+    dictionaryDS.createTempView(s"$dbA$tableA")
+    eventDS.createTempView(s"$dbB$tableB")
+
     val data = spark.sql(
       s"""
          |select CONCAT_WS('$rowkeyDelimiter',$dimColumnB) as dimension,
-         |a.$idColumnA as index from $dbA.$tableA a join $dbB.$tableB b
+         |a.$idColumnA as index from $dbA$tableA a join $dbB$tableB b
          |on a.$imeiColumnA=b.$imeiColumnB where b.$sliceColumnB=$sliceValueB
          |""".stripMargin)
       .rdd
@@ -109,7 +126,9 @@ object BitmapBuildingTask {
         (new ImmutableBytesWritable(Bytes.toBytes(tuple._1)), kv)
       })
 
-    //将数据写hfile到hdfs
+    /*
+       将数据写hfile到hdfs
+     */
     val hadoopConf = new Configuration()
     val hbaseConf = HBaseConfiguration.create(hadoopConf)
     val job = Job.getInstance(hbaseConf)

@@ -1,0 +1,121 @@
+
+
+通過CURL发请求到集群返回的json例子
+curl http://bjht1258:8088/ws/v1/cluster/apps/application_1581584846018_1270135
+
+任务正在运行
+{
+  "app": {
+    "logAggregationStatus": "NOT_START",
+    "numAMContainerPreempted": 0,
+    "numNonAMContainerPreempted": 0,
+    "preemptedResourceVCores": 0,
+    "preemptedResourceMB": 0,
+    "vcoreSeconds": 58410,
+    "memorySeconds": 269875064,
+    "runningContainers": 27,
+    "reservedVCores": 0,
+    "reservedMB": 0,
+    "allocatedVCores": 53,
+    "allocatedMB": 244224,
+    "amHostHttpAddress": "cdh-bjht-0585:8042",
+    "amContainerLogs": "http://cdh-bjht-0585:8042/node/containerlogs/container_e2482_1581584846018_1270135_01_000001/hive",
+    "trackingUI": "ApplicationMaster",
+    "progress": 10,
+    "finalStatus": "UNDEFINED",
+    "state": "RUNNING",
+    "queue": "root.soft-system.high",
+    "name": "livy-session-1164",
+    "user": "hive",
+    "id": "application_1581584846018_1270135",
+    "trackingUrl": "http://bjht1258:8088/proxy/application_1581584846018_1270135/",
+    "diagnostics": "",
+    "clusterId": 1581584846018,
+    "applicationType": "SPARK",
+    "applicationTags": "livy-session-1164-ogtd58nv",
+    "startedTime": 1582181269591,
+    "finishedTime": 0,
+    "elapsedTime": 2203891
+  }
+}
+
+任务成功
+{
+  "app": {
+    "logAggregationStatus": "RUNNING",
+    "numAMContainerPreempted": 0,
+    "numNonAMContainerPreempted": 0,
+    "preemptedResourceVCores": 0,
+    "preemptedResourceMB": 0,
+    "vcoreSeconds": 28983,
+    "memorySeconds": 120556209,
+    "runningContainers": -1,
+    "reservedVCores": -1,
+    "reservedMB": -1,
+    "allocatedVCores": -1,
+    "allocatedMB": -1,
+    "amHostHttpAddress": "cdh-bjht-1375:8042",
+    "amContainerLogs": "http://cdh-bjht-1375:8042/node/containerlogs/container_e2482_1581584846018_1275226_01_000001/hive",
+    "trackingUI": "History",
+    "progress": 100,
+    "finalStatus": "SUCCEEDED",
+    "state": "FINISHED",
+    "queue": "root.bot_ai_analysis.high",
+    "name": "rpt_bot_yidianzixun_news_h20200220_hive",
+    "user": "hive",
+    "id": "application_1581584846018_1275226",
+    "trackingUrl": "http://bjht1258:8088/proxy/application_1581584846018_1275226/",
+    "diagnostics": "",
+    "clusterId": 1581584846018,
+    "applicationType": "MAPREDUCE",
+    "applicationTags": "",
+    "startedTime": 1582183418098,
+    "finishedTime": 1582183595972,
+    "elapsedTime": 177874
+  }
+}
+
+任务失败
+{
+  "app": {
+    "logAggregationStatus": "TIME_OUT",
+    "numAMContainerPreempted": 0,
+    "numNonAMContainerPreempted": 0,
+    "preemptedResourceVCores": 0,
+    "preemptedResourceMB": 0,
+    "vcoreSeconds": 15234,
+    "memorySeconds": 73969381,
+    "runningContainers": -1,
+    "reservedVCores": -1,
+    "reservedMB": -1,
+    "allocatedVCores": -1,
+    "allocatedMB": -1,
+    "amHostHttpAddress": "cdh-bjht-1159:8042",
+    "amContainerLogs": "http://cdh-bjht-1159:8042/node/containerlogs/container_e2482_1581584846018_1274135_01_000001/hive",
+    "trackingUI": "History",
+    "progress": 100,
+    "finalStatus": "FAILED",
+    "state": "FINISHED",
+    "queue": "root.feedsrec.high",
+    "name": "insert overwrite table rec....e_time(Stage-2)_hive",
+    "user": "hive",
+    "id": "application_1581584846018_1274135",
+    "trackingUrl": "http://bjht1258:8088/proxy/application_1581584846018_1274135/",
+    "diagnostics": "Invalid event TA_TOO_MANY_FETCH_FAILURE on TaskAttempt attempt_1581584846018_1274135_m_000062_0\n",
+    "clusterId": 1581584846018,
+    "applicationType": "MAPREDUCE",
+    "applicationTags": "",
+    "startedTime": 1582182985345,
+    "finishedTime": 1582183351039,
+    "elapsedTime": 365694
+  }
+}
+
+任务找不到
+{
+  "RemoteException": {
+    "javaClassName": "org.apache.hadoop.yarn.webapp.NotFoundException",
+    "message": "java.lang.Exception: app with id: application_1326821518301_0010 not found",
+    "exception": "NotFoundException"
+  }
+}

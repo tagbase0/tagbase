@@ -1,76 +1,88 @@
-package com.oppo.tagbase.job.spark
+package com.oppo.tagbase.job.spark.example
 
-import java.text.SimpleDateFormat
-import java.util.Date
-
-import org.apache.hadoop.hbase.io.ImmutableBytesWritable
+import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
+import com.oppo.tagbase.job.engine.obj.HiveMeta
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.SparkSession
-import org.roaringbitmap.buffer.ImmutableRoaringBitmap
+import org.apache.spark.sql.{SaveMode, SparkSession}
+import org.slf4j.{Logger, LoggerFactory}
 
 /**
-  * Created by daikai on 2020/2/16.
-  * 该spark任务功能：构建反向字典数据, 并将数据插入到 hive 表中
-  */
+ * Created by liangjingya on 2020/2/20.
+ * 该spark任务功能：构造反向字典，本地可执行调试
+ */
 
+case class invertedDictHiveTable(imei: String, id: Long)
 
-object InvertedDictBuildingTask {
+object InvertedDictBuildingTask{
+
+  val log: Logger = LoggerFactory.getLogger(getClass)
+
   def main(args: Array[String]): Unit = {
+    if (args == null || args.size > 1){
+      log.error("illeal parameter, not found hiveMeataJson")
+      System.exit(1)
+    }
 
-    var date = new SimpleDateFormat("yyyyMMdd").format(new Date)
+    val hiveMeataJson = args(0)
+    log.info("hiveMeataJson: " + hiveMeataJson)
 
-    val appName = "DictBuildJob_" + date + "_task"
-    val parallelism = 5 //任务并行度
+    val objectMapper = new ObjectMapper
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    val hiveMeata = objectMapper.readValue(hiveMeataJson, classOf[HiveMeta])
 
-    val imeiSrc_dbName = "default";
-    val imeiSrc_tableName = "imei_list_test";
-    val imeiSrc_colName = "imei";
-    val imeiTag_dbName = "default";
-    val imeiTag_tableName = "imei_tag_test";
-    val imeiTag_colName = "imei";
+    val partition = hiveMeata.getOutput
+    val dbA = hiveMeata.getHiveDictTable.getDbName
+    val tableA = hiveMeata.getHiveDictTable.getTableName
+    val maxId = hiveMeata.getHiveDictTable.getMaxId
+    val imeiColumnA = hiveMeata.getHiveDictTable.getImeiColumnName
+    val partitionColumnA = hiveMeata.getHiveDictTable.getSliceColumnName
+    val dbB = hiveMeata.getHiveSrcTable.getDbName
+    val tableB = hiveMeata.getHiveSrcTable.getTableName
+    val imeiColumnB = hiveMeata.getHiveSrcTable.getImeiColumnName
+    val sliceColumnB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnName
+    val sliceValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValue
 
-
+    //appName命名规范？
+    val appName = "invertedDict_task_" + partition
 
     val sparkConf = new SparkConf()
       .setAppName(appName)
-      .setMaster("local[4]")
-      .set("spark.default.parallelism", parallelism.toString)
-      .set("spark.sql.shuffle.partitions", parallelism.toString)
       .set("spark.sql.crossJoin.enabled", "true")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .registerKryoClasses(Array(classOf[ImmutableBytesWritable], classOf[ImmutableRoaringBitmap]))
     val spark = SparkSession.builder()
       .config(sparkConf)
-      //      .enableHiveSupport()
+      .enableHiveSupport()
       .getOrCreate()
+    import spark.implicits._
 
+    //driver广播相关参数到executor
+    val maxIdBroadcast = spark.sparkContext.broadcast(maxId)
 
-    // 计算出当前新增的imei
-    val rddNew = spark.sql("select distinct" + imeiSrc_colName +
-      " from " + imeiSrc_dbName + "." + imeiSrc_tableName +
-      " except " +
-      "select distinct" + imeiTag_colName +
-      " from " + imeiTag_dbName + "." + imeiTag_tableName
-    )
-
-    val newlist = rddNew.collect().map(_ (0)).toList
-
-    // 记录当前反向字典最大的id值
-    val imeiNum = spark.sql("select max(id) as num" +
-      " from " + imeiTag_dbName + "." + imeiTag_tableName
-    ).collect()(0).getInt(0)
-
-    // 反向字典下一行 id 应加1
-    var startNum = imeiNum + 1
-
-    for (elem <- newlist) {
-      println(elem, startNum)
-      spark.sql("insert into table " + imeiTag_dbName + "." + imeiTag_tableName +
-        " PARTITION(dayno=" + date +
-        ") values(" + elem + "," + startNum + ")"
+    val newImeiDs = spark.sql(
+      s"""
+         |select b.$imeiColumnB from $dbB.$tableB b where b.$sliceColumnB=$sliceValueB
+         |""".stripMargin)
+      .except(
+        spark.sql(
+          s"""
+             |select a.$imeiColumnA from $dbA.$tableA a
+             |""".stripMargin)
       )
-      startNum += 1
-    }
+      .rdd
+      .map(imei => imei(0))
+      .zipWithIndex()
+      .repartition(1)
+      .map(imeiMap => {
+        val maxId = maxIdBroadcast.value
+        invertedDictHiveTable(imeiMap._1.toString(), maxId + 1 + imeiMap._2)
+      })
+      .toDS()
+      .write
+      .mode(SaveMode.Append)
+      .partitionBy(partitionColumnA)
+      .saveAsTable(s"$dbA.$tableA")
+
+    spark.stop()
 
   }
 
