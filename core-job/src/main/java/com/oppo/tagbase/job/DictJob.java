@@ -1,22 +1,18 @@
 package com.oppo.tagbase.job;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oppo.tagbase.dict.ForwardDictionaryWriter;
 import com.oppo.tagbase.job.util.IdGenerator;
 import com.oppo.tagbase.job.util.TaskHelper;
 import com.oppo.tagbase.meta.MetadataDict;
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.*;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URI;
 
 
@@ -155,17 +151,26 @@ public class DictJob implements AbstractJob {
                     // 仅仅当前任务的前置任务都正常执行成功，才开启这个任务
                     if (new TaskHelper().preTaskFinish(tasks, i)) {
                         // InvertedDictTask;
-                        // 参数：写入分区地址location, dbName, tableName
+                        // 参数：写入HDFS地址, dbName, tableName
                         Task task = tasks.get(i);
                         task.setState(TaskState.RUNNING);
+
+                        long numOld = new MetadataDict().getDictElementCount();
+                        String dbName = dictJob.getDbName();
+                        String tableName = dictJob.getTableName();
+                        String dayno = new Date(System.currentTimeMillis()).toString();
+                        String locationInvertedDictOld = "";
+                        String locationInvertedDictNew = "";
+
                         //TODO 2020/2/16  调用反向字典Spark任务
+
+
                         TaskState state = getSparkState(task.getId());
 
                         new MetadataJob().completeTask(task.getId(),
                                 task.getState(),
                                 new Date(System.currentTimeMillis()),
                                 task.getOutput());
-
                     }
                     break;
                 case 1:
@@ -207,7 +212,7 @@ public class DictJob implements AbstractJob {
         return TaskState.SUCCESS;
     }
 
-    private Dict buildDictForward(String locationInverted, Dict dictForwardOld, String locationForward) {
+    private Dict buildDictForward(String locationInverted, Dict dictForwardOld, String locationHdfsForward) {
 
         Dict dict = new Dict();
 
@@ -215,12 +220,25 @@ public class DictJob implements AbstractJob {
         // 1.先读取反向字典相关数据, 将今日新增数据生成<id, imei>的 kv 结构
         TreeMap<Long, String> mapInverted = readInvertedHdfs(locationInverted, numOld);
 
-        // 2.将新增数据追加写入正向字典数据hdfs文件
-        String locationForwardOld = dictForwardOld.getLocation();
-        write2hdfs(mapInverted, locationForwardOld, locationForward);
+        // 2.将新增数据追加写入正向字典数据本地磁盘文件和hdfs文件
+        String locationForwardDisk = "";
+        write2Disk(mapInverted, locationForwardDisk);
+        try {
+            if (firstBuild()) {
+                ForwardDictionaryWriter.createWriter(new File(locationForwardDisk));
+            } else {
+                ForwardDictionaryWriter.createWriterForExistedDict(new File(locationForwardDisk));
+            }
+
+        } catch (IOException e) {
+            log.error("Error to ForwardDictionaryWriter !");
+        }
+
+        String locationHdfsForwardOld = dictForwardOld.getLocation();
+        write2Hdfs(mapInverted, locationHdfsForwardOld, locationHdfsForward);
 
         // 3.更新字典元数据
-        dict.setLocation(locationForward);
+        dict.setLocation(locationHdfsForward);
         dict.setCreateDate(new Date(System.currentTimeMillis()));
         dict.setStatus(DictStatus.READY);
         dict.setElementCount(numOld + mapInverted.size());
@@ -230,6 +248,28 @@ public class DictJob implements AbstractJob {
 
         return dict;
 
+    }
+
+    private boolean firstBuild() {
+        if (new MetadataDict().getDictElementCount() == 0) {
+            return true;
+        }
+        return false;
+    }
+
+    private void write2Disk(TreeMap<Long, String> mapInverted, String locationForwardDisk) {
+        try {
+            for (Map.Entry<Long, String> entry : mapInverted.entrySet()) {
+                // 打开一个写文件器，构造函数中的第二个参数true表示以追加形式写文件
+                String str = entry.getValue();
+                FileWriter writer = new FileWriter(locationForwardDisk, true);
+                writer.write(System.getProperty("line.separator") + str);
+                writer.close();
+            }
+
+        } catch (IOException e) {
+            log.error("Error to write forward dictionary disk file ! ");
+        }
     }
 
     public TreeMap readInvertedHdfs(String locationInverted, long numOld) {
@@ -256,24 +296,31 @@ public class DictJob implements AbstractJob {
         return mapInverted;
     }
 
-    public void write2hdfs(Map<Long, String> mapInverted, String location, String locationForward) {
+    public void write2Hdfs(Map<Long, String> mapInverted, String locationHDFSForwardOld, String locationHDFSForwardNew) {
 
-        Path path = new Path(locationForward);
-        try (FileSystem fs = path.getFileSystem(new Configuration());
-             FSDataOutputStream output = fs.append(path)) {
+        Path pathSrc = new Path(locationHDFSForwardOld);
+        Path pathDes = new Path(locationHDFSForwardNew);
+        Configuration conf = new Configuration();
+        try (FileSystem fs = pathDes.getFileSystem(conf);
+             FSDataOutputStream output = fs.append(pathDes)) {
+
+            // 1.复制旧的内容
+            FileUtil.copy(fs, pathSrc,
+                    fs, pathDes,
+                    false, true, conf);
+
             ObjectMapper objectMapper = new ObjectMapper();
 
             //如果此文件不存在则创建新文件
-            if (!fs.exists(path)) {
-                fs.createNewFile(path);
-            } else {
-                fs.delete(path, true);
+            if (!fs.exists(pathDes)) {
+                fs.createNewFile(pathDes);
             }
 
+            // 2.追加新的内容
             for (Map.Entry<Long, String> entry : mapInverted.entrySet()) {
                 output.write(objectMapper.writeValueAsString(entry.getValue()).getBytes("UTF-8"));
                 //换行
-                output.write("\n".getBytes("UTF-8"));
+                output.write(System.getProperty("line.separator").getBytes("UTF-8"));
             }
 
         } catch (IOException e) {
