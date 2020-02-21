@@ -24,6 +24,7 @@ public class ForwardDictionaryMeta {
 
     public static final String MAGIC = "TAGBASE_FORWARD_DICT";
     public static final String VERSION = "1.0";
+    public static final byte[] NULL_CHECKSUM = new byte[]{0, 0, 0, 0, 0, 0, 0, 0};
 
 
     /**
@@ -123,10 +124,11 @@ public class ForwardDictionaryMeta {
 
     public byte[] serialize() {
         generateCheckSum();
+        //TODO test
         ByteBuffer buf = ByteBuffer.allocate(length());
         buf.put(magic.getBytes(StandardCharsets.UTF_8));
         buf.put(version.getBytes(StandardCharsets.UTF_8));
-        buf.putLong(System.currentTimeMillis());
+        buf.putLong(lastModifiedDate);
         buf.put(checkSum.getBytes(StandardCharsets.UTF_8));
         buf.putInt((int) groupNum);
         buf.putLong(elementNum);
@@ -135,7 +137,7 @@ public class ForwardDictionaryMeta {
 
     //TODO
     private void generateCheckSum() {
-        checkSum = new String(new byte[]{0, 0, 0, 0, 0, 0, 0, 0});
+        checkSum = BytesUtil.toUTF8String(NULL_CHECKSUM);
     }
 
     /**
@@ -146,6 +148,28 @@ public class ForwardDictionaryMeta {
      */
     public void checkConsistency() {
         //TODO
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ForwardDictionaryMeta that = (ForwardDictionaryMeta) o;
+        return lastModifiedDate == that.lastModifiedDate &&
+                groupNum == that.groupNum &&
+                elementNum == that.elementNum &&
+                Objects.equals(magic, that.magic) &&
+                Objects.equals(version, that.version) &&
+                Objects.equals(checkSum, that.checkSum);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(magic, version, checkSum, lastModifiedDate, groupNum, elementNum);
     }
 
     public static ForwardDictionaryMeta deserialize(byte[] bytes) {

@@ -49,8 +49,9 @@ public class Group {
         this.data = ByteBuffer.wrap(data);
         elementNum = isBlank ? 0 : this.data.getInt(0);
 
-        calculateRemaining();
+        // must before calculateRemaining
         calculateMetaLength();
+        calculateRemaining();
     }
 
 
@@ -89,7 +90,8 @@ public class Group {
         int length = elementEndOff - elementBeginOff;
 
         byte[] element = new byte[length];
-        data.get(element, elementBeginOff, length);
+        data.position(elementBeginOff);
+        data.get(element);
 
         return element;
     }
@@ -99,8 +101,8 @@ public class Group {
      * Because of sequence layout of element, elementOffset(id + 1) represent the end offset of id
      */
     private int elementOffset(int id){
-        return metaLength + id==0 ? 0 :
-                UnsignedTypes.unsignedShort(data.getShort(TYPE_INT_WIDTH + (id -1) * TYPE_SHORT_WIDTH));
+        return metaLength +
+                (id==0 ? 0 : UnsignedTypes.unsignedShort(data.getShort(TYPE_INT_WIDTH + (id -1) * TYPE_SHORT_WIDTH)));
     }
 
 

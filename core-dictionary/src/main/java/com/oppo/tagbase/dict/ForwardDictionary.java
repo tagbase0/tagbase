@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.oppo.tagbase.dict.ForwardDictionaryWriter.NOT_EXISTED;
 import static com.oppo.tagbase.dict.Group.GROUP_LENGTH;
 
 
@@ -87,9 +88,9 @@ public final class ForwardDictionary extends AbstractDictionary {
             //TODO replace [] with [][]
             groupFirstElementId = new long[(int) meta.getGroupNum()];
             if(meta.getGroupNum() > 0L) {
-                groupFirstElementId[0] = groups[0].getElementNum();
+                groupFirstElementId[0] = 0;
                 for(int i=1; i<meta.getGroupNum(); i++) {
-                    groupFirstElementId[i] = groups[i].getElementNum();
+                    groupFirstElementId[i] = groupFirstElementId[i-1] + groups[i-1].getElementNum();
                 }
             }
         }
@@ -119,9 +120,9 @@ public final class ForwardDictionary extends AbstractDictionary {
         checkId(id);
 
         long groupId = findGroupId(id);
-        long groupOff = id - groupFirstElementId[(int) groupId];
+        long idInGroup = id - groupFirstElementId[(int) groupId];
 
-        return groups[(int) groupId].element((int) groupOff);
+        return groups[(int) groupId].element((int) idInGroup);
     }
 
     private void checkId(long id) {
@@ -131,13 +132,13 @@ public final class ForwardDictionary extends AbstractDictionary {
     }
 
     /**
-     * TODO binary search fashion to
+     * TODO binary search fashion to speed up
      */
     private long findGroupId(long id) {
-        long groupId   = 0L;
-        for(int i=0; i<meta.getElementNum(); i++) {
+        long groupId = NOT_EXISTED;
+        for(int i=0; i<meta.getGroupNum(); i++) {
             if(id < groupFirstElementId[i]) {
-                groupId = i - 1;
+                groupId = i -1;
                 break;
             }
             if(id == groupFirstElementId[i]) {
@@ -145,6 +146,11 @@ public final class ForwardDictionary extends AbstractDictionary {
                 break;
             }
         }
+
+        if(groupId == NOT_EXISTED) {
+            groupId = meta.getGroupNum() -1;
+        }
+
         return groupId;
     }
 

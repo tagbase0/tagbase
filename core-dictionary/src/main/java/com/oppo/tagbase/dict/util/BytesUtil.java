@@ -47,6 +47,11 @@ public class BytesUtil {
         return new String(x, StandardCharsets.UTF_8);
     }
 
+    public static byte[] toUTF8Bytes(String x) {
+        return x.getBytes(StandardCharsets.UTF_8);
+    }
+
+
     public static String toUTF8String(ByteBuffer buf, int length) {
         if(length < 0) {
             throw new RuntimeException("length must be positive");

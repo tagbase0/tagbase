@@ -6,6 +6,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.oppo.tagbase.dict.Group.TYPE_SHORT_WIDTH;
+
 /**
  * Created by wujianchao on 2020/2/14.
  */
@@ -72,11 +74,11 @@ public class GroupWriter {
         int elementOff = previousElementOff + element.length;
 
         offsets.add(elementOff);
+        elements.add(element);
 
-        remaining -= element.length;
-        elementNum++;
+        remaining -= (element.length + TYPE_SHORT_WIDTH);
 
-        return elementNum;
+        return elementNum++;
     }
 
 
@@ -85,9 +87,11 @@ public class GroupWriter {
      */
     public byte[] serialize() {
 
+        // clear group
         ByteBuffer buffer = group.getData();
         buffer.clear();
 
+        // rewrite data
         buffer.putInt(elementNum);
 
         for(int i = 0; i< elementNum; i ++) {

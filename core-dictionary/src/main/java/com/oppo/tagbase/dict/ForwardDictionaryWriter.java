@@ -5,7 +5,6 @@ import com.oppo.tagbase.dict.util.FileUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -83,6 +82,7 @@ public final class ForwardDictionaryWriter implements DictionaryWriter {
             // load currentGroup
             if (meta.getGroupNum() != 0) {
                 readLastGroup(channel);
+                currentGroupId = meta.getGroupNum() -1;
             }
 
             // set nexElementId
@@ -124,15 +124,16 @@ public final class ForwardDictionaryWriter implements DictionaryWriter {
 
             // and create new group and groupWriter
             addGroup();
+
+            idInGroup = groupWriter.add(element);
+            // check again
+            if(GROUP_NO_ENOUGH_SPACE == idInGroup){
+                throw new DictionaryException("can not add element " + BytesUtil.toUTF8String(element));
+            }
         }
 
-        groupWriter.add(element);
 
-        if(GROUP_NO_ENOUGH_SPACE == idInGroup){
-            throw new DictionaryException("can not add element " + BytesUtil.toUTF8String(element));
-        }
-
-        return ++nexElementId;
+        return nexElementId++;
     }
 
     private void checkAddingCondition() {
@@ -180,23 +181,16 @@ public final class ForwardDictionaryWriter implements DictionaryWriter {
 
     private void flushMeta() throws IOException {
 
-        try(FileOutputStream out = new FileOutputStream(file)) {
+        meta.setGroupNum(currentGroupId + 1);
+        meta.setElementNum(nexElementId);
+        meta.setLastModifiedDate(System.currentTimeMillis());
 
-            // 1. meta
-            meta.setGroupNum(currentGroupId + 1);
-            meta.setElementNum(nexElementId);
-            meta.setLastModifiedDate(System.currentTimeMillis());
-
-            FileUtil.write(out, 0, meta.serialize());
-        }
+        FileUtil.write(file, 0, meta.serialize());
     }
 
     private void flushCurrentGroup() throws IOException {
-        try(FileOutputStream out = new FileOutputStream(file)) {
-
-            long currentGroupOffset = meta.length() + GROUP_LENGTH * currentGroupId;
-            FileUtil.write(out, currentGroupOffset, groupWriter.serialize());
-        }
+        long currentGroupOffset = meta.length() + GROUP_LENGTH * currentGroupId;
+        FileUtil.write(file, currentGroupOffset, groupWriter.serialize());
     }
 
 
