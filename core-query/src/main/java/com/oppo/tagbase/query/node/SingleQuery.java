@@ -65,4 +65,8 @@ public class SingleQuery implements Query {
     public <R> R accept(QueryVisitor<R> visitor) {
         return visitor.visitSingleQuery(this);
     }
+
+    public String getDbName() {
+        return dbName;
+    }
 }

@@ -1,9 +1,11 @@
 package com.oppo.tagbase.query.operator;
 
-import com.oppo.tagbase.query.node.Filter;
+import com.oppo.tagbase.query.node.OperatorType;
+import com.oppo.tagbase.storage.core.connector.StorageConnector;
+import com.oppo.tagbase.storage.core.obj.QueryHandler;
+import org.javatuples.Pair;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -11,60 +13,59 @@ import java.util.Map;
  * @date 2020/2/8
  */
 public class SingleQueryOperator implements Operator {
-    String id;
-
-    List<String> dim;
-    String table;
-    Filter filter;
+    String sourceId;
 
     OperatorBuffer outputBuffer;
+    QueryHandler queryHandler;
+    int groupMaxsize;
 
-    boolean needGroupby;
+    StorageConnector connector;
 
-
-    SingleQueryOperator(String table, Filter filter, List<String> dim, OperatorBuffer outputBuffer) {
-        this.table = table;
-        this.filter = filter;
-        this.dim = dim;
+    public SingleQueryOperator(QueryHandler queryHandler, OperatorBuffer outputBuffer, StorageConnector connector,int groupMaxSize,String sourceId) {
         this.outputBuffer = outputBuffer;
+        this.queryHandler = queryHandler;
+        this.connector = connector;
+        this.groupMaxsize = groupMaxSize;
+        this.sourceId = sourceId;
     }
-
-
-    // 如果是标签表，dim没有定义， filter条件只有一个 直接输出
-    //如果是标签表，dim没有定义，filter条件有多个值 需要汇总，输出一个
-    //如果是标签表， dim定义了，不论如何都可以直接输出
-    //dim定义的列+filter列为=所有维度列， 且filter条件值的范围都为1o
 
 
     public void run() {
 
-
         // get output from storage module according table filter dim
+//        OperatorBuffer<AggregateRow> source = connector.createQuery(queryHandler);
         OperatorBuffer<AggregateRow> source = null;
+
         AggregateRow row;
 
-        if (!needGroupby) {
-            while ((row = source.next()) != null) {
-                outputBuffer.offer(row);
-            }
-            return;
-        }
-
         //hash aggregate according dimensions of row
-        Map<String, AggregateRow> map = new HashMap<>();
+        Map<String, Pair<AggregateRow, Integer>> map = new HashMap<>();
+
         while ((row = source.next()) != null) {
+            row.setId(sourceId);
+
             if (map.containsKey(row.getDim())) {
-                map.get(row.getDim().toString()).combine(row.getMetric(), com.oppo.tagbase.query.node.Operator.UNION);
+
+                Pair<AggregateRow, Integer> pair = map.get(row.getDim().getSignature());
+                AggregateRow groupRow = pair.getValue0();
+                int groupCount = pair.getValue1();
+
+                groupRow.combine(row.getMetric(), OperatorType.UNION);
+                groupCount++;
+                if (groupCount == groupMaxsize) {
+                    outputBuffer.offer(groupRow);
+                    map.remove(row.getDim().getSignature());
+                } else {
+                    map.put(row.getDim().getSignature(), new Pair<>(groupRow, groupCount));
+                }
+
             } else {
-                map.put(row.getDim().toString(), row);
+                map.put(row.getDim().toString(), new Pair<>(row, 1));
             }
         }
 
         // put result to output
-        for (AggregateRow outRow : map.values()) {
-            outputBuffer.offer(outRow.replaceSourceId(id));
-        }
-
+        map.values().forEach(pair -> outputBuffer.offer(pair.getValue0()));
         outputBuffer.offer(Row.EOF);
 
 
@@ -72,8 +73,8 @@ public class SingleQueryOperator implements Operator {
 
 
     @Override
-    public OperatorBuffer getOuputBuffer() {
-        return null;
+    public OperatorBuffer getOutputBuffer() {
+        return outputBuffer;
     }
 }
 

@@ -13,16 +13,16 @@ public class QueryManager {
 
     QueryManager(){
         queries = new ConcurrentHashMap<>();
-
     }
 
 
     public void register(String id, QueryExecution execution){
-
         queries.put(id,execution);
     }
 
+    public void cancelIfExist(String id) {
+        // add EOF to opperator???
 
-
-
+        queries.remove(id);
+    }
 }

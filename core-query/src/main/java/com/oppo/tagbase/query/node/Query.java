@@ -17,6 +17,7 @@ public interface Query {
     String COMPLEX = "complex";
     String SINGLE = "single";
 
-
+     OutputType getOutput();
     <R> R accept(QueryVisitor<R> visitor);
+
 }

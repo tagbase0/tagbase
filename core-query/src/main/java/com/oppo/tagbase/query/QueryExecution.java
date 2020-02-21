@@ -3,6 +3,7 @@ package com.oppo.tagbase.query;
 import com.oppo.tagbase.query.node.Query;
 import com.oppo.tagbase.query.operator.Operator;
 import com.oppo.tagbase.query.operator.OperatorBuffer;
+import com.oppo.tagbase.query.operator.ResultRow;
 
 import java.util.List;
 
@@ -16,37 +17,44 @@ public class QueryExecution {
     SemanticAnalyzer analyzer;
     PhysicalPlanner planner;
     QueryEngine queryExecutor;
+    List<Operator> physicalPlan;
+    QueryState state;
 
-    QueryExecution(SemanticAnalyzer analyzer,PhysicalPlanner planner){
+
+    QueryExecution(Query query, SemanticAnalyzer analyzer, PhysicalPlanner planner) {
+        this.query = query;
         this.analyzer = analyzer;
         this.planner = planner;
     }
 
-    public QueryResponse execute() {
+    public void execute() {
 
         //semantic analyze
-        analyzer.analyze(query);
+       Analysis analysis =  analyzer.analyze(query);
 
         //转化为operator树
-        List<Operator> physicalPlan = planner.plan(query);
+        physicalPlan = planner.plan(query,analysis);
 
-        // 优化， 目前应该能否一个一个输出，不影响后阶段的执行
-
-
-        for(Operator operator: physicalPlan){
+        for (Operator operator : physicalPlan) {
             queryExecutor.execute(operator);
         }
-
-        //operator的执行
-        return wrapResult(physicalPlan.get(physicalPlan.size()-1).getOuputBuffer());
     }
 
-    private QueryResponse wrapResult(OperatorBuffer ouputBuffer) {
+    public QueryResponse getOutput() {
+        return wrapResult(physicalPlan.get(physicalPlan.size() - 1).getOutputBuffer());
+    }
+
+    private QueryResponse wrapResult(OperatorBuffer<ResultRow> outputBuffer) {
+
+
         return null;
     }
 
+    public QueryState getState() {
+        return state;
+    }
 
-    public  enum QueryState{
+    public enum QueryState {
         NEW,
         RUNNING,
         FINISHED

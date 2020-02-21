@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author huangfeng
  * @date 2020/2/16 11:55
  */
-public enum Operator {
+public enum OperatorType {
     @JsonProperty("intersect")
     INTERSECT,
     @JsonProperty("union")

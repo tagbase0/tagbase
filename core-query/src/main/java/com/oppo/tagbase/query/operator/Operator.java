@@ -4,10 +4,9 @@ package com.oppo.tagbase.query.operator;
  * @author huangfeng
  * @date 2020/2/8
  */
-public interface Operator {
+public interface Operator extends Runnable {
 
-    OperatorBuffer getOuputBuffer();
+    OperatorBuffer getOutputBuffer();
 
-    void run();
 }
 

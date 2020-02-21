@@ -17,6 +17,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.javatuples</groupId>
+            <artifactId>javatuples</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
             <groupId>com.oppo</groupId>
             <artifactId>core-common</artifactId>
             <version>${parent.version}</version>

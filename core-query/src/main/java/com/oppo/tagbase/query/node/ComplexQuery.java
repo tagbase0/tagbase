@@ -13,14 +13,14 @@ public class ComplexQuery implements Query{
     private OutputType outputType;
 
     @JsonProperty("operation")
-    private Operator operation;
+    private OperatorType operation;
 
     @JsonProperty("subqueryList")
     private List<Query> subQueries;
 
     @JsonCreator
     public ComplexQuery(
-            @JsonProperty("operation")  Operator operator,
+            @JsonProperty("operation") OperatorType operator,
             @JsonProperty("subqueryList") List<Query> subQueries,
             @JsonProperty("output") OutputType outputType
     ) {
@@ -45,10 +45,15 @@ public class ComplexQuery implements Query{
         return outputType;
     }
 
-    public Operator getOperation() {
+
+    public OperatorType getOperation() {
         return operation;
     }
 
+    @Override
+    public OutputType getOutput() {
+        return null;
+    }
 
     @Override
     public <R> R accept(QueryVisitor<R> visitor) {

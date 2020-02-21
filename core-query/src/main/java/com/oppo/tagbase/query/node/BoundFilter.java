@@ -59,7 +59,7 @@ public class BoundFilter implements Filter {
 
     @Override
     public String getColumn() {
-        return null;
+        return column;
     }
 
     @Override

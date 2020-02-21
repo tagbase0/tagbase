@@ -1,5 +1,6 @@
 package com.oppo.tagbase.query;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -11,7 +12,7 @@ public final class QueryResponse {
 
     int code;
     String message;
-    Map<String,Integer> data;
+    List<Map<String,Object>> data;
 
     private QueryResponse(int code,String message){
         this.code = code;
@@ -24,7 +25,7 @@ public final class QueryResponse {
     }
 
 
-
-
-
+    public static QueryResponse queryId(String queryId) {
+        return null;
+    }
 }

@@ -1,8 +1,11 @@
 package com.oppo.tagbase.server;
 
 import com.google.inject.Injector;
-import com.oppo.tagbase.common.guice.*;
-import com.oppo.tagbase.server.module.QueryModule;
+import com.oppo.tagbase.common.guice.JettyModule;
+import com.oppo.tagbase.common.guice.Lifecycle;
+import com.oppo.tagbase.common.guice.LifecycleModule;
+import com.oppo.tagbase.common.guice.ValidatorModule;
+import com.oppo.tagbase.query.module.QueryModule;
 
 /**
  * Just for test.

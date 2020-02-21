@@ -17,6 +17,11 @@ import java.util.TreeSet;
 public class InFilter implements Filter {
 
     private String column;
+
+    public SortedSet<String> getValues() {
+        return values;
+    }
+
     private final SortedSet<String> values;
 
     @JsonCreator

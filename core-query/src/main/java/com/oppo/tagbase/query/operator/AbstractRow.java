@@ -5,9 +5,13 @@ package com.oppo.tagbase.query.operator;
  */
 public abstract class AbstractRow implements Row {
     protected Dimensions dims;
+    protected String id;
 
-
+    public void setId(String id) {
+        this.id = id;
+    }
     public Dimensions getDim() {
         return dims;
     }
+
 }
