@@ -2,7 +2,7 @@ package com.oppo.tagbase.job.spark
 
 import java.io.{ByteArrayOutputStream, DataOutputStream}
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
-import com.oppo.tagbase.job.engine.obj.HiveMeta
+import com.oppo.tagbase.job.obj.HiveMeta
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable

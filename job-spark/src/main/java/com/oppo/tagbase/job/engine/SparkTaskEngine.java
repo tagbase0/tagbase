@@ -3,10 +3,11 @@ package com.oppo.tagbase.job.engine;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.oppo.tagbase.job.engine.exception.JobException;
-import com.oppo.tagbase.job.engine.obj.HiveMeta;
-import com.oppo.tagbase.job.engine.obj.JobMessage;
-import com.oppo.tagbase.job.engine.obj.JobType;
+import com.oppo.tagbase.job.TaskEngine;
+import com.oppo.tagbase.job.exception.JobException;
+import com.oppo.tagbase.job.obj.HiveMeta;
+import com.oppo.tagbase.job.obj.JobMessage;
+import com.oppo.tagbase.job.obj.JobType;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -24,7 +25,7 @@ import java.io.IOException;
 /**
  * Created by liangjingya on 2020/2/20.
  */
-public class SparkExecutable extends AbstractExecutable {
+public class SparkTaskEngine extends TaskEngine {
 
     @Inject
     @Named("bitmapBuildingTaskConfig")
@@ -34,7 +35,7 @@ public class SparkExecutable extends AbstractExecutable {
     @Named("invertedDictTaskConfig")
     private SparkJobConfig invertedDictTaskConfig;
 
-    private Logger log = LoggerFactory.getLogger(SparkExecutable.class);
+    private Logger log = LoggerFactory.getLogger(SparkTaskEngine.class);
 
     @Override
     public String submitJob(HiveMeta hiveMeta, JobType type) throws JobException {

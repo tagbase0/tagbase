@@ -1,4 +1,4 @@
-package com.oppo.tagbase.job.engine.obj;
+package com.oppo.tagbase.job.obj;
 
 import java.util.List;
 

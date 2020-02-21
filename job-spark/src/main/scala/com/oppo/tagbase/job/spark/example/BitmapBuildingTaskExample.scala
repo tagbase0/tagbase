@@ -2,7 +2,7 @@ package com.oppo.tagbase.job.spark.example
 
 import java.io.{ByteArrayOutputStream, DataOutputStream}
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
-import com.oppo.tagbase.job.engine.obj.HiveMeta
+import com.oppo.tagbase.job.obj.HiveMeta
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
@@ -19,7 +19,6 @@ import scala.collection.JavaConverters._
  * Created by liangjingya on 2020/2/11.
  * 该spark任务功能：读取反向字典hive表和维度hive表，批量生成hfile，本地可执行调试
  */
-
 object BitmapBuildingTaskExample {
 
   case class eventHiveTable(imei: String, app: String, event: String, version: String, daynum: String)

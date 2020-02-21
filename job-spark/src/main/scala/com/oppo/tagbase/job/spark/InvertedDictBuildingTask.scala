@@ -1,17 +1,17 @@
 package com.oppo.tagbase.job.spark.example
 
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
-import com.oppo.tagbase.job.engine.obj.HiveMeta
+import com.oppo.tagbase.job.obj.HiveMeta
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
  * Created by liangjingya on 2020/2/20.
- * 该spark任务功能：构造反向字典，本地可执行调试
+ * 该spark任务功能：构造反向字典
  */
 
-case class invertedDictHiveTable(imei: String, id: Long)
+case class invertedDictHiveTable(imei: String, id: Long, daynum: String)
 
 object InvertedDictBuildingTask{
 
@@ -57,6 +57,7 @@ object InvertedDictBuildingTask{
 
     //driver广播相关参数到executor
     val maxIdBroadcast = spark.sparkContext.broadcast(maxId)
+    val partitionBroadcast = spark.sparkContext.broadcast(partition)
 
     val newImeiDs = spark.sql(
       s"""
@@ -71,11 +72,12 @@ object InvertedDictBuildingTask{
       .rdd
       .map(imei => imei(0))
       .zipWithIndex()
-      .repartition(1)
       .map(imeiMap => {
         val maxId = maxIdBroadcast.value
-        invertedDictHiveTable(imeiMap._1.toString(), maxId + 1 + imeiMap._2)
+        val partition = partitionBroadcast.value
+        invertedDictHiveTable(imeiMap._1.toString(), maxId + 1 + imeiMap._2, partition)
       })
+      .repartition(1)
       .toDS()
       .write
       .mode(SaveMode.Append)

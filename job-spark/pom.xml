@@ -23,7 +23,7 @@
     <dependencies>
         <dependency>
             <groupId>com.oppo</groupId>
-            <artifactId>core-common</artifactId>
+            <artifactId>core-job</artifactId>
             <version>${parent.version}</version>
         </dependency>
         <dependency>

@@ -1,7 +1,7 @@
 package com.oppo.tagbase.job.spark.example
 
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
-import com.oppo.tagbase.job.engine.obj.HiveMeta
+import com.oppo.tagbase.job.obj.HiveMeta
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 
@@ -9,14 +9,11 @@ import org.apache.spark.sql.SparkSession
  * Created by liangjingya on 2020/2/20.
  * 该spark任务功能：构造反向字典，本地可执行调试
  */
-
-
-
 object InvertedDictBuildingTaskExample {
 
   case class imeiHiveTable(imei: String, daynum: String)
 
-  case class invertedDictHiveTable(imei: String, id: Long)
+  case class invertedDictHiveTable(imei: String, id: Long, daynum: String)
 
   def main(args: Array[String]): Unit = {
 
@@ -53,6 +50,7 @@ object InvertedDictBuildingTaskExample {
 
     //driver广播相关参数到executor
     val maxIdBroadcast = spark.sparkContext.broadcast(maxId)
+    val partitionBroadcast = spark.sparkContext.broadcast(partition)
 
     //此处先伪造本地数据模拟，后续从hive表获取
     val imeiDS = Seq(
@@ -62,13 +60,13 @@ object InvertedDictBuildingTaskExample {
       imeiHiveTable("imeig", "20200220")
     ).toDS()
     val invertedDictDS = Seq(
-      invertedDictHiveTable("imeia", 1),
-      invertedDictHiveTable("imeib", 2),
-      invertedDictHiveTable("imeic", 3),
-      invertedDictHiveTable("imeid", 4),
-      invertedDictHiveTable("imeie", 5),
-      invertedDictHiveTable("imeif", 6),
-      invertedDictHiveTable("imeig", 7)
+      invertedDictHiveTable("imeia", 1, "20200220"),
+      invertedDictHiveTable("imeib", 2, "20200220"),
+      invertedDictHiveTable("imeic", 3, "20200220"),
+      invertedDictHiveTable("imeid", 4, "20200220"),
+      invertedDictHiveTable("imeie", 5, "20200220"),
+      invertedDictHiveTable("imeif", 6, "20200220"),
+      invertedDictHiveTable("imeig", 7, "20200220")
     ).toDS()
 
     invertedDictDS.createTempView(s"$dbA$tableA")
@@ -89,8 +87,10 @@ object InvertedDictBuildingTaskExample {
       .zipWithIndex()
       .map(imeiMap => {
         val maxId = maxIdBroadcast.value
-        invertedDictHiveTable(imeiMap._1.toString(), maxId + 1 + imeiMap._2)
+        val partition = partitionBroadcast.value
+        invertedDictHiveTable(imeiMap._1.toString(), maxId + 1 + imeiMap._2, partition)
       })
+      .repartition(1)
       .toDS()
       .show()
 

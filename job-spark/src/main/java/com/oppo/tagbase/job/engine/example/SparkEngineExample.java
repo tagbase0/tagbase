@@ -3,9 +3,9 @@ package com.oppo.tagbase.job.engine.example;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
 import com.oppo.tagbase.common.guice.*;
-import com.oppo.tagbase.job.engine.AbstractExecutable;
-import com.oppo.tagbase.job.engine.SparkExecutableModule;
-import com.oppo.tagbase.job.engine.obj.*;
+import com.oppo.tagbase.job.TaskEngine;
+import com.oppo.tagbase.job.engine.SparkTaskEngineModule;
+import com.oppo.tagbase.job.obj.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,10 +20,10 @@ public class SparkEngineExample {
                 new ValidatorModule(),
                 new PropsModule(ImmutableList.of("tagbase.properties")),
                 new JacksonModule(),
-                new SparkExecutableModule()
+                new SparkTaskEngineModule()
         );
 
-        AbstractExecutable executable = ij.getInstance(AbstractExecutable.class);
+        TaskEngine executable = ij.getInstance(TaskEngine.class);
 
         HiveDictTable hiveDictTable = new HiveDictTable("default","imeiTable","imei","id","daynum",0);
         SliceColumn sliceColumn = new SliceColumn("daynum","20200220");

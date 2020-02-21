@@ -1,4 +1,4 @@
-package com.oppo.tagbase.job.engine.exception;
+package com.oppo.tagbase.job.exception;
 
 /**
  * Created by liangjingya on 2020/2/20.

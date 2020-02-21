@@ -4,11 +4,12 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.oppo.tagbase.common.guice.ConfBind;
 import com.oppo.tagbase.common.guice.PolyBind;
+import com.oppo.tagbase.job.TaskEngine;
 
 /**
  * Created by liangjingya on 2020/2/8.
  */
-public class SparkExecutableModule extends AbstractModule {
+public class SparkTaskEngineModule extends AbstractModule {
 
     @Override
     protected void configure() {
@@ -28,16 +29,16 @@ public class SparkExecutableModule extends AbstractModule {
 
         PolyBind.bind(
                 binder,
-                AbstractExecutable.class,
+                TaskEngine.class,
                 "tagbase.job.type",
                 "spark"
         );
 
         PolyBind.registerImpl(
                 binder,
-                AbstractExecutable.class,
+                TaskEngine.class,
                 "spark",
-                SparkExecutable.class
+                SparkTaskEngine.class
         );
 
     }

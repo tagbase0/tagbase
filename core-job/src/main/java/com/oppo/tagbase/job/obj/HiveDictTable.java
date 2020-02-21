@@ -1,4 +1,4 @@
-package com.oppo.tagbase.job.engine.obj;
+package com.oppo.tagbase.job.obj;
 
 /**
  * Created by liangjingya on 2020/2/20.
@@ -13,7 +13,7 @@ public class HiveDictTable {
 
     private String idColumnName;//hive表的id列名
 
-    private String sliceColumnName;//hive表的分区
+    private String sliceColumnName;//hive表的分区列名
 
     private int maxId;//目前用户最大id
 
