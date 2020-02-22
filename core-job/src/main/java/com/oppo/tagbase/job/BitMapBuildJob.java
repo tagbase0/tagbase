@@ -102,11 +102,13 @@ public class BitMapBuildJob extends Task implements Callable<Slice> {
                         StorageConnector storageConnector = null;
 
                         String sink = new Metadata().getSlices(dbName, tableName).get(0).getSink();
+
                         try {
                             storageConnector.createBatchRecords("", sink, srcPath);
                         } catch (StorageException e) {
-                            e.printStackTrace();
+                            log.error("{}, Error bulk load to HBase!", task.getId());
                         }
+
                         Slice slice = null;
                         TaskState state = null;
 

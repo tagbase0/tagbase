@@ -20,11 +20,6 @@ public interface AbstractJob {
             new ArrayBlockingQueue<>(1000),
             new ThreadPoolExecutor.AbortPolicy());
 
-    /**
-     * 判断当前job是否成功执行
-     */
-    boolean succeed(String jobId);
-
 
     /**
      * 对外提供一个字典的构建接口
@@ -45,9 +40,9 @@ public interface AbstractJob {
      * 对外提供一个查询构建job信息的接口
      *
      * @param: 构建任务的 jobId
-     * @return: 返回这个构建job的具体信息
+     * @return: 返回这个构建job的运行状态
      */
-    Job jobInfo(String jobId);
+    Job jobState(String jobId);
 
 
 }

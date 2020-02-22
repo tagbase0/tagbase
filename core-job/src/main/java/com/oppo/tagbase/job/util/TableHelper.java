@@ -8,6 +8,7 @@ import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataDict;
 import com.oppo.tagbase.meta.obj.*;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -76,8 +77,12 @@ public class TableHelper {
                 jobRunning.getDataUpperTime().toString()));
 
 
-        String invertedDictOutput = task.getOutput();
+        String output = task.getOutput();
+        if(JobType.DICTIONARY == jobRunning.getType()){
 
-        return new HiveMeta(hiveDictTable, hiveSrcTable, invertedDictOutput);
+            output = new Date(System.currentTimeMillis()).toString();
+        }
+
+        return new HiveMeta(hiveDictTable, hiveSrcTable, output);
     }
 }
