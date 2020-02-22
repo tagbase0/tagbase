@@ -1,4 +1,4 @@
-package com.oppo.tagbase.dict.util;
+package com.oppo.tagbase.common.util;
 
 import java.io.*;
 import java.nio.ByteBuffer;

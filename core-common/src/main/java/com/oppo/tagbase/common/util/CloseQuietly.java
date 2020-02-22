@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package com.oppo.tagbase.dict.util;
+package com.oppo.tagbase.common.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

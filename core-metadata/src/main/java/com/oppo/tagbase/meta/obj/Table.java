@@ -1,6 +1,6 @@
 package com.oppo.tagbase.meta.obj;
 
-import com.oppo.tagbase.meta.connector.MCE;
+import com.oppo.tagbase.meta.connector.MetadataException;
 
 import java.util.List;
 import java.util.Objects;
@@ -101,7 +101,7 @@ public class Table {
      */
     public Column getColumn(String columnName) {
         if(columns == null) {
-            throw new MCE("The instance initialized without column info.");
+            throw new MetadataException("The instance initialized without column info.");
         }
         return getColumns().stream()
                 .filter(column -> Objects.equals(column.getName(), columnName))

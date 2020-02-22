@@ -1,7 +1,7 @@
 package com.oppo.tagbase.dict;
 
-import com.oppo.tagbase.dict.util.Preconditions;
-import com.oppo.tagbase.dict.util.UnsignedTypes;
+import com.oppo.tagbase.common.util.Preconditions;
+import com.oppo.tagbase.common.util.UnsignedTypes;
 
 import java.nio.ByteBuffer;
 

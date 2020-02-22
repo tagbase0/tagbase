@@ -3,7 +3,7 @@ package com.oppo.tagbase.dict.benchmark;
 import com.oppo.tagbase.dict.ElementGenerator;
 import com.oppo.tagbase.dict.ForwardDictionary;
 import com.oppo.tagbase.dict.ForwardDictionaryWriter;
-import com.oppo.tagbase.dict.util.FileUtil;
+import com.oppo.tagbase.common.util.FileUtil;
 
 import java.io.File;
 import java.io.IOException;

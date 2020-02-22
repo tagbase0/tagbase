@@ -1,8 +1,11 @@
 package com.oppo.tagbase.meta.connector;
 
+import com.oppo.tagbase.common.Config;
+
 /**
  * Created by wujianchao on 2020/2/4.
  */
+@Config("tagbase.metadata.storage.connector")
 public class MetaStoreConnectorConfig {
 
     private String connectURI;

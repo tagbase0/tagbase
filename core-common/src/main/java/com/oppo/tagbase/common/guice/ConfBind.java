@@ -7,6 +7,8 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
 import com.google.inject.name.Names;
+import com.oppo.tagbase.common.Config;
+import com.oppo.tagbase.common.util.AnnotationUtil;
 
 import javax.validation.Validator;
 import java.util.Map;
@@ -27,10 +29,22 @@ import java.util.stream.Collectors;
 public class ConfBind {
 
 
+    public static <T> void bind(Binder binder, Class<T> configClazz) {
+        String confKeyPrefix = AnnotationUtil.getAnnotation(configClazz, Config.class).value();
+        bind(binder, confKeyPrefix, configClazz);
+    }
+
+    @Deprecated
     public static <T> void bind(Binder binder, String confKeyPrefix, Class<T> configClazz) {
         binder.bind(configClazz).toProvider(new ConfigProvider<T>(confKeyPrefix, configClazz)).in(Scopes.SINGLETON);
     }
 
+    public static <T> void bind(Binder binder, Class<T> configClazz, String name) {
+        String confKeyPrefix = AnnotationUtil.getAnnotation(configClazz, Config.class).value();
+        bind(binder, confKeyPrefix, configClazz, name);
+    }
+
+    @Deprecated
     public static <T> void bind(Binder binder, String confKeyPrefix, Class<T> configClazz, String name) {
         binder.bind(configClazz).annotatedWith(Names.named(name)).toProvider(new ConfigProvider<T>(confKeyPrefix, configClazz)).in(Scopes.SINGLETON);
     }

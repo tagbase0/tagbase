@@ -47,7 +47,7 @@ public abstract class MetadataConnector {
         return jdbi;
     }
 
-    protected <R> R submit(HandleCallback<R, MCE> handle) {
+    protected <R> R submit(HandleCallback<R, MetadataException> handle) {
         return get().withHandle(handle);
     }
 
@@ -257,7 +257,7 @@ public abstract class MetadataConnector {
         submit(handle -> {
 
             if(slice.getStatus() != SliceStatus.BUILDING) {
-                throw new MCE("Newly added slice must be BUILDING status.");
+                throw new MetadataException("Newly added slice must be BUILDING status.");
             }
 
             TableType tableType = handle.createQuery("select type from TBL where id=:tableId")
@@ -564,7 +564,7 @@ public abstract class MetadataConnector {
         submit(handle -> {
 
             if (DictStatus.UNUSED == dict.getStatus()) {
-                throw new MCE("Newly added dict must be READY status.");
+                throw new MetadataException("Newly added dict must be READY status.");
             }
 
             String sqlDisableDict = "UPDATE DICT set status=? where status=?";

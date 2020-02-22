@@ -15,7 +15,7 @@ public class ConnectorModule extends AbstractModule {
 
         Binder binder = binder();
         ConfBind.bind(binder,
-                "tagbase.metadata.storage.com.oppo.tagbase.meta.connector",
+                "tagbase.metadata.storage.connector",
                 MetaStoreConnectorConfig.class
         );
 

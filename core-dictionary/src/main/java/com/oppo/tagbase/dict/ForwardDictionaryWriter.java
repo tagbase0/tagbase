@@ -1,8 +1,8 @@
 package com.oppo.tagbase.dict;
 
-import com.oppo.tagbase.dict.util.BytesUtil;
-import com.oppo.tagbase.dict.util.FileUtil;
-import com.oppo.tagbase.dict.util.Preconditions;
+import com.oppo.tagbase.common.util.BytesUtil;
+import com.oppo.tagbase.common.util.FileUtil;
+import com.oppo.tagbase.common.util.Preconditions;
 
 import java.io.File;
 import java.io.FileInputStream;
