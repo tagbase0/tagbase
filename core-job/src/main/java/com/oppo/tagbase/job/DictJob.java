@@ -23,13 +23,6 @@ public class DictJob implements AbstractJob {
 
     Logger log = LoggerFactory.getLogger(DictJob.class);
 
-    @Override
-    public boolean succeed(String jobId) {
-        if (JobState.SUCCESS == new MetadataJob().getJob(jobId).getState()) {
-            return true;
-        }
-        return false;
-    }
 
     @Override
     public void buildDict(String dbName, String tableName) {
@@ -51,7 +44,7 @@ public class DictJob implements AbstractJob {
     }
 
     @Override
-    public Job jobInfo(String jobId) {
+    public Job jobState(String jobId) {
         return new MetadataJob().getJob(jobId);
     }
 
@@ -176,10 +169,10 @@ public class DictJob implements AbstractJob {
 
                         // 2. 启动任务
                         //TODO 2020/2/16  调用反向字典Spark任务
-                        String appId = "";
-//                        new TaskEngine().submitJob(hiveMeta, com.oppo.tagbase.job.obj.JobType.INVERTED_DICT);
+//                        String appId = TaskEngine.submitJob(hiveMeta, JobType.DICTIONARY);
+
                         TaskState state = null;
-//                        String finalStatus= new TaskEngine().getJobStatus(appId, com.oppo.tagbase.job.obj.JobType.INVERTED_DICT).getFinalStatus();
+//                        String finalStatus= TaskEngine.getJobStatus(appId, JobType.DICTIONARY).getFinalStatus();
 
 
                         // 3.更新任务状态信息

@@ -19,13 +19,6 @@ public class BitMapJob implements AbstractJob {
     Logger log = LoggerFactory.getLogger(BitMapJob.class);
     private static final int RUNNING_JOBS_LIMIT = 50;
 
-    @Override
-    public boolean succeed(String jobId) {
-        if (JobState.SUCCESS == new MetadataJob().getJob(jobId).getState()) {
-            return true;
-        }
-        return false;
-    }
 
     @Override
     public void buildDict(String dbName, String tableName) {
@@ -47,7 +40,7 @@ public class BitMapJob implements AbstractJob {
     }
 
     @Override
-    public Job jobInfo(String jobId) {
+    public Job jobState(String jobId) {
         return new MetadataJob().getJob(jobId);
     }
 
@@ -82,6 +75,7 @@ public class BitMapJob implements AbstractJob {
 
         return bitMapJob;
     }
+
 
     private void iniTasks(Job bitMapJob) {
 
