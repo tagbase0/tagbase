@@ -69,4 +69,12 @@ public final class IdGenerator {
     private long nowInMillis() {
         return System.currentTimeMillis();
     }
+
+    public static void main(String[] args) {
+        System.out.println(new IdGenerator().nextQueryId("DictBuildJob", "yyyyMMdd"));
+        System.out.println(new IdGenerator().nextQueryId("DataBuildJob"));
+        System.out.println(new IdGenerator().nextQueryId("DataBuildJob"));
+        System.out.println(new SimpleDateFormat("yyyyMMdd").format(System.currentTimeMillis()));
+
+    }
 }

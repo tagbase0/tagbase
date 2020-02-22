@@ -2,8 +2,9 @@ package com.oppo.tagbase.job;
 
 import com.oppo.tagbase.job.exception.JobException;
 import com.oppo.tagbase.job.obj.HiveMeta;
-import com.oppo.tagbase.job.obj.JobMessage;
-import com.oppo.tagbase.job.obj.JobType;
+import com.oppo.tagbase.job.obj.TaskMessage;
+import com.oppo.tagbase.meta.obj.JobType;
+
 import java.io.IOException;
 
 /**
@@ -13,6 +14,6 @@ public abstract class TaskEngine {
 
     public abstract String submitJob(HiveMeta hiveMeta, JobType type) throws JobException;
 
-    public abstract JobMessage getJobStatus(String appid, JobType type) throws IOException, JobException;
+    public abstract TaskMessage getJobStatus(String appid, JobType type) throws IOException, JobException;
 
 }

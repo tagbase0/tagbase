@@ -34,10 +34,14 @@ public class BitMapJob implements AbstractJob {
 
     @Override
     public String buildData(String dbName, String tableName, String lowerDate, String upperDate) {
+
         Job job = iniJob(dbName, tableName, lowerDate, upperDate);
+
         String jobId = build(job);
+
         // 更新元数据模块内容
-        new MetadataJob().completeJOb(jobId, JobState.SUCCESS, new Date(System.currentTimeMillis()));
+        new MetadataJob().completeJOb(jobId, job.getState(), new Date(System.currentTimeMillis()));
+        log.info("{} is finished.", job.getId());
 
         return jobId;
     }
@@ -49,13 +53,16 @@ public class BitMapJob implements AbstractJob {
 
 
     public Job iniJob(String dbName, String tableName, String lowerDate, String upperDate) {
+
         Job bitMapJob = new Job();
 
         Date dataLowerDate = new DateFormat().toDate(dbName, tableName, lowerDate);
         Date dataUpperDate = new DateFormat().toDate(dbName, tableName, upperDate);
 
-        String bitMapJobId = new IdGenerator().nextQueryId("BitMapBuildJob");
+        String bitMapJobId = new IdGenerator().nextQueryId("DataBuildJob");
         String jobName = dbName + "_" + tableName + "_" + dataLowerDate + "_" + dataUpperDate;
+
+        log.debug("{} is initializing.", bitMapJobId);
 
         bitMapJob.setId(bitMapJobId);
         bitMapJob.setName(jobName);
@@ -64,15 +71,14 @@ public class BitMapJob implements AbstractJob {
         bitMapJob.setStartTime(new Date(System.currentTimeMillis()));
         bitMapJob.setDataLowerTime(dataLowerDate);
         bitMapJob.setDataUpperTime(dataUpperDate);
-        bitMapJob.setLatestTask("");
         bitMapJob.setState(JobState.PENDING);
         bitMapJob.setType(JobType.DATA);
 
-
-        new MetadataJob().addJob(bitMapJob);
-
         // 定义子任务 tasks
         iniTasks(bitMapJob);
+
+        new MetadataJob().addJob(bitMapJob);
+        log.debug("{} completes initialization.", bitMapJobId);
 
         return bitMapJob;
     }
@@ -91,16 +97,23 @@ public class BitMapJob implements AbstractJob {
 
         new MetadataJob().addTask(hFileTask);
         new MetadataJob().addTask(loadTask);
+
+        log.debug("{} completes initialization.", hFileTask.getId());
+        log.debug("{} completes initialization.", loadTask.getId());
     }
 
     private void iniTask(String jobId, Task task, String name, byte step, String output) {
+
         String today = new SimpleDateFormat("yyyyMMdd").format(System.currentTimeMillis());
-        task.setId(new IdGenerator().nextQueryId(name, "yyyyMMdd"));
+        String taskId = new IdGenerator().nextQueryId(name, "yyyyMMdd");
+        log.debug("{} is initializing. ", taskId);
+        task.setId(taskId);
         task.setName(name + "_" + today);
         task.setJobId(jobId);
         task.setStep(step);
         task.setOutput(output);
         task.setState(TaskState.PENDING);
+
     }
 
     public String build(Job bitMapJob) {
@@ -116,6 +129,10 @@ public class BitMapJob implements AbstractJob {
 
             Future<Slice> slice = JOB_EXECUTORS.submit(new BitMapBuildJob(bitMapJobHead.getId()));
 
+            new MetadataJob().completeJOb(bitMapJobHead.getId(), bitMapJobHead.getState(),
+                    new Date(System.currentTimeMillis()));
+
+            log.info("{} is finished.", bitMapJobHead.getId());
         }
 
         return bitMapJob.getId();

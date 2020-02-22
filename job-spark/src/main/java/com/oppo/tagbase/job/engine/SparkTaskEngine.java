@@ -7,7 +7,6 @@ import com.oppo.tagbase.job.TaskEngine;
 import com.oppo.tagbase.job.exception.JobException;
 import com.oppo.tagbase.job.obj.HiveMeta;
 import com.oppo.tagbase.job.obj.JobMessage;
-import com.oppo.tagbase.job.obj.JobType;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;

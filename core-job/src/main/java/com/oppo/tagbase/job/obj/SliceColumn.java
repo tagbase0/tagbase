@@ -7,15 +7,19 @@ public class SliceColumn {
 
     private String columnName;
 
-    private String columnValue;
+    private String columnValueLeft;
 
-    public SliceColumn(String columnName, String columnValue) {
-        this.columnName = columnName;
-        this.columnValue = columnValue;
-    }
+    private String columnValueRight;
+
 
     public SliceColumn() {
 
+    }
+
+    public SliceColumn(String columnName, String columnValueLeft, String columnValueRight) {
+        this.columnName = columnName;
+        this.columnValueLeft = columnValueLeft;
+        this.columnValueRight = columnValueRight;
     }
 
     public String getColumnName() {
@@ -26,19 +30,28 @@ public class SliceColumn {
         this.columnName = columnName;
     }
 
-    public String getColumnValue() {
-        return columnValue;
+    public String getColumnValueLeft() {
+        return columnValueLeft;
     }
 
-    public void setColumnValue(String columnValue) {
-        this.columnValue = columnValue;
+    public void setColumnValueLeft(String columnValueLeft) {
+        this.columnValueLeft = columnValueLeft;
+    }
+
+    public String getColumnValueRight() {
+        return columnValueRight;
+    }
+
+    public void setColumnValueRight(String columnValueRight) {
+        this.columnValueRight = columnValueRight;
     }
 
     @Override
     public String toString() {
         return "SliceColumn{" +
                 "columnName='" + columnName + '\'' +
-                ", columnValue='" + columnValue + '\'' +
+                ", columnValueLeft='" + columnValueLeft + '\'' +
+                ", columnValueRight='" + columnValueRight + '\'' +
                 '}';
     }
 }

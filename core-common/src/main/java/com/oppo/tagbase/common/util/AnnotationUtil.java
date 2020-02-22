@@ -1,7 +1,6 @@
 package com.oppo.tagbase.common.util;
 
 import com.google.common.base.Preconditions;
-import com.sun.jersey.api.core.PackagesResourceConfig;
 
 import java.lang.annotation.Annotation;
 

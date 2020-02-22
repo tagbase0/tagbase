@@ -1,9 +1,11 @@
 package com.oppo.tagbase.job.obj;
 
+import com.oppo.tagbase.meta.obj.TaskState;
+
 /**
  * Created by liangjingya on 2020/2/20.
  */
-public class JobMessage {
+public class TaskMessage {
 
     private String finalStatus;
 
@@ -15,9 +17,9 @@ public class JobMessage {
 
     private String queue;
 
-    private long  startedTime;
+    private long startedTime;
 
-    private long  finishedTime;
+    private long finishedTime;
 
     public String getFinalStatus() {
         return finalStatus;
@@ -77,7 +79,7 @@ public class JobMessage {
 
     @Override
     public String toString() {
-        return "JobMessage{" +
+        return "TaskMessage{" +
                 "finalStatus='" + finalStatus + '\'' +
                 ", state='" + state + '\'' +
                 ", name='" + name + '\'' +
@@ -88,12 +90,12 @@ public class JobMessage {
                 '}';
     }
 
-    public JobStatus parseJobStatus(){
-        if("UNDEFINED".equals(this.finalStatus)){
-            return JobStatus.valueOf(this.state);
-        }else if("FINISHED".equals(this.state)){
-            return JobStatus.valueOf(this.finalStatus);
+    public TaskState parseJobStatus() {
+        if ("UNDEFINED".equals(this.finalStatus)) {
+            return TaskState.valueOf(this.state);
+        } else if ("FINISHED".equals(this.state)) {
+            return TaskState.valueOf(this.finalStatus);
         }
-        return JobStatus.UNKNOWN;
+        return TaskState.UNKNOWN;
     }
 }
