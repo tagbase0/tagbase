@@ -12,13 +12,14 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Please set at least 4GB heap RAM for benchmark testing.
  *
- * ASUS Laptop Intel Core i7-4720HQ Test result (time are all millisecond):
+ * ASUS laptop, Intel Core i7-4720HQ. Test result (time is in millisecond):
  *
  * Benchmark Test : dictionary[100000000] elements - search[1000000] times
- * generate dictionary time : 44585
- * load dictionary time : 4030
- * search dictionary time : 11316
- * every search time : 0
+ * dictionary size : 2200698931
+ * generate dictionary time : 55436
+ * load dictionary time : 7529
+ * search dictionary time : 14554
+ * every search time : 14 us
  *
  * Created by wujianchao on 2020/2/21.
  */
@@ -78,10 +79,11 @@ public class ForwardDictionaryBenchmark {
         long doneTime = System.currentTimeMillis();
 
         System.out.println(String.format("Benchmark Test : dictionary[%d] elements - search[%d] times", count, searchTimes));
+        System.out.println("dictionary size : " + dictFile.length());
         System.out.println("generate dictionary time : " + (loadDictTime - generateDictTime));
         System.out.println("load dictionary time : " + (searchTime - loadDictTime));
         System.out.println("search dictionary time : " + (doneTime - searchTime));
-        System.out.println("every search time : " + (doneTime - searchTime)/searchTimes);
+        System.out.println("every search time : " + (doneTime - searchTime) * 1000 / searchTimes + " us");
 
     }
 

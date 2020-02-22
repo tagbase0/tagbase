@@ -102,6 +102,7 @@ public class Group {
      */
     private int elementOffset(int id){
         return metaLength +
+                // use unsigned short
                 (id==0 ? 0 : UnsignedTypes.unsignedShort(data.getShort(TYPE_INT_WIDTH + (id -1) * TYPE_SHORT_WIDTH)));
     }
 
@@ -110,6 +111,7 @@ public class Group {
      * Get index of element of id .
      */
     public int index(int id) {
+        // use unsigned short
         return UnsignedTypes.unsignedShort(data.getShort(TYPE_INT_WIDTH + id * TYPE_SHORT_WIDTH));
     }
 

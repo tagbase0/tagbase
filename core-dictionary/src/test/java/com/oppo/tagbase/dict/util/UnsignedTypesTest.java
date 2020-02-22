@@ -32,7 +32,14 @@ public class UnsignedTypesTest {
         System.out.println(Integer.MAX_VALUE);
         System.out.println(Integer.MAX_VALUE + 1);
         Assert.assertEquals((long)Integer.MAX_VALUE + 1, UnsignedTypes.unsignedInt(Integer.MAX_VALUE + 1));
+    }
 
+    @Test
+    public void castNegativeTest() {
+        long a = -1L;
+        int b = -1;
+        long c = (long)b;
+        Assert.assertEquals(a, c);
     }
 
 

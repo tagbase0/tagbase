@@ -2,6 +2,7 @@ package com.oppo.tagbase.dict;
 
 import com.oppo.tagbase.dict.util.BytesUtil;
 import com.oppo.tagbase.dict.util.Preconditions;
+import com.oppo.tagbase.dict.util.UnsignedTypes;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -59,19 +60,12 @@ public class ForwardDictionaryMeta {
     private long elementNum = 0L;
 
 
-    public static String getMAGIC() {
-        return MAGIC;
-    }
-
-    public static String getVERSION() {
-        return VERSION;
-    }
-
     public String getMagic() {
         return magic;
     }
 
     public void setMagic(String magic) {
+        Preconditions.checkNotEquals(magic, MAGIC, "Illegal Tagbase forward dictionary");
         this.magic = magic;
     }
 
@@ -87,7 +81,9 @@ public class ForwardDictionaryMeta {
         return version;
     }
 
+    //TODO not only 1.0
     public void setVersion(String version) {
+        Preconditions.checkNotEquals(version, VERSION, "Illegal version of Tagbase forward dictionary");
         this.version = version;
     }
 
@@ -170,13 +166,14 @@ public class ForwardDictionaryMeta {
 
         String magic = BytesUtil.toUTF8String(buf, 20);
         Preconditions.checkNotEquals(magic, MAGIC, "Illegal Tagbase forward dictionary");
-
         meta.setMagic(magic);
+
         meta.setVersion(BytesUtil.toUTF8String(buf, 3));
         meta.setLastModifiedDate(buf.getLong());
         //TODO check
         meta.setCheckSum(BytesUtil.toUTF8String(buf, 8));
-        meta.setGroupNum(buf.getInt());
+        // group number is designed larger than Integer.MAX_VALUE, so must use unsigned int
+        meta.setGroupNum(UnsignedTypes.unsignedInt(buf.getInt()));
         meta.setElementNum(buf.getLong());
 
         return meta;

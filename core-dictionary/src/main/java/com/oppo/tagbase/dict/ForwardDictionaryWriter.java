@@ -109,7 +109,7 @@ public final class ForwardDictionaryWriter implements DictionaryWriter {
         checkAddingCondition();
 
         Preconditions.checkNotEquals(checkElement(element), ELEMENT_IS_OK,
-                "illegal element " + BytesUtil.toUTF8String(element));
+                "illegal element " + (element == null ? "NULL" : BytesUtil.toUTF8String(element)));
 
         if(groupWriter == null) {
             addGroup();

@@ -8,17 +8,18 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.oppo.tagbase.dict.ForwardDictionaryWriter.MAX_ELEMENT_LENGTH;
 import static com.oppo.tagbase.dict.Group.GROUP_LENGTH;
 
 /**
  * Created by wujianchao on 2020/2/21.
  */
 public class FrowardDictionaryTest {
-
 
 
     @Test
@@ -119,6 +120,44 @@ public class FrowardDictionaryTest {
         Assert.assertArrayEquals(BytesUtil.toUTF8Bytes("a"), dict.element(4008));
         Assert.assertArrayEquals(BytesUtil.toUTF8Bytes("d"), dict.element(4011));
 
+    }
+
+
+    @Test
+    public void addElementTest() throws IOException {
+        File dictFile = FileUtil.createDeleteOnExitFile("target/forward-dict-add-element-test.txt");
+        ForwardDictionaryWriter writer = ForwardDictionaryWriter.createWriter(dictFile);
+
+        writer.add(BytesUtil.toUTF8Bytes("1"));
+        writer.complete();
+        Assert.assertTrue(true);
+    }
+
+    @Test(expected = DictionaryException.class)
+    public void addNullElementTest() throws IOException {
+        File dictFile = FileUtil.createDeleteOnExitFile("target/forward-dict-add-element-test.txt");
+        ForwardDictionaryWriter writer = ForwardDictionaryWriter.createWriter(dictFile);
+
+        writer.add(null);
+        writer.complete();
+    }
+
+    @Test(expected = DictionaryException.class)
+    public void addBlankElementTest() throws IOException {
+        File dictFile = FileUtil.createDeleteOnExitFile("target/forward-dict-add-element-test.txt");
+        ForwardDictionaryWriter writer = ForwardDictionaryWriter.createWriter(dictFile);
+
+        writer.add(new byte[]{});
+        writer.complete();
+    }
+
+    @Test(expected = DictionaryException.class)
+    public void addTooLongElementTest() throws IOException {
+        File dictFile = FileUtil.createDeleteOnExitFile("target/forward-dict-add-element-test.txt");
+        ForwardDictionaryWriter writer = ForwardDictionaryWriter.createWriter(dictFile);
+
+        writer.add(ByteBuffer.allocate(MAX_ELEMENT_LENGTH + 1).array());
+        writer.complete();
     }
 
 }
