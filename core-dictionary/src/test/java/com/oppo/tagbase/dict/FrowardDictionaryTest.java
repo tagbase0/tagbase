@@ -65,6 +65,8 @@ public class FrowardDictionaryTest {
         File dictFile = FileUtil.createDeleteOnExitFile("target/forward-dict-add-to-existed-test.txt");
         ForwardDictionaryWriter writer = ForwardDictionaryWriter.createWriter(dictFile);
 
+
+        // first batch
         List<byte[]> elementList = new ArrayList<>();
         elementList.add(BytesUtil.toUTF8Bytes("1"));
         elementList.add(BytesUtil.toUTF8Bytes("2"));
@@ -75,27 +77,47 @@ public class FrowardDictionaryTest {
             writer.add(element);
         }
 
+        // to expand group num to 2
         for(int i=0; i<4000; i++) {
             writer.add(ElementGenerator.generate(20));
         }
-
         writer.complete();
 
-        ForwardDictionaryWriter anoWriter = ForwardDictionaryWriter.createWriterForExistedDict(dictFile);
-
+        // second batch
+        ForwardDictionaryWriter secondWriter = ForwardDictionaryWriter.createWriterForExistedDict(dictFile);
         for (byte[] element : elementList) {
-            anoWriter.add(element);
+            secondWriter.add(element);
         }
+        secondWriter.complete();
 
-        anoWriter.complete();
+        // third batch
+        List<byte[]> anoElementBatch = new ArrayList<>();
+        anoElementBatch.add(BytesUtil.toUTF8Bytes("a"));
+        anoElementBatch.add(BytesUtil.toUTF8Bytes("b"));
+        anoElementBatch.add(BytesUtil.toUTF8Bytes("c"));
+        anoElementBatch.add(BytesUtil.toUTF8Bytes("d"));
+        ForwardDictionaryWriter thirdWriter = ForwardDictionaryWriter.createWriterForExistedDict(dictFile);
+        for (byte[] element : anoElementBatch) {
+            thirdWriter.add(element);
+        }
+        thirdWriter.complete();
 
         ForwardDictionary dict = ForwardDictionary.create(dictFile);
 
-        Assert.assertEquals(4008, dict.elementNum());
+
+        // assert file size
+        Assert.assertEquals(ForwardDictionaryMeta.length() + 2 * GROUP_LENGTH, dictFile.length());
+
+        // assert element num
+        Assert.assertEquals(4012, dict.elementNum());
+
+        // assert element
         Assert.assertArrayEquals(BytesUtil.toUTF8Bytes("1"), dict.element(0));
         Assert.assertArrayEquals(BytesUtil.toUTF8Bytes("4"), dict.element(3));
         Assert.assertArrayEquals(BytesUtil.toUTF8Bytes("1"), dict.element(4004));
         Assert.assertArrayEquals(BytesUtil.toUTF8Bytes("4"), dict.element(4007));
+        Assert.assertArrayEquals(BytesUtil.toUTF8Bytes("a"), dict.element(4008));
+        Assert.assertArrayEquals(BytesUtil.toUTF8Bytes("d"), dict.element(4011));
 
     }
 

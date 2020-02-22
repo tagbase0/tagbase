@@ -1,13 +1,16 @@
 package com.oppo.tagbase.dict;
 
 import com.oppo.tagbase.dict.util.FileUtil;
+import com.oppo.tagbase.dict.util.Preconditions;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.oppo.tagbase.dict.ForwardDictionaryMeta.length;
 import static com.oppo.tagbase.dict.ForwardDictionaryWriter.NOT_EXISTED;
 import static com.oppo.tagbase.dict.Group.GROUP_LENGTH;
 
@@ -52,9 +55,8 @@ public final class ForwardDictionary extends AbstractDictionary {
     private long dictLength;
 
     private ForwardDictionary(File file) throws IOException {
-        if(!file.exists()) {
-            throw  new DictionaryException("Dictionary file not existed " + file.getAbsolutePath());
-        }
+        Preconditions.check(!file.exists(),
+                "Dictionary file not existed " + file.getAbsolutePath());
         this.file = file;
         loadDictionary();
     }
@@ -65,16 +67,14 @@ public final class ForwardDictionary extends AbstractDictionary {
     }
 
     private void loadDictionary() throws IOException {
-        if(ready.get()) {
-            throw new DictionaryException("ForwardDictionary already initialized");
-        }
+        Preconditions.check(ready.get(), "ForwardDictionary already initialized");
         this.dictLength = file.length();
 
         try (FileInputStream in = new FileInputStream(file);
              FileChannel channel = in.getChannel()) {
 
             // load meta
-            byte[] metaBytes = FileUtil.read(channel, 0, meta.length());
+            byte[] metaBytes = FileUtil.read(channel, 0, length());
             meta = ForwardDictionaryMeta.deserialize(metaBytes);
 
             //load groups
@@ -93,8 +93,11 @@ public final class ForwardDictionary extends AbstractDictionary {
                     groupFirstElementId[i] = groupFirstElementId[i-1] + groups[i-1].getElementNum();
                 }
             }
-        }
 
+            // check dict
+            checkSum();
+            checkConsistency();
+        }
 
         ready.compareAndSet(false, true);
     }
@@ -108,10 +111,9 @@ public final class ForwardDictionary extends AbstractDictionary {
      * Group offset in file.
      */
     static long groupOffset(ForwardDictionaryMeta meta, long groupId) {
-        if(groupId >= meta.getGroupNum()){
-            throw new DictionaryException(String.format("group id %d can not larger than groupNum %d", groupId, meta.getGroupNum()));
-        }
-        return meta.length() + groupId * GROUP_LENGTH;
+        Preconditions.check(groupId >= meta.getGroupNum(),
+                String.format("group id %d can not larger than groupNum %d", groupId, meta.getGroupNum()));
+        return length() + groupId * GROUP_LENGTH;
     }
 
     @Override
@@ -125,10 +127,31 @@ public final class ForwardDictionary extends AbstractDictionary {
         return groups[(int) groupId].element((int) idInGroup);
     }
 
+    /**
+     * Check consistency of meta and data part.
+     * For example :
+     *      elementNum
+     *      groupNum
+     */
+    private void checkConsistency() {
+
+        long calculatedElementNum = Arrays.stream(groups)
+                .mapToLong(Group::getElementNum).sum();
+        Preconditions.check(calculatedElementNum != meta.getElementNum(),
+                "forward dict element num not consistent");
+
+        long calculatedGroupNum = calculatedGroupNum();
+        Preconditions.check(calculatedGroupNum != meta.getGroupNum(),
+                "forward dict group num not consistent");
+    }
+
+    private void checkSum() {
+        //TODO
+    }
+
     private void checkId(long id) {
-        if(id < 0 || id > meta.getElementNum()) {
-            throw new DictionaryException(String.format("Element id should between %d and %d", 0, meta.getElementNum()));
-        }
+        Preconditions.check(id < 0 || id > meta.getElementNum(),
+                String.format("Element id should between %d and %d", 0, meta.getElementNum()));
     }
 
     /**
@@ -158,6 +181,13 @@ public final class ForwardDictionary extends AbstractDictionary {
     @DictionaryApi
     public long elementNum() {
         return meta.getElementNum();
+    }
+
+    /**
+     * Calculate group num by file length but not meta.
+     */
+    long calculatedGroupNum() {
+        return (file.length() - ForwardDictionaryMeta.length()) / GROUP_LENGTH;
     }
 
     @Override

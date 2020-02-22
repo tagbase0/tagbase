@@ -2,6 +2,7 @@ package com.oppo.tagbase.dict;
 
 import com.oppo.tagbase.dict.util.BytesUtil;
 import com.oppo.tagbase.dict.util.FileUtil;
+import com.oppo.tagbase.dict.util.Preconditions;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -107,9 +108,8 @@ public final class ForwardDictionaryWriter implements DictionaryWriter {
 
         checkAddingCondition();
 
-        if(checkElement(element) != ELEMENT_IS_OK) {
-            throw new DictionaryException("illegal element " + BytesUtil.toUTF8String(element));
-        }
+        Preconditions.checkNotEquals(checkElement(element), ELEMENT_IS_OK,
+                "illegal element " + BytesUtil.toUTF8String(element));
 
         if(groupWriter == null) {
             addGroup();
@@ -127,22 +127,18 @@ public final class ForwardDictionaryWriter implements DictionaryWriter {
 
             idInGroup = groupWriter.add(element);
             // check again
-            if(GROUP_NO_ENOUGH_SPACE == idInGroup){
-                throw new DictionaryException("can not add element " + BytesUtil.toUTF8String(element));
-            }
+            Preconditions.check(GROUP_NO_ENOUGH_SPACE == idInGroup,
+                    "can not add element " + BytesUtil.toUTF8String(element));
         }
-
 
         return nexElementId++;
     }
 
     private void checkAddingCondition() {
-        if(completed.get()) {
-            throw new DictionaryException("Adding element failed, for writer has already closed");
-        }
-        if(nexElementId == MAX_ELEMENT){
-            throw new DictionaryException("ForwardDictionary element length is at most " + MAX_ELEMENT);
-        }
+        Preconditions.check(completed.get(),
+                "Adding element failed, for writer has already closed");
+        Preconditions.check(nexElementId == MAX_ELEMENT,
+                "ForwardDictionary element length is at most " + MAX_ELEMENT);
     }
 
     private void addGroup() {
@@ -171,9 +167,8 @@ public final class ForwardDictionaryWriter implements DictionaryWriter {
     @DictionaryApi
     public void complete() throws IOException {
 
-        if(!completed.compareAndSet(false, true)) {
-            throw new DictionaryException("The writer has already completed");
-        }
+        Preconditions.check(!completed.compareAndSet(false, true),
+                "The writer has already completed");
 
         flushMeta();
         flushCurrentGroup();

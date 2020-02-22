@@ -9,7 +9,7 @@ import org.junit.Test;
 public class ForwardDictionaryMetaTest {
 
     @Test
-    public void deserializeTest() {
+    public void sanityTest() {
 
         ForwardDictionaryMeta meta = new ForwardDictionaryMeta();
         meta.setLastModifiedDate(System.currentTimeMillis());
@@ -20,6 +20,5 @@ public class ForwardDictionaryMetaTest {
         ForwardDictionaryMeta deserializedMeta = ForwardDictionaryMeta.deserialize(bytes);
 
         Assert.assertEquals(meta, deserializedMeta);
-
     }
 }

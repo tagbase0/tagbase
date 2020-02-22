@@ -1,5 +1,6 @@
 package com.oppo.tagbase.dict;
 
+import com.oppo.tagbase.dict.util.Preconditions;
 import com.oppo.tagbase.dict.util.UnsignedTypes;
 
 import java.nio.ByteBuffer;
@@ -65,9 +66,8 @@ public class Group {
     }
 
     private void checkGroup(byte[] data) {
-        if(data.length != GROUP_LENGTH) {
-            throw new DictionaryException("Invalid forward dictionary group length");
-        }
+        Preconditions.checkNotEquals(data.length, GROUP_LENGTH,
+                "Invalid forward dictionary group length");
     }
 
     private void calculateRemaining() {

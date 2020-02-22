@@ -1,6 +1,7 @@
 package com.oppo.tagbase.dict;
 
 import com.oppo.tagbase.dict.util.BytesUtil;
+import com.oppo.tagbase.dict.util.Preconditions;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -124,7 +125,6 @@ public class ForwardDictionaryMeta {
 
     public byte[] serialize() {
         generateCheckSum();
-        //TODO test
         ByteBuffer buf = ByteBuffer.allocate(length());
         buf.put(magic.getBytes(StandardCharsets.UTF_8));
         buf.put(version.getBytes(StandardCharsets.UTF_8));
@@ -138,16 +138,6 @@ public class ForwardDictionaryMeta {
     //TODO
     private void generateCheckSum() {
         checkSum = BytesUtil.toUTF8String(NULL_CHECKSUM);
-    }
-
-    /**
-     * Check consistency of meta and data part.
-     * For example :
-     *      elementNum
-     *      groupNum
-     */
-    public void checkConsistency() {
-        //TODO
     }
 
     @Override
@@ -173,17 +163,13 @@ public class ForwardDictionaryMeta {
     }
 
     public static ForwardDictionaryMeta deserialize(byte[] bytes) {
-        if(bytes.length != length()) {
-            throw new DictionaryException("Invalid dictionary meta length");
-        }
+        Preconditions.checkNotEquals(bytes.length, length(), "Invalid dictionary meta length");
 
         ForwardDictionaryMeta meta = new ForwardDictionaryMeta();
         ByteBuffer buf = ByteBuffer.wrap(bytes);
 
         String magic = BytesUtil.toUTF8String(buf, 20);
-        if(!Objects.equals(magic, MAGIC)) {
-            throw new DictionaryException("Illegal Tagbase forward dictionary");
-        }
+        Preconditions.checkNotEquals(magic, MAGIC, "Illegal Tagbase forward dictionary");
 
         meta.setMagic(magic);
         meta.setVersion(BytesUtil.toUTF8String(buf, 3));
