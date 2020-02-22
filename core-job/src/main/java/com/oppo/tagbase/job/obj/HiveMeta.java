@@ -11,10 +11,13 @@ public class HiveMeta {
 
     private String output;//输出位置，反向字典任务为分区号，bigmap任务为hdfspath
 
-    public HiveMeta(HiveDictTable hiveDictTable, HiveSrcTable hiveSrcTable, String output) {
+    private String rowCountPath;//统计文件行数文件的hdfspath
+
+    public HiveMeta(HiveDictTable hiveDictTable, HiveSrcTable hiveSrcTable, String output, String rowCountPath) {
         this.hiveDictTable = hiveDictTable;
         this.hiveSrcTable = hiveSrcTable;
         this.output = output;
+        this.rowCountPath = rowCountPath;
     }
 
     public HiveMeta() {
@@ -44,12 +47,21 @@ public class HiveMeta {
         this.hiveSrcTable = hiveSrcTable;
     }
 
+    public String getRowCountPath() {
+        return rowCountPath;
+    }
+
+    public void setRowCountPath(String rowCountPath) {
+        this.rowCountPath = rowCountPath;
+    }
+
     @Override
     public String toString() {
         return "HiveMeta{" +
                 "hiveDictTable=" + hiveDictTable +
                 ", hiveSrcTable=" + hiveSrcTable +
                 ", output='" + output + '\'' +
+                ", rowCountPath='" + rowCountPath + '\'' +
                 '}';
     }
 }

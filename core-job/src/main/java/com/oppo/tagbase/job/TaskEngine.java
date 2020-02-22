@@ -12,8 +12,8 @@ import java.io.IOException;
  */
 public abstract class TaskEngine {
 
-    public abstract String submitJob(HiveMeta hiveMeta, JobType type) throws JobException;
+    public abstract String submitTask(HiveMeta hiveMeta, JobType type) throws JobException;
 
-    public abstract TaskMessage getJobStatus(String appid, JobType type) throws IOException, JobException;
+    public abstract TaskMessage getTaskStatus(String appid, JobType type) throws IOException, JobException;
 
 }

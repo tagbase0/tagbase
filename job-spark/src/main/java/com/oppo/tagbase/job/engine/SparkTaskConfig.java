@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Created by liangjingya on 2020/2/20.
  */
-public class SparkJobConfig {
+public class SparkTaskConfig {
 
     @JsonProperty
     private String driverMemory;

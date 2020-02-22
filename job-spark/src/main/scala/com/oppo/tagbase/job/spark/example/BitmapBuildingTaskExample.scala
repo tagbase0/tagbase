@@ -27,7 +27,7 @@ object BitmapBuildingTaskExample {
 
   def main(args: Array[String]): Unit = {
 
-    val hiveMeataJson = "{\"hiveDictTable\":{\"dbName\":\"tagbase\",\"tableName\":\"imeiTable\",\"imeiColumnName\":\"imei\",\"idColumnName\":\"id\",\"sliceColumnName\":\"daynum\",\"maxId\":0},\"hiveSrcTable\":{\"dbName\":\"tagbase\",\"tableName\":\"eventTable\",\"dimColumns\":[\"app\",\"event\",\"version\"],\"sliceColumn\":{\"columnName\":\"daynum\",\"columnValue\":\"20200220\"},\"imeiColumnName\":\"imei\"},\"output\":\"D:\\\\workStation\\\\sparkTaskHfile\\\\city_20200211_task\"}";
+    val hiveMeataJson = "{\"hiveDictTable\":{\"dbName\":\"default\",\"tableName\":\"imeiTable\",\"imeiColumnName\":\"imei\",\"idColumnName\":\"id\",\"sliceColumnName\":\"daynum\",\"maxId\":0},\"hiveSrcTable\":{\"dbName\":\"default\",\"tableName\":\"eventTable\",\"dimColumns\":[\"app\",\"event\",\"version\"],\"sliceColumn\":{\"columnName\":\"daynum\",\"columnValueLeft\":\"20200220\",\"columnValueRight\":\"20200221\"},\"imeiColumnName\":\"imei\"},\"output\":\"D:\\\\workStation\\\\sparkTaskHfile\\\\city_20200211_task\",\"rowCountPath\":\"D:\\\\workStation\\\\sparkTaskHfile\\\\rowCount\"}";
     val objectMapper = new ObjectMapper
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     val hiveMeata = objectMapper.readValue(hiveMeataJson, classOf[HiveMeta])
@@ -41,7 +41,8 @@ object BitmapBuildingTaskExample {
     val tableB = hiveMeata.getHiveSrcTable.getTableName
     val imeiColumnB = hiveMeata.getHiveSrcTable.getImeiColumnName
     val sliceColumnB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnName
-    val sliceValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValue
+    val sliceLeftValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueLeft
+    val sliceRightValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueRight
     val dimColumnBuilder = new StringBuilder
     hiveMeata.getHiveSrcTable.getDimColumns.asScala.toStream
       .foreach(dimColumnBuilder.append("b.").append(_).append(","))
@@ -95,7 +96,8 @@ object BitmapBuildingTaskExample {
       s"""
          |select CONCAT_WS('$rowkeyDelimiter',$dimColumnB) as dimension,
          |a.$idColumnA as index from $dbA$tableA a join $dbB$tableB b
-         |on a.$imeiColumnA=b.$imeiColumnB where b.$sliceColumnB=$sliceValueB
+         |on a.$imeiColumnA=b.$imeiColumnB
+         |where b.$sliceColumnB>=$sliceLeftValueB and b.$sliceColumnB<$sliceRightValueB
          |""".stripMargin)
       .rdd
       .map(row => (row(0).toString, row(1).toString.toInt))

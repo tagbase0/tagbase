@@ -17,13 +17,13 @@ public class SparkTaskEngineModule extends AbstractModule {
         Binder binder = binder();
         ConfBind.bind(binder,
                 "tagbase.job.spark.bitmap",
-                SparkJobConfig.class,
+                SparkTaskConfig.class,
                 "bitmapBuildingTaskConfig"
         );
 
         ConfBind.bind(binder,
                 "tagbase.job.spark.invertedDict",
-                SparkJobConfig.class,
+                SparkTaskConfig.class,
                 "invertedDictTaskConfig"
         );
 

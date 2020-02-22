@@ -40,7 +40,8 @@ object InvertedDictBuildingTask{
     val tableB = hiveMeata.getHiveSrcTable.getTableName
     val imeiColumnB = hiveMeata.getHiveSrcTable.getImeiColumnName
     val sliceColumnB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnName
-    val sliceValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValue
+    val sliceLeftValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueLeft
+    val sliceRightValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueRight
 
     //appName命名规范？
     val appName = "invertedDict_task_" + partition
@@ -61,7 +62,8 @@ object InvertedDictBuildingTask{
 
     val newImeiDs = spark.sql(
       s"""
-         |select b.$imeiColumnB from $dbB.$tableB b where b.$sliceColumnB=$sliceValueB
+         |select b.$imeiColumnB from $dbB.$tableB b
+         |where b.$sliceColumnB>=$sliceLeftValueB and b.$sliceColumnB<$sliceRightValueB
          |""".stripMargin)
       .except(
         spark.sql(

@@ -6,7 +6,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.oppo.tagbase.job.TaskEngine;
 import com.oppo.tagbase.job.exception.JobException;
 import com.oppo.tagbase.job.obj.HiveMeta;
-import com.oppo.tagbase.job.obj.JobMessage;
+import com.oppo.tagbase.job.obj.TaskMessage;
+import com.oppo.tagbase.meta.obj.JobType;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -28,16 +29,16 @@ public class SparkTaskEngine extends TaskEngine {
 
     @Inject
     @Named("bitmapBuildingTaskConfig")
-    private SparkJobConfig bitmapBuildingTaskConfig;
+    private SparkTaskConfig bitmapBuildingTaskConfig;
 
     @Inject
     @Named("invertedDictTaskConfig")
-    private SparkJobConfig invertedDictTaskConfig;
+    private SparkTaskConfig invertedDictTaskConfig;
 
     private Logger log = LoggerFactory.getLogger(SparkTaskEngine.class);
 
     @Override
-    public String submitJob(HiveMeta hiveMeta, JobType type) throws JobException {
+    public String submitTask(HiveMeta hiveMeta, JobType type) throws JobException {
 
         //根据job类型，选择不同的配置提交任务
         ObjectMapper objectMapper=new ObjectMapper();
@@ -49,10 +50,10 @@ public class SparkTaskEngine extends TaskEngine {
         }
         String result = null;
         switch (type){
-            case BITMAP_BUILDING:
+            case DATA:
                 result = submitSparkJob(appArgs, bitmapBuildingTaskConfig);
                 break;
-            case INVERTED_DICT:
+            case DICTIONARY:
                 result = submitSparkJob(appArgs, invertedDictTaskConfig);
                 break;
             default:
@@ -63,15 +64,15 @@ public class SparkTaskEngine extends TaskEngine {
     }
 
     @Override
-    public JobMessage getJobStatus(String appid, JobType type) throws IOException, JobException {
+    public TaskMessage getTaskStatus(String appid, JobType type) throws IOException, JobException {
 
         //向hadoop集群根据appid发送请求获取job执行进度
         String message = null;
         switch (type){
-            case BITMAP_BUILDING:
+            case DATA:
                 message = sendGet(bitmapBuildingTaskConfig.getTrackUrl(), appid);
                 break;
-            case INVERTED_DICT:
+            case DICTIONARY:
                 message = sendGet(invertedDictTaskConfig.getTrackUrl(), appid);
                 break;
             default:
@@ -82,15 +83,15 @@ public class SparkTaskEngine extends TaskEngine {
         String appJsonKey = "app";
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode rootNode = objectMapper.readTree(message);
-        JobMessage jobMessage = null;
+        TaskMessage taskMessage = null;
         if(rootNode.has(appJsonKey)){
             JsonNode appNode = rootNode.get(appJsonKey);
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            jobMessage = objectMapper.readValue(appNode.toString(), JobMessage.class);
+            taskMessage = objectMapper.readValue(appNode.toString(), TaskMessage.class);
         }else {
             throw new JobException("get job status error, message: \n" + message);
         }
-        return jobMessage;
+        return taskMessage;
     }
 
     /*
@@ -100,7 +101,7 @@ public class SparkTaskEngine extends TaskEngine {
      另外下载spark-2.3.2-bin-hadoop2.6.tgz解压，可以设置环境变量SPARK_HOME，提交任务需要本地有客户端
      https://archive.apache.org/dist/spark/spark-2.3.2/
     */
-    private String submitSparkJob(String hiveMeta, SparkJobConfig config) throws JobException {
+    private String submitSparkJob(String hiveMeta, SparkTaskConfig config) throws JobException {
 
         String sparkHome = System.getenv("SPARK_HOME");
         if(sparkHome == null){

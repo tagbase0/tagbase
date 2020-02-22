@@ -17,7 +17,7 @@ object InvertedDictBuildingTaskExample {
 
   def main(args: Array[String]): Unit = {
 
-    val hiveMeataJson = "{\"hiveDictTable\":{\"dbName\":\"tagbase\",\"tableName\":\"dictTable\",\"imeiColumnName\":\"imei\",\"idColumnName\":\"id\",\"sliceColumnName\":\"daynum\",\"maxId\":10},\"hiveSrcTable\":{\"dbName\":\"tagbase\",\"tableName\":\"imeiTable\",\"dimColumns\":[\"imei\"],\"sliceColumn\":{\"columnName\":\"daynum\",\"columnValue\":\"20200220\"},\"imeiColumnName\":\"imei\"},\"output\":\"20200221\"}";
+    val hiveMeataJson = "{\"hiveDictTable\":{\"dbName\":\"default\",\"tableName\":\"dictTable\",\"imeiColumnName\":\"imei\",\"idColumnName\":\"id\",\"sliceColumnName\":\"daynum\",\"maxId\":10},\"hiveSrcTable\":{\"dbName\":\"default\",\"tableName\":\"eventTable\",\"dimColumns\":[\"imei\"],\"sliceColumn\":{\"columnName\":\"daynum\",\"columnValueLeft\":\"20200220\",\"columnValueRight\":\"20200221\"},\"imeiColumnName\":\"imei\"},\"output\":\"20200220\",\"rowCountPath\":\"D:\\\\workStation\\\\sparkTaskHfile\\\\rowCount\"}";
     val objectMapper = new ObjectMapper
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     val hiveMeata = objectMapper.readValue(hiveMeataJson, classOf[HiveMeta])
@@ -31,7 +31,8 @@ object InvertedDictBuildingTaskExample {
     val tableB = hiveMeata.getHiveSrcTable.getTableName
     val imeiColumnB = hiveMeata.getHiveSrcTable.getImeiColumnName
     val sliceColumnB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnName
-    val sliceValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValue
+    val sliceLeftValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueLeft
+    val sliceRightValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueRight
 
     val appName = "invertedDict_task_" + partition//appName
 
@@ -74,7 +75,8 @@ object InvertedDictBuildingTaskExample {
 
     val data = spark.sql(
       s"""
-         |select b.$imeiColumnB from $dbB$tableB b where b.$sliceColumnB=$sliceValueB
+         |select b.$imeiColumnB from $dbB$tableB b
+         |where b.$sliceColumnB>=$sliceLeftValueB and b.$sliceColumnB<$sliceRightValueB
          |""".stripMargin)
         .except(
           spark.sql(

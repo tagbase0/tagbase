@@ -48,7 +48,8 @@ object BitmapBuildingTask {
     val tableB = hiveMeata.getHiveSrcTable.getTableName
     val imeiColumnB = hiveMeata.getHiveSrcTable.getImeiColumnName
     val sliceColumnB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnName
-    val sliceValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValue
+    val sliceLeftValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueLeft
+    val sliceRightValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueRight
     val dimColumnBuilder = new StringBuilder
     hiveMeata.getHiveSrcTable.getDimColumns.asScala.toStream
       .foreach(dimColumnBuilder.append("b.").append(_).append(","))
@@ -79,7 +80,8 @@ object BitmapBuildingTask {
       s"""
          |select CONCAT_WS('$rowkeyDelimiter',$dimColumnB) as dimension,
          |a.$idColumnA as index from $dbA.$tableA a join $dbB.$tableB b
-         |on a.$imeiColumnA=b.$imeiColumnB where b.$sliceColumnB=$sliceValueB
+         |on a.$imeiColumnA=b.$imeiColumnB
+         |where b.$sliceColumnB>=$sliceLeftValueB and b.$sliceColumnB<$sliceRightValueB
          |""".stripMargin)
       .rdd
       .map(row => (row(0).toString, row(1).toString.toInt))
