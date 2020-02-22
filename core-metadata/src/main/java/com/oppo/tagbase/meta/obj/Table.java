@@ -1,6 +1,6 @@
 package com.oppo.tagbase.meta.obj;
 
-import com.oppo.tagbase.meta.connector.MetadataException;
+import com.oppo.tagbase.meta.MetadataException;
 
 import java.util.List;
 import java.util.Objects;

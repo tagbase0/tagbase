@@ -1,4 +1,4 @@
-package com.oppo.tagbase.meta.connector;
+package com.oppo.tagbase.meta;
 
 /**
  * Created by wujianchao on 2020/2/10.

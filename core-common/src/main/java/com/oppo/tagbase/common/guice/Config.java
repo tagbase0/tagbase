@@ -1,4 +1,4 @@
-package com.oppo.tagbase.common;
+package com.oppo.tagbase.common.guice;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

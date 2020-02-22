@@ -19,4 +19,5 @@ public class MetadataModule extends AbstractModule {
         binder().bind(MetadataDict.class).in(Scopes.SINGLETON);
         ResourceBind.bind(binder(), MetadataResource.class);
     }
+
 }

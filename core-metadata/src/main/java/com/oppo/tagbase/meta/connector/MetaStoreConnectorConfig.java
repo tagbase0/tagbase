@@ -1,6 +1,6 @@
 package com.oppo.tagbase.meta.connector;
 
-import com.oppo.tagbase.common.Config;
+import com.oppo.tagbase.common.guice.Config;
 
 /**
  * Created by wujianchao on 2020/2/4.

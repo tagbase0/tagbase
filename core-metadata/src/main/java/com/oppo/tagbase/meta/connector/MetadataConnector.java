@@ -3,13 +3,12 @@ package com.oppo.tagbase.meta.connector;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
+import com.oppo.tagbase.meta.MetadataException;
 import com.oppo.tagbase.meta.obj.*;
 import com.oppo.tagbase.meta.util.SqlDateUtil;
 import org.jdbi.v3.core.HandleCallback;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.Batch;
-import org.jdbi.v3.guava.GuavaPlugin;
-import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
 import javax.inject.Inject;
 import java.sql.Date;
@@ -24,21 +23,11 @@ public abstract class MetadataConnector {
     @Inject
     private MetaStoreConnectorConfig config;
 
+    @Inject
     private Jdbi jdbi;
 
     public MetadataConnector() throws ClassNotFoundException {
         registerJDBCDriver();
-        initJdbi();
-    }
-
-    private void initJdbi() {
-        jdbi = Jdbi.create(
-                config.getConnectURI(),
-                config.getUser(),
-                config.getPassword()
-        );
-        jdbi.installPlugin(new SqlObjectPlugin());
-        jdbi.installPlugin(new GuavaPlugin());
     }
 
     protected abstract void registerJDBCDriver() throws ClassNotFoundException;
