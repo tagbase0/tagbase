@@ -53,4 +53,14 @@ public class DimContext {
     public void setDimValues(List<String> dimValues) {
         this.dimValues = dimValues;
     }
+
+    @Override
+    public String toString() {
+        return "DimContext{" +
+                "dimIndex=" + dimIndex +
+                ", dimReturnIndex=" + dimReturnIndex +
+                ", dimName='" + dimName + '\'' +
+                ", dimValues=" + dimValues +
+                '}';
+    }
 }

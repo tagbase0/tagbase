@@ -28,4 +28,12 @@ public class StorageQueryContext {
     public void setSliceSegment(SliceSegment sliceSegment) {
         this.sliceSegment = sliceSegment;
     }
+
+    @Override
+    public String toString() {
+        return "StorageQueryContext{" +
+                "dimContextList=" + dimContextList +
+                ", sliceSegment=" + sliceSegment +
+                '}';
+    }
 }

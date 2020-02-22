@@ -1,7 +1,8 @@
 package com.oppo.tagbase.storage.hbase;
 
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
-import com.oppo.tagbase.storage.core.connector.StorageException;
+import com.oppo.tagbase.storage.core.exception.StorageException;
+import com.oppo.tagbase.storage.core.executor.StorageExecutors;
 import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 import com.oppo.tagbase.storage.core.util.BitmapUtil;
 import com.oppo.tagbase.storage.core.obj.AggregateRow;
@@ -23,9 +24,11 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Created by liangjingya on 2020/2/8.
+ */
 public class HbaseStorageConnector extends StorageConnector {
 
     @Inject
@@ -51,19 +54,19 @@ public class HbaseStorageConnector extends StorageConnector {
     }
 
     @Override
-    protected void createTable(String dbName, String tableName, int partition) {
+    protected void createTable(String dbName, String tableName, int partition) throws StorageException {
         List<String> familys = new ArrayList<>();
         familys.add(hbaseConfig.getFamily());
         createHbaseTableIfNotExist(dbName, tableName, familys, getSplitKeys(partition));
     }
 
     @Override
-    public void deleteTable(String dbName, String tableName)  {
+    public void deleteTable(String dbName, String tableName) throws StorageException {
         deleteHbaseTable(hbaseConfig.getNameSpace(), tableName);
     }
 
     @Override
-    public void createRecord(String dbName, String tableName, String key, ImmutableRoaringBitmap value) {
+    public void createRecord(String dbName, String tableName, String key, ImmutableRoaringBitmap value) throws StorageException {
         try {
             byte[] metric = BitmapUtil.serializeBitmap(value);
             put(hbaseConfig.getNameSpace(), tableName, key, hbaseConfig.getFamily(), hbaseConfig.getQualifier(), metric);
@@ -74,13 +77,13 @@ public class HbaseStorageConnector extends StorageConnector {
     }
 
     @Override
-    public void createBatchRecords(String dbName, String tableName, String dataPath)  {
+    public void createBatchRecords(String dbName, String tableName, String dataPath) throws StorageException {
         createTable(hbaseConfig.getNameSpace(), tableName);
         bulkLoad(tableName, dataPath);
     }
 
     @Override
-    protected void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer buffer) {
+    protected void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer buffer) throws StorageException {
 
         String tableName = storageQueryContext.getSliceSegment().getTableName();
         String dayNumValue = storageQueryContext.getSliceSegment().getSliceDate();
@@ -89,7 +92,7 @@ public class HbaseStorageConnector extends StorageConnector {
         //dim索引关系(index,returnIndex)
         Map<Integer,Integer> indexMap = new HashMap<>();
         String scanRegexStr = createScanRegexStr(storageQueryContext, indexMap);
-        log.debug("scan regex str: " + scanRegexStr);
+        log.debug("scan filter regex string : " + scanRegexStr);
         Filter regexFilter = new RowFilter(CompareFilter.CompareOp.EQUAL,new RegexStringComparator(scanRegexStr));
         rowFilterList.addFilter(regexFilter);
 
@@ -153,7 +156,7 @@ public class HbaseStorageConnector extends StorageConnector {
                     int coreThreads = hbaseConfig.getThreadPoolcoreThread();
                     long keepAliveTime = hbaseConfig.getThreadPoolkeepAliveSecond();
                     LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>();
-                    hbasePool = new ThreadPoolExecutor(coreThreads, maxThreads, keepAliveTime, TimeUnit.SECONDS, workQueue);
+                    hbasePool = StorageExecutors.newThreadPool(coreThreads, maxThreads, keepAliveTime, 500);
                 }
             }
             connection = ConnectionFactory.createConnection(conf, hbasePool);
@@ -196,7 +199,7 @@ public class HbaseStorageConnector extends StorageConnector {
         return splitKeys;
     }
 
-    private void createHbaseTableIfNotExist(String nameSpace, String tableName, List<String> familys, byte[][] splitKeys) {
+    private void createHbaseTableIfNotExist(String nameSpace, String tableName, List<String> familys, byte[][] splitKeys) throws StorageException {
 
         try {
             createNamespaceIfNotExist(nameSpace);
@@ -216,7 +219,7 @@ public class HbaseStorageConnector extends StorageConnector {
         }
     }
 
-    private void createNamespaceIfNotExist(String nameSpace) {
+    private void createNamespaceIfNotExist(String nameSpace) throws StorageException {
 
         try {
             for(NamespaceDescriptor space : admin.listNamespaceDescriptors()){
@@ -232,7 +235,7 @@ public class HbaseStorageConnector extends StorageConnector {
     }
 
 
-    private void deleteHbaseTable(String nameSpace, String tableName) {
+    private void deleteHbaseTable(String nameSpace, String tableName) throws StorageException {
 
         TableName tName = TableName.valueOf(nameSpace, tableName);
         try {
@@ -245,7 +248,7 @@ public class HbaseStorageConnector extends StorageConnector {
         }
     }
 
-    public void put(String nameSpace, String tableName, String rowKey, String family, String qualifier, byte[] value) {
+    public void put(String nameSpace, String tableName, String rowKey, String family, String qualifier, byte[] value) throws StorageException {
 
         Table table = null;
         try {
@@ -267,7 +270,7 @@ public class HbaseStorageConnector extends StorageConnector {
 
     }
 
-    public String get(String nameSpace, String tableName, String rowKey, String family, String qualifier) {
+    public String get(String nameSpace, String tableName, String rowKey, String family, String qualifier) throws StorageException {
 
         Table table = null;
         try {
@@ -293,7 +296,7 @@ public class HbaseStorageConnector extends StorageConnector {
         return null;
     }
 
-    private void bulkLoad(String tableName, String dataPath){
+    private void bulkLoad(String tableName, String dataPath) throws StorageException {
 
         try {
             LoadIncrementalHFiles loader = new LoadIncrementalHFiles(connection.getConfiguration());
@@ -305,7 +308,7 @@ public class HbaseStorageConnector extends StorageConnector {
     }
 
 
-    public void scan(String nameSpace, String tableName, String family, String qualifier, String delimiter, FilterList filterList, Map<Integer,Integer> indexMap, String dayNumValue, OperatorBuffer buffer) {
+    public void scan(String nameSpace, String tableName, String family, String qualifier, String delimiter, FilterList filterList, Map<Integer,Integer> indexMap, String dayNumValue, OperatorBuffer buffer) throws StorageException {
 
         ResultScanner scanner = null;
         try {

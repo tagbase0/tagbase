@@ -1,9 +1,9 @@
-package com.oppo.tagbase.storage.core.connector;
+package com.oppo.tagbase.storage.core.exception;
 
 /**
  * Created by liangjingya on 2020/2/8.
  */
-public class StorageException extends RuntimeException {
+public class StorageException extends Exception {
 
     public StorageException(String message) {
         super(message);

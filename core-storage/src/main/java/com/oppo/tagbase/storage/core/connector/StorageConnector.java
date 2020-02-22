@@ -5,6 +5,8 @@ import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.obj.ColumnType;
 import com.oppo.tagbase.meta.obj.Slice;
 import com.oppo.tagbase.meta.obj.Table;
+import com.oppo.tagbase.storage.core.exception.StorageException;
+import com.oppo.tagbase.storage.core.executor.StorageExecutors;
 import com.oppo.tagbase.storage.core.obj.*;
 import com.oppo.tagbase.storage.core.util.StorageConstantUtil;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
@@ -26,7 +28,6 @@ public abstract class StorageConnector {
 
     @Inject
     private Metadata meta;
-//    private TestMetadata meta;
 
     @Inject
     private StorageConnectorConfig commonConfig;
@@ -40,8 +41,8 @@ public abstract class StorageConnector {
                 int maxThreads = commonConfig.getQueryPoolMaxThread();
                 int coreThreads = commonConfig.getQueryPoolCoreThread();
                 long keepAliveTime =commonConfig.getQueryPoolKeepAliveSecond();
-                LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(commonConfig.getQueryPoolQueueSie());
-                queryExecutor = new ThreadPoolExecutor(coreThreads, maxThreads, keepAliveTime, TimeUnit.SECONDS, workQueue);
+                int queueSize = commonConfig.getQueryPoolQueueSie();
+                queryExecutor = StorageExecutors.newThreadPool(coreThreads, maxThreads, keepAliveTime, queueSize);
             }
         }
         initConnector();
@@ -66,19 +67,19 @@ public abstract class StorageConnector {
 
     protected abstract void destroyConnector();
 
-    public void createTable(String dbName, String tableName) {
+    public void createTable(String dbName, String tableName) throws StorageException {
         //从元数据slice获取分片数,目前默认为1
         int partition = 1;
         createTable(dbName, tableName, partition);
     }
 
-    protected abstract void createTable(String dbName, String tableName, int partition) ;
+    protected abstract void createTable(String dbName, String tableName, int partition) throws StorageException;
 
-    public abstract void deleteTable(String dbName, String tableName) ;
+    public abstract void deleteTable(String dbName, String tableName) throws StorageException;
 
-    public abstract void createRecord(String dbName, String tableName, String key, ImmutableRoaringBitmap value) ;
+    public abstract void createRecord(String dbName, String tableName, String key, ImmutableRoaringBitmap value) throws StorageException;
 
-    public abstract void createBatchRecords(String dbName, String tableName, String dataPath) ;
+    public abstract void createBatchRecords(String dbName, String tableName, String dataPath) throws StorageException;
 
     public OperatorBuffer createQuery(QueryHandler queryHandler) {
 
@@ -169,7 +170,7 @@ public abstract class StorageConnector {
         return sliceSegments;
     }
 
-    protected abstract void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer buffer) throws IOException;
+    protected abstract void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer buffer) throws IOException, StorageException;
 
     class QueryTask implements Runnable {
 
@@ -183,13 +184,13 @@ public abstract class StorageConnector {
 
         @Override
         public void run() {
-            log.debug("start QueryTask, Thread name:" + Thread.currentThread().getName());
+            log.debug("start QueryTask,  " + storageQueryContext);
             try {
                 createStorageQuery(storageQueryContext, buffer);
             } catch (Exception e) {
                 log.error("QueryTask createStorageQuery error", e);
             }
-            log.debug("finish QueryTask, Thread name:" + Thread.currentThread().getName());
+            log.debug("finish QueryTask");
         }
     }
 

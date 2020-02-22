@@ -8,6 +8,7 @@ import com.google.inject.Injector;
 import com.oppo.tagbase.common.guice.*;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import com.oppo.tagbase.storage.core.example.testobj.*;
+import com.oppo.tagbase.storage.core.exception.StorageException;
 import com.oppo.tagbase.storage.core.lifecycle.StorageLifecycleModule;
 import com.oppo.tagbase.storage.core.obj.*;
 import com.oppo.tagbase.storage.hbase.HbaseStorageModule;
@@ -17,6 +18,9 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Created by liangjingya on 2020/2/8.
+ */
 public class HbaseStorageExample {
 
     public static void main(String[] args) {
@@ -46,7 +50,7 @@ public class HbaseStorageExample {
             QueryHandler query = queryEventData(connector);
 
 //            metadata.setType(TestMetadata.MetaDataType.TAG);
-//            SingleQueryManager query = queryTagData(connector);
+//            QueryHandler query = queryTagData(connector);
 
             OperatorBuffer buffer = connector.createQuery(query);
             while (buffer.hasNext()){
@@ -106,7 +110,7 @@ public class HbaseStorageExample {
     }
 
 
-    public static void addEventData(StorageConnector connector) throws IOException {
+    public static void addEventData(StorageConnector connector) throws IOException, StorageException {
         MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
         bitmap.add(1);bitmap.add(6);
         MutableRoaringBitmap bitmap2 = new MutableRoaringBitmap();
@@ -139,7 +143,7 @@ public class HbaseStorageExample {
     }
 
 
-    public static void addTagData(StorageConnector connector) throws IOException {
+    public static void addTagData(StorageConnector connector) throws IOException, StorageException {
         MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
         bitmap.add(3);bitmap.add(2);
         MutableRoaringBitmap bitmap2 = new MutableRoaringBitmap();
@@ -167,7 +171,7 @@ public class HbaseStorageExample {
         connector.createRecord(nameSpace,tName2, "1_tianjin", bitmap3);
     }
 
-    public static void addFlowData(StorageConnector connector) throws IOException {
+    public static void addFlowData(StorageConnector connector) throws IOException, StorageException {
         MutableRoaringBitmap bitmap = new MutableRoaringBitmap();
         bitmap.add(1);bitmap.add(6);
         MutableRoaringBitmap bitmap2 = new MutableRoaringBitmap();

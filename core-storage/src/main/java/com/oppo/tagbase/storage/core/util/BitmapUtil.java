@@ -1,6 +1,6 @@
 package com.oppo.tagbase.storage.core.util;
 
-import com.oppo.tagbase.storage.core.connector.StorageException;
+import com.oppo.tagbase.storage.core.exception.StorageException;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 import java.io.ByteArrayOutputStream;
@@ -26,7 +26,7 @@ public class BitmapUtil {
         return new ImmutableRoaringBitmap(buffer);
     }
 
-    public static ImmutableRoaringBitmap deSerializeBitmap(byte[] value, int offset, int length) {
+    public static ImmutableRoaringBitmap deSerializeBitmap(byte[] value, int offset, int length) throws StorageException {
         if (offset < 0 || length > value.length) {
             throw new StorageException("deSerializeBitmap error, illegal parameter");
         }

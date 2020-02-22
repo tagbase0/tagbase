@@ -50,4 +50,14 @@ public class SliceSegment {
     public void setTotalShard(int totalShard) {
         this.totalShard = totalShard;
     }
+
+    @Override
+    public String toString() {
+        return "SliceSegment{" +
+                "sliceDate='" + sliceDate + '\'' +
+                ", segmentId=" + segmentId +
+                ", tableName='" + tableName + '\'' +
+                ", totalShard=" + totalShard +
+                '}';
+    }
 }
