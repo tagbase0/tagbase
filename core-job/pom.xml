@@ -58,12 +58,7 @@
             <version>1.0</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>com.oppo</groupId>
-            <artifactId>job-spark</artifactId>
-            <version>1.0</version>
-            <scope>compile</scope>
-        </dependency>
+
     </dependencies>
 
 

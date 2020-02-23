@@ -2,6 +2,9 @@ package com.oppo.tagbase.job.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oppo.tagbase.dict.ForwardDictionaryWriter;
+import com.oppo.tagbase.job.obj.HiveMeta;
+import com.oppo.tagbase.job.obj.HiveSrcTable;
+import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataDict;
 import com.oppo.tagbase.meta.obj.*;
 import org.apache.hadoop.conf.Configuration;
@@ -13,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.URI;
 import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -43,11 +48,11 @@ public class TaskHelper {
 
         long numOld = dictForwardOld.getElementCount();
 
-        // 1.先读取反向字典相关数据, 将今日新增数据生成<id, imei>的 kv 结构
+        // 1. get the new data of the invertedDict
         TreeMap<Long, String> mapInverted = readInvertedHDFS(invertedDictHDFSPath, numOld);
 
-        // 2.将正向字典数据拉至本地
-        String dictForwardOldPath = dictForwardOld.getLocation();
+        // 2. get the forwardDict data from HDFS
+        String dictForwardOldHDFSPath = dictForwardOld.getLocation();
         Date date = new Date(System.currentTimeMillis());
         String forwardDictDiskPath = "/tmp/tagBase/forwardDictLocal_" + date + ".txt";
 
@@ -56,13 +61,13 @@ public class TaskHelper {
             fileLocal.delete();
         }
 
-        copy2Disk(dictForwardOldPath, forwardDictDiskPath);
+        copy2Disk(dictForwardOldHDFSPath, forwardDictDiskPath);
 
-        // 3.将新增数据追加写入正向字典数据本地磁盘文件, 并构建字典
+        // 3. update forwardDict file on local disk
         write2Disk(mapInverted, forwardDictDiskPath);
 
         try {
-            if (firstBuild()) {
+            if (firstBuildDict()) {
                 ForwardDictionaryWriter.createWriter(new File(forwardDictDiskPath));
             } else {
                 ForwardDictionaryWriter.createWriterForExistedDict(new File(forwardDictDiskPath));
@@ -72,12 +77,12 @@ public class TaskHelper {
             log.error("Error to ForwardDictionaryWriter !");
         }
 
-        // 4.将更新正向字典数据 Hdfs 文件
+        // 4. update forwardDict file on HDFS
 //        String locationHdfsForwardOld = dictForwardOld.getLocation();
 //        write2HDFS(mapInverted, locationHdfsForwardOld, forwardDictHDFSPath);
         copyFile2HDFS(forwardDictDiskPath, forwardDictHDFSPath);
 
-        // 5.更新字典元数据
+        // 5. update forwardDict Metadata
         dict.setLocation(forwardDictHDFSPath);
         dict.setCreateDate(new Date(System.currentTimeMillis()));
         dict.setStatus(DictStatus.READY);
@@ -108,7 +113,8 @@ public class TaskHelper {
         }
     }
 
-    private boolean firstBuild() {
+    private boolean firstBuildDict() {
+
         if (new MetadataDict().getDictElementCount() == 0) {
             return true;
         }
@@ -154,8 +160,8 @@ public class TaskHelper {
             String imei;
             long id;
             while ((line = bufferedReader.readLine()) != null) {
-                // 此处确定imei和id的分隔符
-                if (line.contains(" ")) {
+                //TODO 此处确定imei和id的分隔符
+                if (line.contains(",")) {
                     imei = line.split(" ")[0];
                     id = Long.parseLong(line.split(" ")[1]);
                     if (numOld <= id) {
@@ -202,4 +208,60 @@ public class TaskHelper {
 
     }
 
+    public Slice constructSlice(HiveMeta hiveMeta, String sink) {
+        Slice slice = new Slice();
+        Long sliceId = System.currentTimeMillis();
+        HiveSrcTable hiveSrcTable = hiveMeta.getHiveSrcTable();
+        long tableId = new Metadata().getTable(hiveSrcTable.getDbName(), hiveSrcTable.getTableName()).getId();
+        Date startTime = null;
+        Date endTime = null;
+
+        try {
+            startTime = new Date(new SimpleDateFormat("yyyyMMdd").
+                    parse(hiveMeta.getHiveSrcTable().getSliceColumn().getColumnValueLeft()).getTime());
+            endTime = new Date(new SimpleDateFormat("yyyyMMdd").
+                    parse(hiveMeta.getHiveSrcTable().getSliceColumn().getColumnValueRight()).getTime());
+
+        } catch (ParseException e) {
+            log.warn("Error convert to date when in constructSlice");
+        }
+
+        String rowCountOutHDFS =  hiveMeta.getRowCountPath();
+        long srcCount = getHDFSOutCount(rowCountOutHDFS, 0);
+        long sinkCount = getHDFSOutCount(rowCountOutHDFS, 1);
+
+        slice.setId(sliceId);
+        slice.setTableId(tableId);
+        slice.setStartTime(startTime);
+        slice.setEndTime(endTime);
+        slice.setSink(sink);
+        slice.setSrcCount(srcCount);
+        slice.setSinkCount(sinkCount);
+
+
+        return slice;
+    }
+
+    private long getHDFSOutCount(String rowCountOutHDFS, int row) {
+
+        long count = -1L;
+
+        try (FileSystem fs = FileSystem.get(URI.create(rowCountOutHDFS), new Configuration());
+             FSDataInputStream fsr = fs.open(new Path(rowCountOutHDFS));
+             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fsr))) {
+            String line;
+
+            int i = 0;
+            while ((line = bufferedReader.readLine()) != null) {
+                //TODO 此处确定imei和id的分隔符
+                if (line.contains(",") && row == i) {
+                    count = Long.parseLong(line.split(",")[1].trim());
+                }
+                i++;
+            }
+        } catch (Exception e) {
+            log.error("Read inverted dictionary from hdfs ERROR !");
+        }
+        return count;
+    }
 }

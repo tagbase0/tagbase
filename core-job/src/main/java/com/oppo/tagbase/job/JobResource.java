@@ -51,7 +51,7 @@ public class JobResource {
     }
 
     @POST
-    @Path("/jobInfo")
+    @Path("/jobState")
     @Produces(MediaType.APPLICATION_JSON)
     public Response jobState(@QueryParam("jobId") @NotNull String jobId) {
 

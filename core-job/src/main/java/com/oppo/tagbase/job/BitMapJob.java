@@ -32,7 +32,7 @@ public class BitMapJob implements AbstractJob {
 
         String jobId = build(job);
 
-        // 更新元数据模块内容
+        // update MetadataJob job info
         new MetadataJob().completeJOb(jobId, job.getState(), new Date(System.currentTimeMillis()));
         log.info("{} is finished.", job.getId());
 
@@ -49,8 +49,8 @@ public class BitMapJob implements AbstractJob {
 
         Job bitMapJob = new Job();
 
-        Date dataLowerDate = new DateFormat().toDate(dbName, tableName, lowerDate);
-        Date dataUpperDate = new DateFormat().toDate(dbName, tableName, upperDate);
+        Date dataLowerDate = new DateFormat().toDate(lowerDate);
+        Date dataUpperDate = new DateFormat().toDate(upperDate);
 
         String bitMapJobId = new IdGenerator().nextQueryId("DataBuildJob");
         String jobName = dbName + "_" + tableName + "_" + dataLowerDate + "_" + dataUpperDate;
@@ -67,7 +67,7 @@ public class BitMapJob implements AbstractJob {
         bitMapJob.setState(JobState.PENDING);
         bitMapJob.setType(JobType.DATA);
 
-        // 定义子任务 tasks
+        // initialize  tasks
         iniTasks(bitMapJob);
 
         new MetadataJob().addJob(bitMapJob);
@@ -112,11 +112,11 @@ public class BitMapJob implements AbstractJob {
 
     public String build(Job bitMapJob) {
 
-        // 将此 job 放到 pending 队列
+        // put the job to pending queue
         PENDING_JOBS_QUEUE.offer(bitMapJob);
         log.info("{} is pending", bitMapJob.getId());
 
-        // 若已准备好 构建
+        // if ready, build
         while (readytoBuild()) {
 
             Job bitMapJobHead = AbstractJob.PENDING_JOBS_QUEUE.peek();
@@ -134,9 +134,11 @@ public class BitMapJob implements AbstractJob {
     }
 
     public boolean readytoBuild() {
-        // 若反向字典已经构建完成，且当前负载不高时，从pending队列取一个到running队列
+
+        // if the invertedDict has been built, current load is ok, get a task from the pending queue
         return invertedDictSucceed(new IdGenerator().nextQueryId("DictBuildJob", "yyyyMMdd")) &&
-                AbstractJob.RUNNING_JOBS_QUEUE.size() <= RUNNING_JOBS_LIMIT;
+                AbstractJob.RUNNING_JOBS_QUEUE.size() <= RUNNING_JOBS_LIMIT &&
+                AbstractJob.RUNNING_JOBS_QUEUE.size() > 0;
     }
 
     public boolean invertedDictSucceed(String jobId) {

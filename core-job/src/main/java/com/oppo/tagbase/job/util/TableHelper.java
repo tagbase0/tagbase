@@ -78,11 +78,48 @@ public class TableHelper {
 
 
         String output = task.getOutput();
-        if(JobType.DICTIONARY == jobRunning.getType()){
+        if (JobType.DICTIONARY == jobRunning.getType()) {
 
             output = new Date(System.currentTimeMillis()).toString();
         }
+        //TODO set rowCountPath
+        String rowCountPath = null;
 
-        return new HiveMeta(hiveDictTable, hiveSrcTable, output);
+        return new HiveMeta(hiveDictTable, hiveSrcTable, output, rowCountPath);
+    }
+
+    public boolean firstBuildTag(String dbName, String tableName) {
+        Table table = new Metadata().getTable(dbName, tableName);
+        if (table == null || table.getLatestSlice() == null) {
+            return true;
+        }
+
+        List<Slice> sliceList = new Metadata().getSlices(dbName, tableName);
+        if (sliceList == null || sliceList.size() == 0) {
+            return true;
+        }
+
+        String sink = sliceList.get(sliceList.size() - 1).getSink();
+        if (sink == null || sink.length() == 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public String sinkName(String dbName, String tableName) {
+        Table table = new Metadata().getTable(dbName, tableName);
+        if (TableType.TAG == table.getType()) {
+            // like city, gender
+            return table.getName();
+        } else {
+            // like dayno_app_from
+            List<String> dimsColumsName = new TableHelper().getTableDimColumns(table);
+            StringBuffer buffer = new StringBuffer();
+            for(String s : dimsColumsName){
+                buffer.append(s);
+            }
+            return buffer.toString();
+        }
     }
 }

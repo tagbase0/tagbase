@@ -2,6 +2,7 @@ package com.oppo.tagbase.job;
 
 import com.google.inject.Injector;
 import com.oppo.tagbase.job.obj.HiveMeta;
+import com.oppo.tagbase.job.obj.TaskMessage;
 import com.oppo.tagbase.job.util.TableHelper;
 import com.oppo.tagbase.job.util.TaskHelper;
 import com.oppo.tagbase.meta.Metadata;
@@ -23,31 +24,13 @@ import com.oppo.tagbase.storage.core.connector.StorageConnector;
 public class BitMapBuildJob extends Task implements Callable<Slice> {
 
     Logger log = LoggerFactory.getLogger(BitMapBuildJob.class);
-    private static Injector injector;
+    private Injector injector;
 
-//    private String taskId;
-//    private String appId;
-//    private long startTime;
-//    private long endTime;
-//    private TaskState taskState;
-//    int step;
     private String jobId;
 
     public BitMapBuildJob(String jobId) {
         this.jobId = jobId;
     }
-
-//    public BitMapBuildJob(String taskId, String appId, long startTime, long endTime,
-//                          TaskState taskState, int step, String jobId) {
-//        this.taskId = taskId;
-//        this.appId = appId;
-//        this.startTime = startTime;
-//        this.endTime = endTime;
-//        this.taskState = taskState;
-//        this.step = step;
-//        this.jobId = jobId;
-//    }
-
 
     @Override
     public Slice call() {
@@ -56,45 +39,44 @@ public class BitMapBuildJob extends Task implements Callable<Slice> {
         jobRunning.setState(JobState.RUNNING);
         List<Task> tasks = jobRunning.getTasks();
         int stepNum = tasks.size();
+        HiveMeta hiveMeta = null;
 
         //TODO 2020/2/16  分步骤执行
-        // 当该 job 下所有子任务都执行成功，则循环结束
+        // if all the tasks of the job finished, jump out of the loop
         for (int i = 0; jobRunning.getState() != JobState.SUCCESS; i++) {
             switch (i) {
                 case 0:
-                    // 仅仅当前任务的前置任务都正常执行成功，才开启这个任务
+                    // task is started only if the previous task has been executed successfully
                     if (new TaskHelper().preTaskFinish(tasks, i)) {
                         // BitmapBuildingTask();
-                        // 1. task输入参数获取
-                        // 参数 反向字典hdfs路径, 标签 dbName 和 tableName, 以及生成的 Hfile 的存放路径
+                        // 1. update Metadata, construct the HiveMeta object
                         Task task = tasks.get(i);
                         task.setState(TaskState.RUNNING);
                         jobRunning.setLatestTask(task.getId());
 
                         String toPath = task.getOutput();
 
-                        // 参数 HiveMeta 对象
-                        HiveMeta hiveMeta = new TableHelper().generalHiveMeta(task, jobRunning);
+                        hiveMeta = new TableHelper().generalHiveMeta(task, jobRunning);
                         log.debug("BitmapBuildingTask {} start.", task.getId());
 
-                        // 2. do task
-
+                        // 2. start the engine task
                         TaskEngine taskEngine = injector.getInstance(TaskEngine.class);
                         String appId = null;
-                        String finalStatus = null;
+                        TaskMessage taskMessage = null;
                         TaskState state = null;
 
                         try {
                             appId = taskEngine.submitTask(hiveMeta, JobType.DICTIONARY);
-                            finalStatus = taskEngine.getTaskStatus(appId, JobType.DICTIONARY).getFinalStatus();
+                            taskMessage = taskEngine.getTaskStatus(appId, JobType.DICTIONARY);
 
                         } catch (Exception e) {
                             log.error("{}, Error to run TaskEngine!", task.getId());
                         }
 
                         task.setAppId(appId);
+                        //TODO convert finalStatus to TaskState
 
-                        //3. 更新元数据
+                        //3. update Metadata
                         new MetadataJob().completeTask(task.getId(), state,
                                 new Date(System.currentTimeMillis()), toPath);
 
@@ -103,37 +85,46 @@ public class BitMapBuildJob extends Task implements Callable<Slice> {
                     break;
                 case 1:
                     if (new TaskHelper().preTaskFinish(tasks, i)) {
-                        // bulkload() && 构建Slice addSlice();
-                        // 1. task输入参数获取
+                        // bulkload() && addSlice();
+                        // 1. update Metadata, construct the parameters of the task
                         Task task = tasks.get(i);
                         task.setState(TaskState.RUNNING);
                         jobRunning.setLatestTask(task.getId());
                         String dbName = jobRunning.getDbName();
                         String tableName = jobRunning.getTableName();
                         String srcPath = tasks.get(i - 1).getOutput();
+                        TaskState state = TaskState.SUCCESS;
 
                         log.debug("BulkLoadTask {} start.", task.getId());
 
                         //2. do task
                         StorageConnector storageConnector = null;
-
-                        String sink = new Metadata().getSlices(dbName, tableName).get(0).getSink();
+                        String sink;
+                        if(new TableHelper().firstBuildTag(dbName, tableName)){
+                            sink = new TableHelper().sinkName(dbName, tableName);
+                        }else{
+                            sink = new Metadata().getSlices(dbName, tableName).get(0).getSink();
+                        }
 
                         try {
                             storageConnector.createBatchRecords("", sink, srcPath);
                         } catch (StorageException e) {
                             log.error("{}, Error bulk load to HBase!", task.getId());
+                            state = TaskState.FAILED;
                         }
 
-                        Slice slice = null;
-                        TaskState state = null;
+                        Slice slice = new TaskHelper().constructSlice(hiveMeta, sink);
 
-                        //3. 更新元数据
+                        //3. update Metadata
                         new MetadataJob().completeTask(task.getId(), state,
                                 new Date(System.currentTimeMillis()), task.getOutput());
                         log.debug("BulkLoadTask {} finished.", task.getId());
 
-                        jobRunning.setState(JobState.SUCCESS);
+                        new Metadata().addSlice(slice);
+
+                        if(TaskState.SUCCESS == state){
+                            jobRunning.setState(JobState.SUCCESS);
+                        }
                     }
                     break;
 
@@ -143,7 +134,7 @@ public class BitMapBuildJob extends Task implements Callable<Slice> {
             i = i % stepNum;
         }
 
-        // 任务执行成功才从队列里面删除
+        // job are removed from the pending queue only after success
         if (JobState.SUCCESS == jobRunning.getState()) {
             AbstractJob.PENDING_JOBS_QUEUE.remove(new MetadataJob().getJob(jobId));
         }

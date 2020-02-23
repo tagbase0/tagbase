@@ -24,7 +24,7 @@ public class DictJob implements AbstractJob {
 
     Logger log = LoggerFactory.getLogger(DictJob.class);
 
-    private static Injector injector;
+    private Injector injector;
 
     @Override
     public void buildDict(String dbName, String tableName) {
@@ -33,7 +33,7 @@ public class DictJob implements AbstractJob {
 
         build(job);
 
-        // 更新 Job 元数据模块内容
+        // update MetadataJob job info
         new MetadataJob().completeJOb(job.getId(), job.getState(), new Date(System.currentTimeMillis()));
 
         log.info("{} is finished.", job.getId());
@@ -55,7 +55,7 @@ public class DictJob implements AbstractJob {
 
         Job dictJob = new Job();
 
-        // DictBuildJob_20200222
+        // like DictBuildJob_20200222
         String dictJobId = new IdGenerator().nextQueryId("DictBuildJob", "yyyyMMdd");
         log.debug("{} is initializing.", dictJobId);
 
@@ -67,7 +67,7 @@ public class DictJob implements AbstractJob {
         dictJob.setState(JobState.PENDING);
         dictJob.setType(JobType.DICTIONARY);
 
-        // 定义子任务 tasks
+        // initialize  tasks
         iniTasks(dictJob);
         new MetadataJob().addJob(dictJob);
         log.debug("{} completes initialization.", dictJobId);
@@ -78,13 +78,14 @@ public class DictJob implements AbstractJob {
 
     private void iniTasks(Job dictJob) {
 
-        // task invertedTask 初始化反向字典
+        // initialize invertedDict task
         Task invertedTask = new Task();
+
         //TODO 2020/2/20  任务输出路径待指定
         String outputInvertedPath = "";
         iniTask(dictJob.getId(), invertedTask, "InvertedDictBuildTask", (byte) 0, outputInvertedPath);
 
-        // task forwardTask 初始化正向字典
+        // initialize forwardTask task
         Task forwardTask = new Task();
         String outputForwardPath = "";
         iniTask(dictJob.getId(), forwardTask, "ForwardDictBuildTask", (byte) 1, outputForwardPath);
@@ -114,7 +115,7 @@ public class DictJob implements AbstractJob {
         String jobId = dictJob.getId();
         log.info("Dictionary job {} is pending.", jobId);
 
-        // 若已准备好 则构建; 否则稍后再构建
+        // if ready, build; or wait a moment and retry
         if (readyToBuild()) {
 
             buildDict(dictJob);
@@ -153,14 +154,14 @@ public class DictJob implements AbstractJob {
         int stepNum = tasks.size();
 
 
-        // 当该 job 下所有子任务都执行成功，则循环结束
+        // if all the tasks of the job finished, jump out of the loop
         for (int i = 0; dictJob.getState() != JobState.SUCCESS; i++) {
             switch (i) {
                 case 0:
-                    // 仅仅当前任务的前置任务都正常执行成功，才开启这个任务
+                    // task is started only if the previous task has been executed successfully
                     if (new TaskHelper().preTaskFinish(tasks, i)) {
                         // InvertedDictTask;
-                        // 1. 元数据状态变更, 构造 HiveMeta 对象
+                        // 1. update Metadata, construct the HiveMeta object
                         Task task = tasks.get(i);
                         dictJob.setLatestTask(task.getId());
                         task.setState(TaskState.RUNNING);
@@ -169,8 +170,7 @@ public class DictJob implements AbstractJob {
 
                         log.debug("InvertedDictTask {} start.", task.getId());
 
-                        // 2. 启动任务
-                        //TODO 2020/2/16  调用反向字典Spark任务
+                        // 2. start the engine task
                         TaskEngine sparkTaskEngine = injector.getInstance(TaskEngine.class);
                         String appId = null;
                         String finalStatus = null;
@@ -188,7 +188,7 @@ public class DictJob implements AbstractJob {
 
                         //TODO convert finalStatus to TaskState
 
-                        // 3.更新任务状态信息
+                        // 3. update Metadata
                         new MetadataJob().completeTask(task.getId(),
                                 state,
                                 new Date(System.currentTimeMillis()),
@@ -200,19 +200,19 @@ public class DictJob implements AbstractJob {
                 case 1:
                     if (new TaskHelper().preTaskFinish(tasks, i)) {
 
-                        // 1. 元数据状态变更, task输入参数获取
+                        // 1. update Metadata, construct the input of buildDictForward
                         Task task = tasks.get(i);
                         dictJob.setLatestTask(task.getId());
                         task.setState(TaskState.RUNNING);
                         String invertedDictHDFSPath = tasks.get(0).getOutput();
                         Dict dictForwardOld = new MetadataDict().getDict();
 
-                        // 2. 构造最新的正向字典, 更新正向字典相关文件
-                        // 参数 invertedDictPath, dictForwardOld, 以及正向字典保存的Hdfs目录task.getOutput()
+                        // 2. do task
+                        // construct the latest forward dictionary
                         Dict dictForwardToday = new TaskHelper().buildDictForward(invertedDictHDFSPath,
                                 dictForwardOld, task.getOutput());
 
-                        // 3. Task元数据更新
+                        // 3. update Metadata and the forward dictionary
                         String fileLocationForwardNew = dictForwardToday.getLocation();
                         task.setOutput(fileLocationForwardNew);
                         new MetadataJob().completeTask(task.getId(),

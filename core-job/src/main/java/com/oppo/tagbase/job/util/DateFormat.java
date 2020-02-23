@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat;
 public class DateFormat {
     Logger log = LoggerFactory.getLogger(DateFormat.class);
 
-    public Date toDate(String dbName, String tableName, String dateStr) {
+    public Date toDate(String dateStr) {
         Date date = null;
         try {
             if (dateStr.contains("-")) {
@@ -25,7 +25,7 @@ public class DateFormat {
             SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd");
             date = new Date(fmt.parse(dateStr).getTime());
         } catch (ParseException e) {
-            log.info(" {}.{} Date conversion failed  for {} !", dbName, tableName, dateStr);
+            log.info("Date conversion failed  for {} !", dateStr);
         }
         return date;
     }
