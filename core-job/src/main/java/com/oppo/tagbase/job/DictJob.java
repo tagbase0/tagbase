@@ -1,5 +1,6 @@
 package com.oppo.tagbase.job;
 
+import com.google.inject.Injector;
 import com.oppo.tagbase.job.obj.HiveMeta;
 import com.oppo.tagbase.job.util.IdGenerator;
 import com.oppo.tagbase.job.util.TableHelper;
@@ -23,6 +24,7 @@ public class DictJob implements AbstractJob {
 
     Logger log = LoggerFactory.getLogger(DictJob.class);
 
+    private static Injector injector;
 
     @Override
     public void buildDict(String dbName, String tableName) {
@@ -169,15 +171,26 @@ public class DictJob implements AbstractJob {
 
                         // 2. 启动任务
                         //TODO 2020/2/16  调用反向字典Spark任务
-//                        String appId = TaskEngine.submitJob(hiveMeta, JobType.DICTIONARY);
-
+                        TaskEngine sparkTaskEngine = injector.getInstance(TaskEngine.class);
+                        String appId = null;
+                        String finalStatus = null;
                         TaskState state = null;
-//                        String finalStatus= TaskEngine.getJobStatus(appId, JobType.DICTIONARY).getFinalStatus();
 
+                        try {
+                            appId = sparkTaskEngine.submitTask(hiveMeta, JobType.DICTIONARY);
+                            finalStatus = sparkTaskEngine.getTaskStatus(appId, JobType.DICTIONARY).getFinalStatus();
+
+                        } catch (Exception e) {
+                            log.error("{}, Error to run TaskEngine!", task.getId());
+                        }
+
+                        task.setAppId(appId);
+
+                        //TODO convert finalStatus to TaskState
 
                         // 3.更新任务状态信息
                         new MetadataJob().completeTask(task.getId(),
-                                task.getState(),
+                                state,
                                 new Date(System.currentTimeMillis()),
                                 task.getOutput());
 

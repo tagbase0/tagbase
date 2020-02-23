@@ -9,6 +9,7 @@ import java.util.concurrent.*;
  */
 public interface AbstractJob {
 
+
     ConcurrentLinkedQueue<Job> PENDING_JOBS_QUEUE = new ConcurrentLinkedQueue<>();
     ConcurrentLinkedQueue<Job> RUNNING_JOBS_QUEUE = new ConcurrentLinkedQueue<>();
 

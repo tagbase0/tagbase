@@ -1,5 +1,6 @@
 package com.oppo.tagbase.job;
 
+import com.google.inject.Injector;
 import com.oppo.tagbase.job.obj.HiveMeta;
 import com.oppo.tagbase.job.util.TableHelper;
 import com.oppo.tagbase.job.util.TaskHelper;
@@ -22,29 +23,30 @@ import com.oppo.tagbase.storage.core.connector.StorageConnector;
 public class BitMapBuildJob extends Task implements Callable<Slice> {
 
     Logger log = LoggerFactory.getLogger(BitMapBuildJob.class);
+    private static Injector injector;
 
-    private String taskId;
-    private String appId;
-    private long startTime;
-    private long endTime;
-    private TaskState taskState;
-    int step;
+//    private String taskId;
+//    private String appId;
+//    private long startTime;
+//    private long endTime;
+//    private TaskState taskState;
+//    int step;
     private String jobId;
 
     public BitMapBuildJob(String jobId) {
         this.jobId = jobId;
     }
 
-    public BitMapBuildJob(String taskId, String appId, long startTime, long endTime,
-                          TaskState taskState, int step, String jobId) {
-        this.taskId = taskId;
-        this.appId = appId;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.taskState = taskState;
-        this.step = step;
-        this.jobId = jobId;
-    }
+//    public BitMapBuildJob(String taskId, String appId, long startTime, long endTime,
+//                          TaskState taskState, int step, String jobId) {
+//        this.taskId = taskId;
+//        this.appId = appId;
+//        this.startTime = startTime;
+//        this.endTime = endTime;
+//        this.taskState = taskState;
+//        this.step = step;
+//        this.jobId = jobId;
+//    }
 
 
     @Override
@@ -76,7 +78,21 @@ public class BitMapBuildJob extends Task implements Callable<Slice> {
                         log.debug("BitmapBuildingTask {} start.", task.getId());
 
                         // 2. do task
+
+                        TaskEngine taskEngine = injector.getInstance(TaskEngine.class);
+                        String appId = null;
+                        String finalStatus = null;
                         TaskState state = null;
+
+                        try {
+                            appId = taskEngine.submitTask(hiveMeta, JobType.DICTIONARY);
+                            finalStatus = taskEngine.getTaskStatus(appId, JobType.DICTIONARY).getFinalStatus();
+
+                        } catch (Exception e) {
+                            log.error("{}, Error to run TaskEngine!", task.getId());
+                        }
+
+                        task.setAppId(appId);
 
                         //3. 更新元数据
                         new MetadataJob().completeTask(task.getId(), state,
