@@ -5,10 +5,7 @@ import com.oppo.tagbase.meta.obj.JobState;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -29,6 +26,7 @@ public class JobResource {
 
     @POST
     @Path("/build_dict")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response buildDict(@QueryParam("dbName") @NotNull String dbName,
                               @QueryParam("tableName") @NotNull String tableName) {
@@ -39,6 +37,7 @@ public class JobResource {
 
     @POST
     @Path("/build_data")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response buildDict(@QueryParam("dbName") @NotNull String dbName,
                               @QueryParam("tableName") @NotNull String tableName,
@@ -52,6 +51,7 @@ public class JobResource {
 
     @POST
     @Path("/job_state")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response jobState(@QueryParam("jobId") @NotNull String jobId) {
 
