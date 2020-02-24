@@ -42,6 +42,7 @@ public class TaskHelper {
         return true;
     }
 
+
     public Dict buildDictForward(String invertedDictHDFSPath, Dict dictForwardOld, String forwardDictHDFSPath) {
 
         Dict dict = new Dict();
@@ -226,7 +227,7 @@ public class TaskHelper {
             log.warn("Error convert to date when in constructSlice");
         }
 
-        String rowCountOutHDFS =  hiveMeta.getRowCountPath();
+        String rowCountOutHDFS = hiveMeta.getRowCountPath();
         long srcCount = getHDFSOutCount(rowCountOutHDFS, 0);
         long sinkCount = getHDFSOutCount(rowCountOutHDFS, 1);
 

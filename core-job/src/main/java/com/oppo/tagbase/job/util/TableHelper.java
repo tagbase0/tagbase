@@ -19,6 +19,8 @@ import java.util.TreeMap;
  */
 public class TableHelper {
 
+    private static String ROW_COUNT_HDFS_PATH_PRE = "/user/tagbase/data/rowcount/";
+
     public List<String> getTableDimColumns(Table table) {
         List<String> list = new ArrayList<>();
         TreeMap<Integer, String> map = new TreeMap<>();
@@ -73,8 +75,8 @@ public class TableHelper {
         hiveSrcTable.setDimColumns(dimColumns);
         hiveSrcTable.setImeiColumnName(new TableHelper().getTableImeiColumns(table));
         hiveSrcTable.setSliceColumn(new TableHelper().getTableSliceColumns(table,
-                jobRunning.getDataLowerTime().toString(),
-                jobRunning.getDataUpperTime().toString()));
+                jobRunning.getDataLowerTime().toString().replace("-", ""),
+                jobRunning.getDataUpperTime().toString().replace("-", "")));
 
 
         String output = task.getOutput();
@@ -82,8 +84,9 @@ public class TableHelper {
 
             output = new Date(System.currentTimeMillis()).toString();
         }
+
         //TODO set rowCountPath
-        String rowCountPath = null;
+        String rowCountPath = ROW_COUNT_HDFS_PATH_PRE + task.getId();
 
         return new HiveMeta(hiveDictTable, hiveSrcTable, output, rowCountPath);
     }
@@ -116,7 +119,7 @@ public class TableHelper {
             // like dayno_app_from
             List<String> dimsColumsName = new TableHelper().getTableDimColumns(table);
             StringBuffer buffer = new StringBuffer();
-            for(String s : dimsColumsName){
+            for (String s : dimsColumsName) {
                 buffer.append(s);
             }
             return buffer.toString();

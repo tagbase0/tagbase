@@ -2,6 +2,7 @@ package com.oppo.tagbase.job;
 
 import com.google.inject.Injector;
 import com.oppo.tagbase.job.obj.HiveMeta;
+import com.oppo.tagbase.job.obj.TaskMessage;
 import com.oppo.tagbase.job.util.IdGenerator;
 import com.oppo.tagbase.job.util.TableHelper;
 import com.oppo.tagbase.job.util.TaskHelper;
@@ -22,7 +23,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class DictJob implements AbstractJob {
 
-    Logger log = LoggerFactory.getLogger(DictJob.class);
+
+    private static String INVERTED_DICT_HDFS_PATH_PRE = "/user/tagbase/dict/inverted/";
+    private static String FORWARD_DICT_HDFS_PATH_PRE = "/user/tagbase/dict/forward/";
+    private static Long DICT_TASK_RETRY_TIME_MS = 5000L;
+
+    private Logger log = LoggerFactory.getLogger(DictJob.class);
 
     private Injector injector;
 
@@ -80,14 +86,14 @@ public class DictJob implements AbstractJob {
 
         // initialize invertedDict task
         Task invertedTask = new Task();
+        String date = new Date(System.currentTimeMillis()).toString().replace("-", "");
 
-        //TODO 2020/2/20  任务输出路径待指定
-        String outputInvertedPath = "";
+        String outputInvertedPath = INVERTED_DICT_HDFS_PATH_PRE + date;
         iniTask(dictJob.getId(), invertedTask, "InvertedDictBuildTask", (byte) 0, outputInvertedPath);
 
         // initialize forwardTask task
         Task forwardTask = new Task();
-        String outputForwardPath = "";
+        String outputForwardPath = FORWARD_DICT_HDFS_PATH_PRE + date;
         iniTask(dictJob.getId(), forwardTask, "ForwardDictBuildTask", (byte) 1, outputForwardPath);
 
         new MetadataJob().addTask(invertedTask);
@@ -123,7 +129,7 @@ public class DictJob implements AbstractJob {
         } else {
             log.info("Not the right time to build Dictionary job {}!", jobId);
             try {
-                TimeUnit.MILLISECONDS.sleep(5000);
+                TimeUnit.MILLISECONDS.sleep(DICT_TASK_RETRY_TIME_MS);
             } catch (InterruptedException e) {
                 log.error("{} Error when to sleep!", jobId);
             }
@@ -161,38 +167,9 @@ public class DictJob implements AbstractJob {
                     // task is started only if the previous task has been executed successfully
                     if (new TaskHelper().preTaskFinish(tasks, i)) {
                         // InvertedDictTask;
-                        // 1. update Metadata, construct the HiveMeta object
                         Task task = tasks.get(i);
-                        dictJob.setLatestTask(task.getId());
-                        task.setState(TaskState.RUNNING);
 
-                        HiveMeta hiveMeta = new TableHelper().generalHiveMeta(task, dictJob);
-
-                        log.debug("InvertedDictTask {} start.", task.getId());
-
-                        // 2. start the engine task
-                        TaskEngine sparkTaskEngine = injector.getInstance(TaskEngine.class);
-                        String appId = null;
-                        String finalStatus = null;
-                        TaskState state = null;
-
-                        try {
-                            appId = sparkTaskEngine.submitTask(hiveMeta, JobType.DICTIONARY);
-                            finalStatus = sparkTaskEngine.getTaskStatus(appId, JobType.DICTIONARY).getFinalStatus();
-
-                        } catch (Exception e) {
-                            log.error("{}, Error to run TaskEngine!", task.getId());
-                        }
-
-                        task.setAppId(appId);
-
-                        //TODO convert finalStatus to TaskState
-
-                        // 3. update Metadata
-                        new MetadataJob().completeTask(task.getId(),
-                                state,
-                                new Date(System.currentTimeMillis()),
-                                task.getOutput());
+                        doInvertedDictTask(task, dictJob);
 
                         log.debug("InvertedDictTask {} is finished.", task.getId());
                     }
@@ -200,31 +177,12 @@ public class DictJob implements AbstractJob {
                 case 1:
                     if (new TaskHelper().preTaskFinish(tasks, i)) {
 
-                        // 1. update Metadata, construct the input of buildDictForward
                         Task task = tasks.get(i);
-                        dictJob.setLatestTask(task.getId());
-                        task.setState(TaskState.RUNNING);
                         String invertedDictHDFSPath = tasks.get(0).getOutput();
-                        Dict dictForwardOld = new MetadataDict().getDict();
-
-                        // 2. do task
-                        // construct the latest forward dictionary
-                        Dict dictForwardToday = new TaskHelper().buildDictForward(invertedDictHDFSPath,
-                                dictForwardOld, task.getOutput());
-
-                        // 3. update Metadata and the forward dictionary
-                        String fileLocationForwardNew = dictForwardToday.getLocation();
-                        task.setOutput(fileLocationForwardNew);
-                        new MetadataJob().completeTask(task.getId(),
-                                task.getState(),
-                                new Date(System.currentTimeMillis()),
-                                task.getOutput());
-
-                        new MetadataDict().addDict(dictForwardToday);
+                        doForwardDictTask(task, dictJob, invertedDictHDFSPath);
 
                         dictJob.setState(JobState.SUCCESS);
-
-                        log.info("ForwardDictTask {} is finished.", task.getId());
+                        log.debug("ForwardDictTask {} is finished.", task.getId());
                     }
                     break;
                 default:
@@ -234,6 +192,64 @@ public class DictJob implements AbstractJob {
             i = i % stepNum;
         }
 
+    }
+
+    private void doForwardDictTask(Task task, Job dictJob, String invertedDictHDFSPath) {
+
+        // 1. update Metadata, construct the input of buildDictForward
+        dictJob.setLatestTask(task.getId());
+        task.setState(TaskState.RUNNING);
+
+        Dict dictForwardOld = new MetadataDict().getDict();
+
+        // 2. do task
+        // construct the latest forward dictionary
+        Dict dictForwardToday = new TaskHelper().buildDictForward(invertedDictHDFSPath,
+                dictForwardOld, task.getOutput());
+
+        // 3. update Metadata and the forward dictionary
+        String fileLocationForwardNew = dictForwardToday.getLocation();
+        task.setOutput(fileLocationForwardNew);
+        new MetadataJob().completeTask(task.getId(),
+                task.getState(),
+                new Date(System.currentTimeMillis()),
+                task.getOutput());
+
+        new MetadataDict().addDict(dictForwardToday);
+    }
+
+    private void doInvertedDictTask(Task task, Job dictJob) {
+
+        // 1. update Metadata, construct the HiveMeta object
+        dictJob.setLatestTask(task.getId());
+        task.setState(TaskState.RUNNING);
+
+        HiveMeta hiveMeta = new TableHelper().generalHiveMeta(task, dictJob);
+
+        log.debug("InvertedDictTask {} start.", task.getId());
+
+        // 2. start the engine task
+        TaskEngine sparkTaskEngine = injector.getInstance(TaskEngine.class);
+        String appId = null;
+        TaskMessage taskMessage = null;
+        TaskState state;
+
+        try {
+            appId = sparkTaskEngine.submitTask(hiveMeta, JobType.DICTIONARY);
+            taskMessage = sparkTaskEngine.getTaskStatus(appId, JobType.DICTIONARY);
+
+        } catch (Exception e) {
+            log.error("{}, Error to run TaskEngine!", task.getId());
+        }
+
+        task.setAppId(appId);
+        state = taskMessage.parseJobStatus();
+
+        // 3. update Metadata
+        new MetadataJob().completeTask(task.getId(),
+                state,
+                new Date(System.currentTimeMillis()),
+                task.getOutput());
     }
 
 }
