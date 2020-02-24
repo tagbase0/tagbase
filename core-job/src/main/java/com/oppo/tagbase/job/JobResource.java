@@ -28,7 +28,7 @@ public class JobResource {
 
 
     @POST
-    @Path("/buildDict")
+    @Path("/build_dict")
     @Produces(MediaType.APPLICATION_JSON)
     public Response buildDict(@QueryParam("dbName") @NotNull String dbName,
                               @QueryParam("tableName") @NotNull String tableName) {
@@ -38,7 +38,7 @@ public class JobResource {
     }
 
     @POST
-    @Path("/buildData")
+    @Path("/build_data")
     @Produces(MediaType.APPLICATION_JSON)
     public Response buildDict(@QueryParam("dbName") @NotNull String dbName,
                               @QueryParam("tableName") @NotNull String tableName,
@@ -51,7 +51,7 @@ public class JobResource {
     }
 
     @POST
-    @Path("/jobState")
+    @Path("/job_state")
     @Produces(MediaType.APPLICATION_JSON)
     public Response jobState(@QueryParam("jobId") @NotNull String jobId) {
 
