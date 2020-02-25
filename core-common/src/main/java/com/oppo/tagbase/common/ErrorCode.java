@@ -5,23 +5,20 @@ package com.oppo.tagbase.common;
  */
 public interface ErrorCode {
 
+
     /**
      * Get the associated error code
      * @return the error code
      */
-    int getErrorCode();
+    int getCode();
+
+    String getName();
 
     /**
      * Get the class of error code
      * @return the class of error code
      */
     Family getFamily();
-
-    /**
-     * Get the reason
-     * @return the reason
-     */
-    String getReason();
 
     enum Family {
         METADATA,
@@ -30,5 +27,9 @@ public interface ErrorCode {
         QUERY,
         JOB,
         OTHER
+    }
+
+    default String format() {
+        return String.format("[ %s(%d) - %s ]", getName(), getCode(), getFamily().name());
     }
 }

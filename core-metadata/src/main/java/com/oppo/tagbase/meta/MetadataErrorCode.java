@@ -7,35 +7,37 @@ import com.oppo.tagbase.common.ErrorCode;
  */
 public enum MetadataErrorCode implements ErrorCode {
 
-    DB_NOT_EXIST(100, "db not exist"),
-    TABLE_NOT_EXIST(100, "table not exist"),
+    DB_NOT_EXIST(100),
+    TABLE_NOT_EXIST(101),
 
-    DUPLICATE_DB_NAME(100, "duplicate db name"),
-    DUPLICATE_TABLE_NAME(100, "duplicate table name");
+    DUPLICATE_DB_NAME(102),
+    DUPLICATE_TABLE_NAME(103),
+
+    METADATA_ERROR(199)
+    ;
 
 
     private int code;
-    private String reason;
+    private String name;
     private Family family = Family.METADATA;
 
-    MetadataErrorCode(int code, String reason) {
+    MetadataErrorCode(int code) {
+        this.name = name();
         this.code = code;
-        this.reason = reason;
     }
 
     @Override
-    public int getErrorCode() {
+    public int getCode() {
         return code;
+    }
+
+    public String getName() {
+        return name;
     }
 
     @Override
     public Family getFamily() {
         return family;
-    }
-
-    @Override
-    public String getReason() {
-        return reason;
     }
 
 }

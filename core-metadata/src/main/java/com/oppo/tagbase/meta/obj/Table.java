@@ -1,5 +1,6 @@
 package com.oppo.tagbase.meta.obj;
 
+import com.google.common.base.Preconditions;
 import com.oppo.tagbase.meta.MetadataException;
 
 import java.util.List;
@@ -91,6 +92,7 @@ public class Table {
     }
 
     public void setColumns(List<Column> columns) {
+        Preconditions.checkNotNull(columns, "Table columns can not be null");
         this.columns = columns;
     }
 
@@ -100,9 +102,6 @@ public class Table {
      * @return column, or null if column not exist.
      */
     public Column getColumn(String columnName) {
-        if(columns == null) {
-            throw new MetadataException("The instance initialized without column info.");
-        }
         return getColumns().stream()
                 .filter(column -> Objects.equals(column.getName(), columnName))
                 .filter(column -> !(TableType.TAG == getType() && ColumnType.SLICE_COLUMN == column.getType()))

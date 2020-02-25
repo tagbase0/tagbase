@@ -3,6 +3,7 @@ package com.oppo.tagbase.meta.connector;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
+import com.oppo.tagbase.meta.MetadataErrorCode;
 import com.oppo.tagbase.meta.MetadataException;
 import com.oppo.tagbase.meta.obj.*;
 import com.oppo.tagbase.meta.util.SqlDateUtil;
@@ -246,7 +247,7 @@ public abstract class MetadataConnector {
         submit(handle -> {
 
             if(slice.getStatus() != SliceStatus.BUILDING) {
-                throw new MetadataException("Newly added slice must be BUILDING status.");
+                throw new MetadataException(MetadataErrorCode.METADATA_ERROR, "Newly added slice must be BUILDING status.");
             }
 
             TableType tableType = handle.createQuery("select type from TBL where id=:tableId")
@@ -552,8 +553,8 @@ public abstract class MetadataConnector {
 
         submit(handle -> {
 
-            if (DictStatus.UNUSED == dict.getStatus()) {
-                throw new MetadataException("Newly added dict must be READY status.");
+            if (DictStatus.READY != dict.getStatus()) {
+                throw new MetadataException(MetadataErrorCode.METADATA_ERROR, "Newly added dict must be READY status.");
             }
 
             String sqlDisableDict = "UPDATE DICT set status=? where status=?";

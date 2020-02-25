@@ -8,17 +8,22 @@ public enum TestErrorCode implements ErrorCode {
     TEST_ERROR(600, "test");
 
     private int code;
+    private String name;
     private Family family;
-    private String reason;
 
-    TestErrorCode(int code, String reason) {
+    TestErrorCode(int code, String name) {
         this.code = code;
-        this.reason = reason;
+        this.name = name;
     }
 
     @Override
-    public int getErrorCode() {
+    public int getCode() {
         return code;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -46,9 +51,5 @@ public enum TestErrorCode implements ErrorCode {
         return family;
     }
 
-    @Override
-    public String getReason() {
-        return reason;
-    }
 
 }
