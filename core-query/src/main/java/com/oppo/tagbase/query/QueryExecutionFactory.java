@@ -1,6 +1,8 @@
 package com.oppo.tagbase.query;
 
 import com.oppo.tagbase.query.node.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
@@ -9,10 +11,11 @@ import javax.inject.Inject;
  * @date 2020/2/9
  */
 public class QueryExecutionFactory {
-    QueryManager queryManager;
-    IdGenerator idGenerator;
-    SemanticAnalyzer analyzer;
-    PhysicalPlanner planner;
+    private static Logger LOG = LoggerFactory.getLogger(QueryResource.class);
+    private QueryManager queryManager;
+    private IdGenerator idGenerator;
+    private SemanticAnalyzer analyzer;
+    private PhysicalPlanner planner;
 
 
     @Inject
@@ -21,7 +24,8 @@ public class QueryExecutionFactory {
         this.idGenerator = idGenerator;
     }
 
-    public QueryExecution create(String id,Query query) {
+    public QueryExecution create(String id, Query query) {
+
         QueryExecution execution = new QueryExecution(query, analyzer, planner);
         queryManager.register(id, execution);
         return execution;

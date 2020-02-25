@@ -12,10 +12,9 @@ import java.util.Map;
  * @author huangfeng
  * @date 2020/2/8
  */
-public class SingleQueryOperator implements Operator {
+public class SingleQueryOperator extends AbstractOperator {
     String sourceId;
 
-    OperatorBuffer outputBuffer;
     QueryHandler queryHandler;
     int groupMaxsize;
 
@@ -30,7 +29,9 @@ public class SingleQueryOperator implements Operator {
     }
 
 
-    public void run() {
+
+    @Override
+    public void internalRun() {
 
         // get output from storage module according table filter dim
 //        OperatorBuffer<AggregateRow> source = connector.createQuery(queryHandler);
@@ -53,7 +54,7 @@ public class SingleQueryOperator implements Operator {
                 groupRow.combine(row.getMetric(), OperatorType.UNION);
                 groupCount++;
                 if (groupCount == groupMaxsize) {
-                    outputBuffer.offer(groupRow);
+                    outputBuffer.postData(groupRow);
                     map.remove(row.getDim().getSignature());
                 } else {
                     map.put(row.getDim().getSignature(), new Pair<>(groupRow, groupCount));
@@ -65,17 +66,12 @@ public class SingleQueryOperator implements Operator {
         }
 
         // put result to output
-        map.values().forEach(pair -> outputBuffer.offer(pair.getValue0()));
-        outputBuffer.offer(Row.EOF);
-
-
+        map.values().forEach(pair -> outputBuffer.postData(pair.getValue0()));
+        outputBuffer.postData(Row.EOF);
     }
 
 
-    @Override
-    public OperatorBuffer getOutputBuffer() {
-        return outputBuffer;
-    }
+
 }
 
 

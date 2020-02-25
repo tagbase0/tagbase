@@ -1,7 +1,10 @@
 package com.oppo.tagbase.query;
 
-import java.util.Map;
+import com.oppo.tagbase.query.exception.QueryException;
+
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.oppo.tagbase.query.exception.QueryErrorCode.QUERY_NOT_EXIST;
 
 /**
  * @author huangfeng
@@ -9,20 +12,49 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class QueryManager {
 
-    Map<String,QueryExecution> queries;
+    ConcurrentHashMap<String, QueryExecution> queries;
 
-    QueryManager(){
+    QueryManager() {
         queries = new ConcurrentHashMap<>();
     }
 
 
-    public void register(String id, QueryExecution execution){
-        queries.put(id,execution);
+    public void register(String id, QueryExecution execution) {
+        queries.put(id, execution);
     }
 
-    public void cancelIfExist(String id) {
-        // add EOF to opperator???
 
-        queries.remove(id);
+    public Object getResult(String queryId) {
+        return getQueryOrThrow(queryId).getOutput();
+    }
+
+
+    public boolean cancel(String queryId) {
+        // add EOF to operator???
+        QueryExecution execution = getQueryOrThrow(queryId);
+        execution.cancel();
+        queries.remove(queryId);
+        return true;
+    }
+
+    public QueryExecution.QueryState queryState(String queryId) {
+        return getQueryOrThrow(queryId).getState();
+    }
+
+    private QueryExecution getQueryOrThrow(String queryId) {
+        QueryExecution execution = queries.get(queryId);
+        if (execution == null) {
+            throw new QueryException(QUERY_NOT_EXIST, "query does't exist");
+        }
+        return execution;
+    }
+
+
+    //just when queryExecution is in NEW state.
+    public void remove(String queryId) {
+        QueryExecution execution = queries.get(queryId);
+        if (execution != null && execution.getState() == QueryExecution.QueryState.NEW) {
+            queries.remove(queryId);
+        }
     }
 }

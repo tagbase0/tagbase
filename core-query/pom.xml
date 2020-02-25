@@ -11,12 +11,48 @@
 
     <artifactId>core-query</artifactId>
 
+
     <dependencies>
+
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>${guice.version}</version>
+        </dependency>
+
+
+        <dependency>
+                <artifactId>javax.el-api</artifactId>
+                <groupId>javax.el</groupId>
+            <version>3.0.0</version>
+        </dependency>
+
         <dependency>
             <groupId>com.oppo</groupId>
             <artifactId>core-metadata</artifactId>
             <version>${parent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guice</artifactId>
+                    <groupId>com.google.inject</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>guice-servlet</artifactId>
+                    <groupId>com.google.inject.extensions</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+
+                <exclusion>
+                    <artifactId>validation-api</artifactId>
+                    <groupId>javax.validation</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
+
         <dependency>
             <groupId>com.oppo</groupId>
             <artifactId>core-dictionary</artifactId>
@@ -32,6 +68,31 @@
             <artifactId>RoaringBitmap</artifactId>
             <version>0.8.12</version>
         </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>org.apache.hadoop</groupId>-->
+<!--            <artifactId>hadoop-client</artifactId>-->
+<!--            <version>${hadoop.version}</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <artifactId>guava</artifactId>-->
+<!--                    <groupId>com.google.guava</groupId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.hadoop</groupId>-->
+<!--            <artifactId>hadoop-common</artifactId>-->
+<!--            <version>${hadoop.version}</version>-->
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <artifactId>guava</artifactId>-->
+<!--                    <groupId>com.google.guava</groupId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
+
+
 
     </dependencies>
 

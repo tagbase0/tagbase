@@ -4,6 +4,7 @@ import com.google.common.collect.BoundType;
 import com.google.common.collect.ImmutableRangeSet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
+import com.google.inject.Inject;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.obj.Column;
 import com.oppo.tagbase.meta.obj.ColumnType;
@@ -31,6 +32,7 @@ public class SemanticAnalyzer {
 
 
     //    private static DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+    @Inject
     public SemanticAnalyzer(Metadata meta) {
         this.meta = meta;
     }

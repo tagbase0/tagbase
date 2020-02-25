@@ -1,6 +1,5 @@
 package com.oppo.tagbase.query;
 
-import com.google.inject.Inject;
 import com.oppo.tagbase.query.operator.Operator;
 
 import java.util.concurrent.ExecutorService;
@@ -12,10 +11,10 @@ import java.util.concurrent.ExecutorService;
 public class QueryEngine {
 
     ExecutorService service;
-    @Inject
-    public QueryEngine(ExecutorService service) {
-        this.service = service;
-    }
+//    @Inject
+//    public QueryEngine(ExecutorService service) {
+//        this.service = service;
+//    }
     public void execute(Operator operator) {
         service.execute(operator);
     }

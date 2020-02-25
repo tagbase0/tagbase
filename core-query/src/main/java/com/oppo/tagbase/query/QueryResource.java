@@ -1,15 +1,17 @@
-package com.oppo.tagbase.server;
+package com.oppo.tagbase.query;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import com.oppo.tagbase.query.*;
 import com.oppo.tagbase.query.node.OutputType;
 import com.oppo.tagbase.query.node.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.util.concurrent.Callable;
 
 /**
  * @author huangfeng
@@ -18,6 +20,8 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/tagbase/v1/")
 public class QueryResource {
+
+    private static Logger LOG = LoggerFactory.getLogger(QueryResource.class);
 
     protected final ObjectMapper jsonMapper;
     private final QueryManager queryManager;
@@ -38,38 +42,62 @@ public class QueryResource {
     @Produces(MediaType.APPLICATION_JSON)
     public QueryResponse query(@Context final HttpServletRequest req) {
 
-        QueryResponse response = null;
+        String id = null;
         try {
 
             Query query = jsonMapper.readValue(req.getInputStream(), Query.class);
+
             boolean isSync = query.getOutput() == OutputType.COUNT ? true : false;
-            String id = idGenerator.getNextId();
+
+            id = idGenerator.getNextId();
+
             QueryExecution execution = queryExecutionFactory.create(id, query);
+
             execution.execute();
 
             if (isSync) {
-                return execution.getOutput();
+                return QueryResponse.fillContent(queryManager.getResult(id));
             } else {
-                return QueryResponse.queryId(id);
+                return QueryResponse.fillContent(id);
             }
-
-
         } catch (Exception e) {
-            response = QueryResponse.error(e);
+            queryManager.remove(id);
+            LOG.error("query fail: ", e);
+            return QueryResponse.error(e);
         }
 
-        return response;
+    }
+
+    @GET
+    @Path("{queryId}/state")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public QueryResponse queryState(@PathParam("queryId") String queryId) {
+        return tryAndReturn(() ->
+                queryManager.queryState(queryId)
+        );
+
+    }
+
+    @GET
+    @Path("{queryId}/result")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public QueryResponse result(@QueryParam("queryId") String queryId) {
+        return tryAndReturn(() ->
+                queryManager.getResult(queryId)
+        );
     }
 
 
-    @GET
+    @DELETE
     @Path("cancel")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public QueryResponse cancel(@QueryParam("id") String id) {
-
-        queryManager.cancelIfExist(id);
-        return null;
+        return tryAndReturn(() ->
+                queryManager.cancel(id)
+        );
     }
 
 
@@ -82,5 +110,12 @@ public class QueryResource {
         return null;
     }
 
+    private static QueryResponse tryAndReturn(Callable task) {
+        try {
+            return QueryResponse.fillContent(task.call());
+        } catch (Exception e) {
+            return QueryResponse.error(e);
+        }
 
+    }
 }
