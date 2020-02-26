@@ -2,7 +2,7 @@ package com.oppo.tagbase.query;
 
 import com.google.common.collect.ImmutableMap;
 import com.oppo.tagbase.query.node.OutputType;
-import com.oppo.tagbase.query.operator.RowMeta;
+import com.oppo.tagbase.query.row.RowMeta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,11 +14,11 @@ import java.util.Map;
  */
 public class Scope {
 
+    List<RowMeta> outPutMeta;
 
     OutputType outputType;
-    int outPutSize;
 
-    List<RowMeta> outPutMeta;
+    int outPutSize;
     int groupMaxSize;
 
     public Scope(OutputType outputType, int outPutSize, List<RowMeta> outPutMeta, int groupMaxSize) {
@@ -47,7 +47,7 @@ public class Scope {
     }
 
 
-    public Map<String, RowMeta> getOutPutMeta() {
+    public Map<String, RowMeta> getOutputMeta() {
         ImmutableMap.Builder builder = ImmutableMap.builder();
 
         outPutMeta.forEach(item -> builder.put(item.getID(), item));
@@ -67,7 +67,7 @@ public class Scope {
         int groupMaxSize;
 
 
-        public Builder withroupMaxSize(int groupMaxSize) {
+        public Builder withGroupMaxSize(int groupMaxSize) {
             this.groupMaxSize = groupMaxSize;
             return this;
         }

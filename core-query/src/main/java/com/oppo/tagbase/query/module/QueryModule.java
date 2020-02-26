@@ -3,9 +3,8 @@ package com.oppo.tagbase.query.module;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 import com.oppo.tagbase.common.guice.ResourceBind;
-import com.oppo.tagbase.meta.connector.MetadataConnector;
-import com.oppo.tagbase.meta.connector.MySQLMetadataConnector;
 import com.oppo.tagbase.query.*;
+import com.oppo.tagbase.query.common.IdGenerator;
 
 /**
  * Created by huangfeng on 2020/2/14.
@@ -23,7 +22,7 @@ public class QueryModule extends AbstractModule {
         bind(QueryManager.class).in(Scopes.SINGLETON);
         bind(QueryEngine.class).in(Scopes.SINGLETON);
         bind(SemanticAnalyzer.class).in(Scopes.SINGLETON);
-        bind(MetadataConnector.class).to(MySQLMetadataConnector.class).in(Scopes.SINGLETON);
+//        bind(MetadataConnector.class).to(MySQLMetadataConnector.class).in(Scopes.SINGLETON);
 
         //ServerConfig
         bind(Integer.class).toInstance(new Integer(1));

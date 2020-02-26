@@ -16,5 +16,8 @@ public interface Operator extends Runnable {
     void ifFinish(Runnable o);
 
     void ifException(Consumer<Exception> o);
+
+    int getId();
+    void setQueryId(String queryId);
 }
 

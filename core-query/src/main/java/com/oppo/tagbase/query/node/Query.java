@@ -20,4 +20,6 @@ public interface Query {
      OutputType getOutput();
     <R> R accept(QueryVisitor<R> visitor);
 
+    void setId(String id);
+    String getId();
 }

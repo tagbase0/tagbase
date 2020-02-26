@@ -12,6 +12,13 @@ public abstract class AbstractOperator implements Operator {
     private volatile Runnable finishCall;
     private volatile Consumer<Exception> exceptionCall;
     private Exception e;
+    private int operatorId;
+    private String queryId;
+
+    public AbstractOperator(int operatorId) {
+        this.operatorId = operatorId;
+    }
+
 
     @Override
     public OperatorBuffer getOutputBuffer() {
@@ -34,13 +41,31 @@ public abstract class AbstractOperator implements Operator {
     }
 
     @Override
+    public int getId() {
+        return operatorId;
+    }
+
+    @Override
+    public void setQueryId(String queryId){
+        this.queryId = queryId;
+    }
+
+    @Override
     public void run() {
+        String currThreadName = Thread.currentThread().getName();
         try {
+            String queryThreadName = String.format(
+                    "%s[%s-%s]",
+                    currThreadName,queryId, operatorId);
+            Thread.currentThread().setName(queryThreadName);
+
             internalRun();
         } catch (Exception e) {
             exceptionCall.accept(e);
+        } finally {
+            Thread.currentThread().setName(currThreadName);
         }
-
+        //TODO finishCall can't be called after execption, and consider if it is null
         finishCall.run();
     }
 

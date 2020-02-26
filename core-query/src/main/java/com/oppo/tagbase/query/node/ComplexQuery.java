@@ -8,7 +8,7 @@ import java.util.List;
  * Created by huangfeng on 2020/2/15.
  */
 
-public class ComplexQuery implements Query{
+public final class ComplexQuery extends BaseQuery{
 
     private OutputType outputType;
 
@@ -17,6 +17,7 @@ public class ComplexQuery implements Query{
 
     @JsonProperty("subqueryList")
     private List<Query> subQueries;
+
 
     @JsonCreator
     public ComplexQuery(
@@ -59,5 +60,6 @@ public class ComplexQuery implements Query{
     public <R> R accept(QueryVisitor<R> visitor) {
         return visitor.visitComplexQuery(this);
     }
+
 
 }

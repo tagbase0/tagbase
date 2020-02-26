@@ -1,4 +1,4 @@
-package com.oppo.tagbase.query;
+package com.oppo.tagbase.query.common;
 
 import com.google.inject.Inject;
 

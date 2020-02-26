@@ -3,11 +3,8 @@ package com.oppo.tagbase.query;
 import com.google.inject.Inject;
 import com.oppo.tagbase.query.exception.QueryException;
 import com.oppo.tagbase.query.node.Query;
-import com.oppo.tagbase.query.operator.Operator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 import static com.oppo.tagbase.query.QueryExecution.QueryState.*;
 import static com.oppo.tagbase.query.exception.QueryErrorCode.*;
@@ -18,7 +15,7 @@ import static com.oppo.tagbase.query.exception.QueryErrorCode.*;
  * lock of QueryExecution to safeguard  both state and waitResult
  */
 public class QueryExecution {
-    private static Logger LOG = LoggerFactory.getLogger(QueryResource.class);
+    private static Logger LOG = LoggerFactory.getLogger(QueryExecution.class);
 
     private Query query;
 
@@ -28,7 +25,7 @@ public class QueryExecution {
     @Inject
     private QueryEngine queryExecutor;
 
-    private List<Operator> physicalPlan;
+    private PhysicalPlan physicalPlan;
 
     private Exception exception;
 
@@ -53,20 +50,30 @@ public class QueryExecution {
 
         convertState(RUNNING);
 
-        physicalPlan.get(physicalPlan.size() - 1).ifFinish(() -> convertState(FINISHED));
-
-        for (Operator operator : physicalPlan) {
-            operator.ifException((Exception e) -> {
-                exception = e;
-                convertState(Fail);
-                //cancel
-            });
-        }
+        physicalPlan.ifFinish(() -> convertState(FINISHED));
 
 
-        for (Operator operator : physicalPlan) {
-            queryExecutor.execute(operator);
-        }
+        physicalPlan.ifException((Exception e) -> {
+                    exception = e;
+                    convertState(Fail);
+                    });
+
+        queryExecutor.execute(physicalPlan);
+
+//        physicalPlan.get(physicalPlan.size() - 1).ifFinish(() -> convertState(FINISHED));
+//
+//        for (Operator operator : physicalPlan) {
+//            operator.ifException((Exception e) -> {
+//                exception = e;
+//            convertState(Fail);
+//            //cancel
+//        });
+//        }
+//
+//
+//        for (Operator operator : physicalPlan) {
+//            queryExecutor.execute(operator);
+//        }
 
     }
 
@@ -86,7 +93,7 @@ public class QueryExecution {
 
     private Object getResult() {
         if (result == null) {
-            result = physicalPlan.get(physicalPlan.size() - 1).getOutputBuffer().next();
+            result = physicalPlan.getResult();
         }
         return result;
     }
@@ -103,14 +110,15 @@ public class QueryExecution {
             convertState(CANCELLING);
         }
         if (needNotifyOperator) {
-            for (Operator operator : physicalPlan) {
-                operator.cancelOutput();
-            }
+            physicalPlan.cancel();
         }
     }
 
 
     private synchronized void convertState(QueryState newState) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("query state change, from {} to {} ", state, newState);
+        }
         state = newState;
     }
 

@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by huangfeng on 2020/2/15.
  */
-public class SingleQuery implements Query {
+public final class SingleQuery extends BaseQuery {
 
     private String dbName;
 

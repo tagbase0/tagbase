@@ -5,6 +5,7 @@ import com.oppo.tagbase.common.guice.JettyModule;
 import com.oppo.tagbase.common.guice.Lifecycle;
 import com.oppo.tagbase.common.guice.LifecycleModule;
 import com.oppo.tagbase.common.guice.ValidatorModule;
+import com.oppo.tagbase.meta.connector.ConnectorModule;
 import com.oppo.tagbase.query.module.QueryModule;
 
 /**
@@ -16,12 +17,12 @@ public class TagbaseMain {
 
     public static void main(String[] args) throws InterruptedException {
 
-
         Injector ij = GuiceInjectors.makeInjector(
                 new JettyModule(),
                 new LifecycleModule(),
                 new ValidatorModule(),
-                new QueryModule()
+                new QueryModule(),
+                new ConnectorModule()
         );
         Lifecycle lifecycle = ij.getInstance(Lifecycle.class);
         lifecycle.start();

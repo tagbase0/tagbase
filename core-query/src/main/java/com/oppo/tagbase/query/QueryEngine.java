@@ -1,6 +1,8 @@
 package com.oppo.tagbase.query;
 
-import com.oppo.tagbase.query.operator.Operator;
+import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
 
@@ -9,13 +11,22 @@ import java.util.concurrent.ExecutorService;
  * @date 2020/2/11 15:48
  */
 public class QueryEngine {
-
+    private static Logger LOG = LoggerFactory.getLogger(QueryEngine.class);
     ExecutorService service;
-//    @Inject
-//    public QueryEngine(ExecutorService service) {
-//        this.service = service;
-//    }
-    public void execute(Operator operator) {
-        service.execute(operator);
+
+    @Inject
+    public QueryEngine() {
+    }
+
+    public QueryEngine(ExecutorService service) {
+        this.service = service;
+    }
+
+
+    public void execute(PhysicalPlan physicalPlan) {
+
+
+
+
     }
 }

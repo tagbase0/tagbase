@@ -2,6 +2,8 @@ package com.oppo.tagbase.query;
 
 import com.google.common.collect.ImmutableMap;
 import com.oppo.tagbase.query.operator.*;
+import com.oppo.tagbase.query.row.ResultRow;
+import com.oppo.tagbase.query.row.RowMeta;
 
 import java.util.Map;
 
@@ -15,7 +17,8 @@ public class OutputOperator extends AbstractOperator {
     OperatorBuffer<Map<String, Object>> outputBuffer;
     OperatorBuffer<ResultRow> inputBuffer;
 
-    public OutputOperator(OperatorBuffer<ResultRow> inputBuffer, Map<String, RowMeta> outputMeta) {
+    public OutputOperator(int id,OperatorBuffer<ResultRow> inputBuffer, Map<String, RowMeta> outputMeta) {
+        super(id);
         this.inputBuffer = inputBuffer;
         this.outputBuffer = new OperatorBuffer<>();
         this.outputMeta = outputMeta;
@@ -44,5 +47,6 @@ public class OutputOperator extends AbstractOperator {
 
             outputBuffer.postData(mapRowBuilder.build());
         }
+        outputBuffer.postEnd();
     }
 }

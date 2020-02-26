@@ -1,5 +1,6 @@
 package com.oppo.tagbase.query;
 
+import com.oppo.tagbase.query.common.IdGenerator;
 import com.oppo.tagbase.query.node.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ public class QueryExecutionFactory {
     }
 
     public QueryExecution create(String id, Query query) {
-
+        query.setId(id);
         QueryExecution execution = new QueryExecution(query, analyzer, planner);
         queryManager.register(id, execution);
         return execution;

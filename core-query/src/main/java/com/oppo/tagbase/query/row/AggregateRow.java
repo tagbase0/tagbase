@@ -1,4 +1,4 @@
-package com.oppo.tagbase.query.operator;
+package com.oppo.tagbase.query.row;
 
 import com.oppo.tagbase.query.node.OperatorType;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;

@@ -68,8 +68,15 @@
             <artifactId>RoaringBitmap</artifactId>
             <version>0.8.12</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>28.1-jre</version>
+            <scope>compile</scope>
 
-<!--        <dependency>-->
+        </dependency>
+
+        <!--        <dependency>-->
 <!--            <groupId>org.apache.hadoop</groupId>-->
 <!--            <artifactId>hadoop-client</artifactId>-->
 <!--            <version>${hadoop.version}</version>-->
@@ -91,6 +98,13 @@
 <!--                </exclusion>-->
 <!--            </exclusions>-->
 <!--        </dependency>-->
+
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.1</version>
+            <scope>test</scope>
+        </dependency>
 
 
 

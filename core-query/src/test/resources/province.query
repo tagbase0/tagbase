@@ -1,0 +1,15 @@
+{
+    "queryType":"single",
+    "tableName":"province",
+    "dbName":"tagbase",
+    "output":"count",
+    "filters":[
+        {
+            "type":"in",
+            "column":"province",
+            "values":[
+                "guangdong"
+            ]
+        }
+    ]
+}

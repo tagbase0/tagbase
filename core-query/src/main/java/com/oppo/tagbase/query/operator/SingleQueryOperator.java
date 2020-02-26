@@ -1,6 +1,7 @@
 package com.oppo.tagbase.query.operator;
 
 import com.oppo.tagbase.query.node.OperatorType;
+import com.oppo.tagbase.query.row.AggregateRow;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import com.oppo.tagbase.storage.core.obj.QueryHandler;
 import org.javatuples.Pair;
@@ -13,14 +14,15 @@ import java.util.Map;
  * @date 2020/2/8
  */
 public class SingleQueryOperator extends AbstractOperator {
-    String sourceId;
 
-    QueryHandler queryHandler;
-    int groupMaxsize;
+    private StorageConnector connector;
+    private QueryHandler queryHandler;
+    private String sourceId;
+    private int groupMaxsize;
 
-    StorageConnector connector;
 
-    public SingleQueryOperator(QueryHandler queryHandler, OperatorBuffer outputBuffer, StorageConnector connector,int groupMaxSize,String sourceId) {
+    public SingleQueryOperator(int id,QueryHandler queryHandler, OperatorBuffer outputBuffer, StorageConnector connector,int groupMaxSize,String sourceId) {
+        super(id);
         this.outputBuffer = outputBuffer;
         this.queryHandler = queryHandler;
         this.connector = connector;
@@ -67,11 +69,14 @@ public class SingleQueryOperator extends AbstractOperator {
 
         // put result to output
         map.values().forEach(pair -> outputBuffer.postData(pair.getValue0()));
-        outputBuffer.postData(Row.EOF);
+        outputBuffer.postEnd();
     }
 
 
-
+    @Override
+    public String toString() {
+        return String.format("SingleQueryOperator{scanTable=%s}",queryHandler.getTableName());
+    }
 }
 
 

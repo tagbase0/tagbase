@@ -1,4 +1,4 @@
-package com.oppo.tagbase.query.operator;
+package com.oppo.tagbase.query.row;
 
 /**
  * Created by huangfeng on 2020/2/14.

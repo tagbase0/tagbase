@@ -2,6 +2,7 @@ package com.oppo.tagbase.query.operator;
 
 import com.google.inject.Inject;
 import com.oppo.tagbase.dict.ForwardDictionary;
+import com.oppo.tagbase.query.row.AggregateRow;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 //import org.apache.hadoop.conf.Configuration;
@@ -20,7 +21,8 @@ public class PersistResultOperator extends AbstractOperator {
     @Inject
     ForwardDictionary dictionary;
 
-    public PersistResultOperator(OperatorBuffer<AggregateRow> inputBuffer) {
+    public PersistResultOperator(int id,OperatorBuffer<AggregateRow> inputBuffer) {
+        super(id);
         this.inputBuffer = inputBuffer;
     }
 

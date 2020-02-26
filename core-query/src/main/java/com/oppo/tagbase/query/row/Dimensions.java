@@ -1,4 +1,4 @@
-package com.oppo.tagbase.query.operator;
+package com.oppo.tagbase.query.row;
 
 /**
  * @author huangfeng
@@ -11,6 +11,9 @@ public class Dimensions {
     public Dimensions(byte[][] value) {
         this.internalDimensionValues = value;
     }
+
+
+
 
     public static Dimensions join(Dimensions dim1, Dimensions dim2) {
 

@@ -6,7 +6,7 @@ import java.util.Objects;
  * Created by wujianchao on 2020/2/22.
  */
 @Deprecated
-public class ResourceResponse<T> {
+public final class ResourceResponse<T> {
 
     public static final int CODE_OK = 0;
 

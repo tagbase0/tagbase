@@ -2,6 +2,7 @@ package com.oppo.tagbase.query;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
+import com.oppo.tagbase.query.common.IdGenerator;
 import com.oppo.tagbase.query.node.OutputType;
 import com.oppo.tagbase.query.node.Query;
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ public class QueryResource {
     @Produces(MediaType.APPLICATION_JSON)
     public QueryResponse query(@Context final HttpServletRequest req) {
 
+        String currThreadName = Thread.currentThread().getName();
         String id = null;
         try {
 
@@ -50,6 +52,11 @@ public class QueryResource {
             boolean isSync = query.getOutput() == OutputType.COUNT ? true : false;
 
             id = idGenerator.getNextId();
+
+            String queryThreadName = String.format(
+                    "%s[%s]",
+                    currThreadName, id);
+            Thread.currentThread().setName(queryThreadName);
 
             QueryExecution execution = queryExecutionFactory.create(id, query);
 
@@ -64,6 +71,8 @@ public class QueryResource {
             queryManager.remove(id);
             LOG.error("query fail: ", e);
             return QueryResponse.error(e);
+        } finally {
+            Thread.currentThread().setName(currThreadName);
         }
 
     }

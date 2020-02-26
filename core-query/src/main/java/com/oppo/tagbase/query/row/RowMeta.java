@@ -1,4 +1,4 @@
-package com.oppo.tagbase.query.operator;
+package com.oppo.tagbase.query.row;
 
 import com.google.common.collect.ImmutableList;
 import com.oppo.tagbase.meta.type.DataType;

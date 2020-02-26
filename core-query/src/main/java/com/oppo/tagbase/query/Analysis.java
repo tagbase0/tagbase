@@ -2,7 +2,6 @@ package com.oppo.tagbase.query;
 
 import com.oppo.tagbase.meta.obj.Table;
 import com.oppo.tagbase.query.node.Query;
-import com.oppo.tagbase.query.operator.RowMeta;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,18 +15,18 @@ public class Analysis {
 
     private Map<Query, Scope> scopes = new HashMap<>();
 
-    private Map<Query, Table> queryTables = new HashMap<>();
     private Map<Query, String> queryDB = new HashMap<>();
-    private Map<Query, List<String>> queryDims = new HashMap<>();
 
-    public List<String> getDims(Query query) {
-        return queryDims.get(query);
-    }
+    private Map<Query, Table> queryTables = new HashMap<>();
+
+
+    private Map<Query, List<String>> queryDims = new HashMap<>();
 
     private Map<Query, Map<String, FilterAnalysis>> queryFilterAnalysis = new HashMap<>();
 
 
-    private Map<String, RowMeta> rowMetaMap;
+
+
 
     public void addDB(Query query, String db) {
         queryDB.put(query, db);
@@ -51,9 +50,11 @@ public class Analysis {
         return scopes.get(query);
     }
 
-    public void addTable(Table table) {
-    }
 
+
+    public List<String> getDims(Query query) {
+        return queryDims.get(query);
+    }
 
     public Table getQueryTable(Query query) {
         return queryTables.get(query);
@@ -67,7 +68,4 @@ public class Analysis {
         return queryFilterAnalysis.get(query);
     }
 
-    public Map<String, RowMeta> getRowMetaMap() {
-        return rowMetaMap;
-    }
 }

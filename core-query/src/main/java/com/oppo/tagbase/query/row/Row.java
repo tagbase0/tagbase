@@ -1,4 +1,4 @@
-package com.oppo.tagbase.query.operator;
+package com.oppo.tagbase.query.row;
 
 
 public interface Row {

@@ -12,12 +12,11 @@ import com.oppo.tagbase.meta.obj.Table;
 import com.oppo.tagbase.meta.type.DataType;
 import com.oppo.tagbase.query.exception.SemanticException;
 import com.oppo.tagbase.query.node.*;
-import com.oppo.tagbase.query.operator.RowMeta;
+import com.oppo.tagbase.query.row.RowMeta;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.oppo.tagbase.query.exception.SemanticErrorCode.*;
 
@@ -64,55 +63,101 @@ public class SemanticAnalyzer {
 
         @Override
         public Scope visitSingleQuery(SingleQuery query) {
-            singleQueryId++;
 
-            String dbName = analyzeDB(query.getDbName());
-            Table table = analyzeTable(dbName, query.getTableName());
+            String dbName = analyzeDB(query);
+            Table table = analyzeTable(query,dbName);
 
+            // analysis for filter and groupby columns
             List<Filter> filters = query.getFilters();
-            Map<String, FilterAnalysis> columnDomains = analyzeFilter(table, filters);
-            List<String> filterColumns = filters.stream().map(filter -> filter.getColumn()).collect(Collectors.toList());
+            Map<String, FilterAnalysis> columnDomains = analyzeFilter(query,table, filters);
+
+            // group columns equal  output dimension column
+            List<String> groupByColumns = query.getDimensions();
+            List<DataType> groupByColumnTypes = analyzeGroupBy(table, groupByColumns);
+
+            int groupMaxSize = evaluateGroupMaxSize(groupByColumns, columnDomains, table);
+            int outputMaxSize = evaluateOutputSize(groupByColumns, columnDomains);
+
+            RowMeta rowMeta = new RowMeta(groupByColumns, groupByColumnTypes, nextSingleQueryId());
+            Scope scope = Scope.builder().withOutputType(query.getOutput()).addRowMeta(rowMeta).withOutputSize(outputMaxSize).withGroupMaxSize(groupMaxSize).build();
+            analysis.addScope(query, scope);
+            return scope;
+        }
 
 
-            List<String> dimColumns = query.getDimensions();
-            List<DataType> outputFields = analyzeGroupBy(table, dimColumns);
+        @Override
+        public Scope visitComplexQuery(ComplexQuery query) {
+            List<Query> subQueries = query.getSubQueries();
 
-            // evaluate outputSize for singleQuery
-            int outputMaxSize = 1;
-            for (String columnName : dimColumns) {
-                FilterAnalysis columnAnalysis = columnDomains.get(columnName);
-                int valueCount = columnAnalysis == null ? Integer.MAX_VALUE : columnAnalysis.getCardinality();
-                if (valueCount == Integer.MAX_VALUE) {
-                    outputMaxSize = Integer.MAX_VALUE;
-                    break;
-                } else {
-                    outputMaxSize *= valueCount;
+            //function support >2 subquerys, but it is not correct in semantic
+            if (subQueries.size() != 2) {
+                throw new SemanticException(NOT_SUPPORTED, "subQuery size must be 2");
+            }
+
+            Scope leftScope = subQueries.get(0).accept(this);
+            if (leftScope.getOutputType() != OutputType.BITMAP) {
+                throw new SemanticException(NOT_SUPPORTED, "complex query only work for bitmap");
+            }
+
+
+            Scope.Builder scopeBuilder = Scope.builder().withOutputType(query.getOutput());
+            List<RowMeta> leftOutRelations = leftScope.getOutRelations();
+            int count = leftScope.getOutPutSize();
+
+
+            for (int n = 1; n < subQueries.size(); n++) {
+                Scope scope = subQueries.get(n).accept(this);
+                if (scope.getOutputType() != OutputType.BITMAP) {
+                    throw new SemanticException(NOT_SUPPORTED, "complex query only work for bitmap");
+                }
+
+                if (count != Integer.MAX_VALUE && scope.getOutPutSize() != Integer.MAX_VALUE) {
+                    count += leftScope.getOutPutSize() * scope.getOutPutSize();
+                }
+
+                List<RowMeta> rightOutRelations = scope.getOutRelations();
+
+                for (RowMeta leftRowMeta : leftOutRelations) {
+                    for (RowMeta rightRowMeta : rightOutRelations) {
+                        scopeBuilder.addRowMeta(RowMeta.join(leftRowMeta, rightRowMeta));
+                    }
                 }
             }
 
-            // evaluate group data Maxcount for SingleQuery
+            scopeBuilder.withOutputSize(count);
+            Scope scope = scopeBuilder.build();
+            analysis.addScope(query, scope);
+            return scope;
+
+        }
+
+        private String nextSingleQueryId() {
+            singleQueryId++;
+            return singleQueryId+"";
+        }
+
+
+        // max groupMaxsize for singleQuery equal the product of  column cardinality which not in
+        private int evaluateGroupMaxSize(List<String> groupbyColumns, Map<String, FilterAnalysis> columnDomains, Table table) {
             int groupMaxSize = 1;
+            Set<String> filterColumns = columnDomains.keySet();
             for (String columnName : filterColumns) {
-                int valueCount = columnDomains.get(columnName).getCardinality();
-                if (!dimColumns.contains(columnName)) {
-                    if (valueCount == Integer.MAX_VALUE) {
+                int cardinality = columnDomains.get(columnName).getCardinality();
+                if (!groupbyColumns.contains(columnName)) {
+                    if (cardinality == Integer.MAX_VALUE) {
                         groupMaxSize = Integer.MAX_VALUE;
                         break;
                     }
-                    groupMaxSize *= valueCount;
+                    groupMaxSize *= cardinality;
                 }
             }
 
             if (groupMaxSize != Integer.MAX_VALUE) {
-                if (ImmutableSet.<String>builder().addAll(dimColumns).addAll(filterColumns).build().size() != table.getColumns().size()) {
+                if (ImmutableSet.<String>builder().addAll(groupbyColumns).addAll(filterColumns).build().size() != table.getColumns().size()) {
                     groupMaxSize = Integer.MAX_VALUE;
                 }
             }
-
-            RowMeta rowMeta = new RowMeta(dimColumns, outputFields, singleQueryId + "");
-            Scope scope = Scope.builder().withOutputType(query.getOutput()).addRowMeta(rowMeta).withOutputSize(outputMaxSize).withroupMaxSize(groupMaxSize).build();
-            analysis.addScope(query, scope);
-            return scope;
+            return groupMaxSize;
         }
 
         private List<DataType> analyzeGroupBy(Table table, List<String> dims) {
@@ -132,11 +177,26 @@ public class SemanticAnalyzer {
             return outputFields;
         }
 
-        private Map<String, FilterAnalysis> analyzeFilter(Table table, List<Filter> filters) {
+
+        private int evaluateOutputSize(List<String> groupbyColumns, Map<String, FilterAnalysis> columnDomains) {
+            int outputMaxSize = 1;
+            // max outputSize for singleQuery equal the product of groupby column cardinality
+            for (String columnName : groupbyColumns) {
+                FilterAnalysis columnAnalysis = columnDomains.get(columnName);
+                int cardinality = columnAnalysis == null ? Integer.MAX_VALUE : columnAnalysis.getCardinality();
+                if (cardinality == Integer.MAX_VALUE) {
+                    outputMaxSize = Integer.MAX_VALUE;
+                    break;
+                } else {
+                    outputMaxSize *= cardinality;
+                }
+            }
+            return outputMaxSize;
+        }
+
+        private Map<String, FilterAnalysis> analyzeFilter(SingleQuery query, Table table, List<Filter> filters) {
             Set<String> filterColumnSet = new HashSet<>();
-
             Map<String, FilterAnalysis> filterAnalysisMap = new HashMap<>();
-
 
             for (Filter filter : filters) {
                 String columnName = filter.getColumn();
@@ -184,6 +244,7 @@ public class SemanticAnalyzer {
                     throw new SemanticException(NOT_SUPPORTED, "metric column doesn't support filter");
                 }
             }
+            analysis.addFilterAnalysis(query, filterAnalysisMap);
             return filterAnalysisMap;
 
         }
@@ -200,68 +261,23 @@ public class SemanticAnalyzer {
             }
         }
 
-        private Table analyzeTable(String dbName, String tableName) {
-            Table table = meta.getTable(dbName, tableName);
-            analysis.addTable(table);
+        private Table analyzeTable(SingleQuery query,String dbName) {
+            Table table = meta.getTable(dbName,query.getTableName());
             if (table == null) {
                 throw new SemanticException(MISSING_TABLE, "table %s doesn't exist", dbName);
             }
+            analysis.addTable(query,table);
             return table;
         }
 
 
-        private String analyzeDB(String dbName) {
+        private String analyzeDB(SingleQuery query) {
+            String dbName = query.getDbName();
             if (meta.getDb(dbName) == null) {
                 throw new SemanticException(MISSING_DB, "db %s doesn't exist", dbName);
             }
+            analysis.addDB(query,dbName);
             return dbName;
-        }
-
-
-
-        @Override
-        public Scope visitComplexQuery(ComplexQuery query) {
-            List<Query> subQueries = query.getSubQueries();
-            if (subQueries.size() != 2) {
-                throw new SemanticException(NOT_SUPPORTED,"subQuery size must be 2");
-            }
-
-            Scope leftScope = subQueries.get(0).accept(this);
-            if (leftScope.getOutputType() != OutputType.BITMAP) {
-                // complex input must bitmap
-                throw  new SemanticException(NOT_SUPPORTED,"complex query only work for bitmap");
-            }
-
-
-            Scope.Builder scopeBuilder = Scope.builder().withOutputType(query.getOutput());
-            List<RowMeta> leftOutRelations = leftScope.getOutRelations();
-            int count = leftScope.getOutPutSize();
-
-
-            for (int n = 1; n < subQueries.size(); n++) {
-                Scope scope = subQueries.get(n).accept(this);
-                if (scope.getOutputType() != OutputType.BITMAP) {
-                    throw new SemanticException(NOT_SUPPORTED,"complex query only work for bitmap");
-                }
-
-                if (count != Integer.MAX_VALUE && scope.getOutPutSize() != Integer.MAX_VALUE) {
-                    count += leftScope.getOutPutSize() * scope.getOutPutSize();
-                }
-
-                List<RowMeta> rightOutRelations = scope.getOutRelations();
-
-                for (RowMeta leftRowMeta : leftOutRelations) {
-                    for (RowMeta rightRowMeta : rightOutRelations) {
-                        scopeBuilder.addRowMeta(RowMeta.join(leftRowMeta, rightRowMeta));
-                    }
-                }
-            }
-
-            scopeBuilder.withOutputSize(count);
-            Scope scope = scopeBuilder.build();
-            analysis.addScope(query, scope);
-            return scope;
-
         }
 
 
