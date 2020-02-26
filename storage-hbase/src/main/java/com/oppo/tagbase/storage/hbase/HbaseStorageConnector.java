@@ -1,14 +1,15 @@
 package com.oppo.tagbase.storage.hbase;
 
+import com.google.common.collect.Range;
+import com.oppo.tagbase.meta.obj.ColumnType;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import com.oppo.tagbase.storage.core.exception.StorageException;
-import com.oppo.tagbase.storage.core.executor.StorageExecutors;
 import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 import com.oppo.tagbase.storage.core.util.BitmapUtil;
 import com.oppo.tagbase.storage.core.obj.AggregateRow;
 import com.oppo.tagbase.storage.core.obj.DimContext;
 import com.oppo.tagbase.storage.core.obj.StorageQueryContext;
-import com.oppo.tagbase.storage.core.util.StorageConstantUtil;
+import com.oppo.tagbase.storage.core.util.StorageConstant;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.*;
@@ -22,9 +23,6 @@ import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by liangjingya on 2020/2/8.
@@ -38,7 +36,9 @@ public class HbaseStorageConnector extends StorageConnector {
 
     private Admin admin = null;
 
-    private ExecutorService hbasePool = null;
+    public static String REGEX_START_STR = "^";
+    public static String REGEX_ANY_STR = ".+";
+    public static String REGEX_END_STR = "$";
 
     @Override
     protected void initConnector() {
@@ -83,7 +83,7 @@ public class HbaseStorageConnector extends StorageConnector {
     }
 
     @Override
-    protected void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer buffer) throws StorageException {
+    protected void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer<AggregateRow> buffer) throws StorageException {
 
         String tableName = storageQueryContext.getSliceSegment().getTableName();
         String dayNumValue = storageQueryContext.getSliceSegment().getSliceDate();
@@ -103,43 +103,45 @@ public class HbaseStorageConnector extends StorageConnector {
     private String createScanRegexStr(StorageQueryContext storageQueryContext, Map<Integer,Integer> indexMap){
 
         int segmentId = storageQueryContext.getSliceSegment().getSegmentId();
-        int index = 0;
+        int index = 1;
         StringBuilder builder = new StringBuilder();
-        String regexStart = StorageConstantUtil.REGEX_START_STR;
-        String regexEnd = StorageConstantUtil.REGEX_END_STR;
-        String regexAny = StorageConstantUtil.REGEX_ANY_STR;
-        builder.append(regexStart + segmentId + hbaseConfig.getRowkeyDelimiter());
+        builder.append(REGEX_START_STR + segmentId + hbaseConfig.getRowkeyDelimiter());
         for(DimContext meta : storageQueryContext.getDimContextList()){
-            if(meta.getDimReturnIndex() != StorageConstantUtil.FLAG_NO_NEED_RETURN){
-                indexMap.put(index,meta.getDimReturnIndex());
-            }
-            if(index > 0 ) {
+            if(meta.getType() == ColumnType.DIM_COLUMN ) {
+                if(meta.getDimReturnIndex() != StorageConstant.FLAG_NO_NEED_RETURN){
+                    indexMap.put(index, meta.getDimReturnIndex());
+                }
                 if (meta.getDimValues() == null) {
-                    if (!builder.toString().endsWith(regexAny)) {
-                        builder.append(regexAny);
+                    if (!builder.toString().endsWith(REGEX_ANY_STR)) {
+                        builder.append(REGEX_ANY_STR);
                     }
                 } else {
-                    if (meta.getDimValues().size() > 0) {
+                    int size = meta.getDimValues().asRanges().size();
+                    if (size > 0) {
                         builder.append("(");
                         int k = 1;
-                        for (String value : meta.getDimValues()) {
-                            builder.append(value);
-                            if(k != meta.getDimValues().size()){
+                        for (Range<String> value : meta.getDimValues().asRanges()) {
+                            builder.append(value.lowerEndpoint());
+                            if(k != size){
                                 builder.append("|");
                             }
                             k++;
                         }
                         builder.append(")");
-                        if (index != (storageQueryContext.getDimContextList().size()-1)) {
-                            builder.append(hbaseConfig.getRowkeyDelimiter());
-                        }
+                        builder.append(hbaseConfig.getRowkeyDelimiter());
                     }
                 }
+                index++;
+            }else if(meta.getType() == ColumnType.SLICE_COLUMN ){
+                indexMap.put(meta.getDimIndex(), meta.getDimReturnIndex());
             }
-            index++;
+            if(index >= storageQueryContext.getDimContextList().size() &&
+                    builder.toString().endsWith(hbaseConfig.getRowkeyDelimiter())){
+                builder.deleteCharAt(builder.length() - 1);
+            }
         }
-        if(!builder.toString().endsWith(regexAny)){
-            builder.append(regexEnd);
+        if(!builder.toString().endsWith(REGEX_ANY_STR)){
+            builder.append(REGEX_END_STR);
         }
         return builder.toString();
     }
@@ -150,16 +152,7 @@ public class HbaseStorageConnector extends StorageConnector {
             conf.set("hbase.zookeeper.property.clientPort", hbaseConfig.getZkPort());
             conf.set("hbase.zookeeper.quorum", hbaseConfig.getZkQuorum());
             conf.set("hbase.rootdir", hbaseConfig.getRootDir());
-            synchronized (HbaseStorageConnector.class) {
-                if (hbasePool == null) {
-                    int maxThreads = hbaseConfig.getThreadPoolmaxThread();
-                    int coreThreads = hbaseConfig.getThreadPoolcoreThread();
-                    long keepAliveTime = hbaseConfig.getThreadPoolkeepAliveSecond();
-                    LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>();
-                    hbasePool = StorageExecutors.newThreadPool(coreThreads, maxThreads, keepAliveTime, 500);
-                }
-            }
-            connection = ConnectionFactory.createConnection(conf, hbasePool);
+            connection = ConnectionFactory.createConnection(conf);
             admin = connection.getAdmin();
         } catch (IOException e) {
             log.error("init hbase connection error", e);
@@ -178,14 +171,6 @@ public class HbaseStorageConnector extends StorageConnector {
             log.error("close hbase connection error", e);
         }
 
-        hbasePool.shutdownNow();
-        try {
-            if (hbasePool != null && !hbasePool.awaitTermination(10, TimeUnit.SECONDS)) {
-                hbasePool.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            log.error("hbasePool shutdown error" , e);
-        }
     }
 
     private byte[][] getSplitKeys(int partition){
@@ -308,7 +293,7 @@ public class HbaseStorageConnector extends StorageConnector {
     }
 
 
-    public void scan(String nameSpace, String tableName, String family, String qualifier, String delimiter, FilterList filterList, Map<Integer,Integer> indexMap, String dayNumValue, OperatorBuffer buffer) throws StorageException {
+    public void scan(String nameSpace, String tableName, String family, String qualifier, String delimiter, FilterList filterList, Map<Integer,Integer> indexMap, String dayNumValue, OperatorBuffer<AggregateRow> buffer) throws StorageException {
 
         ResultScanner scanner = null;
         try {
@@ -330,7 +315,7 @@ public class HbaseStorageConnector extends StorageConnector {
                         if(indexMap.size() > 0 ) {
                             dimValues = new byte[indexMap.size()][];
                             for (int index : indexMap.keySet()) {
-                                if(index == 0){//如果需要返回sliceColumn
+                                if(index == StorageConstant.SLICE_COLUMN_INDEX){//如果需要返回sliceColumn
                                     dimValues[indexMap.get(index)-1] = dayNumValue.getBytes();
                                 }else {
                                     dimValues[indexMap.get(index)-1] = dimValueArr[index].getBytes();
@@ -339,15 +324,16 @@ public class HbaseStorageConnector extends StorageConnector {
                         }
                         ImmutableRoaringBitmap bitmap = BitmapUtil.deSerializeBitmap(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength());
                         AggregateRow aggregateRow = new AggregateRow(dimValues, bitmap);
-                        buffer.offer(aggregateRow);
-
+                        buffer.postData(aggregateRow);
                     }
                 }
             }
+            buffer.postEnd();
         }catch (Exception e){
-            throw new StorageException("hbaseStorageConnector scan error",e);
+            StorageException exception = new StorageException("hbaseStorageConnector scan error",e);
+            buffer.fastFail(exception);
+            throw exception;
         }finally {
-            buffer.offer(AggregateRow.EOF);
             if(scanner != null){
                 scanner.close();
             }

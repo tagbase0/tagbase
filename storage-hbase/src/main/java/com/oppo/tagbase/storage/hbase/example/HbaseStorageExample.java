@@ -52,9 +52,10 @@ public class HbaseStorageExample {
 //            metadata.setType(TestMetadata.MetaDataType.TAG);
 //            QueryHandler query = queryTagData(connector);
 
-            OperatorBuffer buffer = connector.createQuery(query);
-            while (buffer.hasNext()){
-                System.out.println("OperatorBuffer: "+buffer.next());
+            OperatorBuffer<AggregateRow> buffer = connector.createQuery(query);
+            AggregateRow row = null;
+            while ((row = buffer.next()) != null){
+                System.out.println("OperatorBuffer: " + row);
             }
 
         } catch (Exception e) {
@@ -69,17 +70,17 @@ public class HbaseStorageExample {
     public static QueryHandler queryEventData(StorageConnector connector){
 
         List<ColumnDomain<String>> dimQueryList = new ArrayList<>();
-//        RangeSet<String> appColumnRange = TreeRangeSet.create();
-//        appColumnRange.add(Range.singleton("tenxun"));appColumnRange.add(Range.singleton("wechat"));
-//        dimQueryList.add(new InQuery("app", appColumnRange));
+        RangeSet<String> appColumnRange = TreeRangeSet.create();
+        appColumnRange.add(Range.singleton("tenxun"));appColumnRange.add(Range.singleton("wechat"));
+        dimQueryList.add(new ColumnDomain<String>(appColumnRange, "app" ));
 
         RangeSet<String> eventColumnRange = TreeRangeSet.create();
         eventColumnRange.add(Range.singleton("install"));
         dimQueryList.add(new ColumnDomain<String>(eventColumnRange, "event"));
 
-        RangeSet<String> versionColumnRange = TreeRangeSet.create();
-        versionColumnRange.add(Range.singleton("5.4"));
-        dimQueryList.add(new ColumnDomain<String>(versionColumnRange, "version"));
+//        RangeSet<String> versionColumnRange = TreeRangeSet.create();
+//        versionColumnRange.add(Range.singleton("5.4"));
+//        dimQueryList.add(new ColumnDomain<String>(versionColumnRange, "version"));
 
         RangeSet<Date> sliceRange = TreeRangeSet.create();
         sliceRange.add(Range.lessThan(new Date(System.currentTimeMillis())));
@@ -88,7 +89,7 @@ public class HbaseStorageExample {
         List<String> dims = new ArrayList<String>(){{add("app");add("event");add("version");add("daynum");}};
       //  List<String> dims = null;
 
-        QueryHandler query = new QueryHandler("default","event_20200210",dims,dimQueryList,sliceQuery);
+        QueryHandler query = new QueryHandler("default","event_20200210",dims,dimQueryList,sliceQuery,"2139872645714");
 
         return query;
     }
@@ -104,7 +105,7 @@ public class HbaseStorageExample {
         List<String> dims = new ArrayList<String>(){{add("city");}};
         //  List<String> dims = null;
 
-        QueryHandler query = new QueryHandler("default","city_20200210",dims,dimQueryList,null);
+        QueryHandler query = new QueryHandler("default","city_20200210",dims,dimQueryList,null,"2139872645714");
 
         return query;
     }

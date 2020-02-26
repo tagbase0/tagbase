@@ -1,8 +1,8 @@
 package com.oppo.tagbase.storage.core.obj;
 
-import com.oppo.tagbase.storage.core.util.StorageConstantUtil;
-
-import java.util.List;
+import com.google.common.collect.RangeSet;
+import com.oppo.tagbase.meta.obj.ColumnType;
+import com.oppo.tagbase.storage.core.util.StorageConstant;
 
 /**
  * Created by liangjingya on 2020/2/14.
@@ -11,15 +11,18 @@ public class DimContext {
 
     private int dimIndex;//标志原始的维度索引
 
-    private int dimReturnIndex = StorageConstantUtil.FLAG_NO_NEED_RETURN;//标志返回的维度索引，-1表示不返回
+    private int dimReturnIndex = StorageConstant.FLAG_NO_NEED_RETURN;//标志返回的维度索引，-1表示不返回
 
     private String dimName;//标志维度名
 
-    private List<String> dimValues;//标志取值
+    private RangeSet<String> dimValues;//标志取值
 
-    public DimContext(int dimIndex, String dimName) {
+    private ColumnType type;//column 类型
+
+    public DimContext(int dimIndex, String dimName, ColumnType type) {
         this.dimIndex = dimIndex;
         this.dimName = dimName;
+        this.type = type;
     }
 
     public int getDimIndex() {
@@ -46,12 +49,20 @@ public class DimContext {
         this.dimName = dimName;
     }
 
-    public List<String> getDimValues() {
+    public RangeSet<String> getDimValues() {
         return dimValues;
     }
 
-    public void setDimValues(List<String> dimValues) {
+    public void setDimValues(RangeSet<String> dimValues) {
         this.dimValues = dimValues;
+    }
+
+    public ColumnType getType() {
+        return type;
+    }
+
+    public void setType(ColumnType type) {
+        this.type = type;
     }
 
     @Override
@@ -61,6 +72,7 @@ public class DimContext {
                 ", dimReturnIndex=" + dimReturnIndex +
                 ", dimName='" + dimName + '\'' +
                 ", dimValues=" + dimValues +
+                ", type=" + type +
                 '}';
     }
 }

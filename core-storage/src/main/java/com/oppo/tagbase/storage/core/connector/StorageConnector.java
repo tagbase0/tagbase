@@ -8,7 +8,7 @@ import com.oppo.tagbase.meta.obj.Table;
 import com.oppo.tagbase.storage.core.exception.StorageException;
 import com.oppo.tagbase.storage.core.executor.StorageExecutors;
 import com.oppo.tagbase.storage.core.obj.*;
-import com.oppo.tagbase.storage.core.util.StorageConstantUtil;
+import com.oppo.tagbase.storage.core.util.StorageConstant;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import java.io.IOException;
 import java.util.*;
@@ -31,6 +31,8 @@ public abstract class StorageConnector {
 
     @Inject
     private StorageConnectorConfig commonConfig;
+
+    public static int FLAG_SLICE_COLUMN_INDEX = -1;
 
     protected Logger log = LoggerFactory.getLogger(StorageConnector.class);
 
@@ -81,15 +83,15 @@ public abstract class StorageConnector {
 
     public abstract void createBatchRecords(String dbName, String tableName, String dataPath) throws StorageException;
 
-    public OperatorBuffer createQuery(QueryHandler queryHandler) {
+    public OperatorBuffer<AggregateRow> createQuery(QueryHandler queryHandler) {
 
         Table metaTable = meta.getTable(queryHandler.getDbName(), queryHandler.getDbName());
         List<SliceSegment> sliceList = getSliceSegments(metaTable, queryHandler);
-        OperatorBuffer buffer = new OperatorBuffer(sliceList.size());
+        OperatorBuffer<AggregateRow> buffer = new OperatorBuffer<>(sliceList.size());
         //假如没有slice符合查询条件，直接返回
         if(sliceList.size() == 0){
             log.debug("there is no need to scan hbase, because no slice is suitable ");
-            buffer.offer(AggregateRow.EOF);
+            buffer.postEnd();
             return buffer;
         }
         List<DimContext> dimContextList = getDimContexts(metaTable, queryHandler);
@@ -100,7 +102,7 @@ public abstract class StorageConnector {
             int totalShard = 1;
             for(int i=1; i<=totalShard; i++){
                 slice.setSegmentId(i);
-                StorageQueryContext storageQueryContext = new StorageQueryContext(dimContextList, slice);
+                StorageQueryContext storageQueryContext = new StorageQueryContext(dimContextList, slice, queryHandler.getQueryId());
                 queryExecutor.execute(new QueryTask(storageQueryContext, buffer));
             }
         }
@@ -110,28 +112,31 @@ public abstract class StorageConnector {
     private List<DimContext>  getDimContexts(Table metaTable, QueryHandler queryHandler){
         Map<String, DimContext> dimContextMap = new HashMap<>();
 
-        String sliceColumnName = "defaultSliceColumn";
+        metaTable.getColumns().stream()
+                .filter(column -> column.getType()== ColumnType.DIM_COLUMN)
+                .forEach(column -> dimContextMap.put(column.getName(), new DimContext(column.getIndex(), column.getName(), ColumnType.DIM_COLUMN)));
+
+        if(queryHandler.hasFilterColumnList()){
+            queryHandler.getFilterColumnList().stream()
+                    .filter(dimColumn -> dimContextMap.containsKey(dimColumn.getColumnName()))
+                    .forEach(dimColumn -> {
+                        dimContextMap.get(dimColumn.getColumnName()).setDimValues(dimColumn.getColumnRange());
+                    });
+        }
+
+        String sliceColumnName= null;
+        DimContext sliceDimContext = null;
         if(queryHandler.hasSliceColumn()) {
             sliceColumnName = queryHandler.getSliceColumn().getColumnName();
-        }
-        dimContextMap.put(sliceColumnName, new DimContext(StorageConstantUtil.FLAG_SLICE_COLUMN_INDEX, sliceColumnName));
-
-        metaTable.getColumns().stream().filter(column -> column.getType()== ColumnType.DIM_COLUMN)
-        .forEach(column -> dimContextMap.put(column.getName(), new DimContext(column.getIndex(), column.getName())));
-
-        if(queryHandler.hasDimColumnList()){
-            queryHandler.getDimColumnList().stream().filter(dimColumn -> dimContextMap.containsKey(dimColumn.getColumnName()))
-                    .forEach(dimColumn -> {
-                        List<String> dimValues = dimColumn.getColumnRange().asRanges()
-                                .stream().map(range -> range.lowerEndpoint()).collect(Collectors.toList());
-                        dimContextMap.get(dimColumn.getColumnName()).setDimValues(dimValues);
-                    });
+            sliceDimContext = new DimContext(StorageConstant.SLICE_COLUMN_INDEX, sliceColumnName, ColumnType.SLICE_COLUMN);
         }
 
         int returnIndex = 1;
         if(queryHandler.getDimensions() != null) {
             for (String dimName : queryHandler.getDimensions()) {
-                if (dimContextMap.containsKey(dimName)) {
+                if(sliceColumnName != null && dimName.equals(sliceColumnName)){
+                    sliceDimContext.setDimReturnIndex(returnIndex);
+                }else if (dimContextMap.containsKey(dimName)) {
                     dimContextMap.get(dimName).setDimReturnIndex(returnIndex);
                 }
                 returnIndex++;
@@ -139,7 +144,12 @@ public abstract class StorageConnector {
         }
 
         List<DimContext> dimContextList = dimContextMap.values().stream()
-                .sorted(new DimComparator()).collect(Collectors.toList());
+                .sorted(new DimComparator())
+                .collect(Collectors.toList());
+
+        if(sliceDimContext != null){
+            dimContextList.add(sliceDimContext);
+        }
 
         return dimContextList;
     }
@@ -170,20 +180,23 @@ public abstract class StorageConnector {
         return sliceSegments;
     }
 
-    protected abstract void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer buffer) throws IOException, StorageException;
+    protected abstract void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer<AggregateRow> buffer) throws IOException, StorageException;
 
     class QueryTask implements Runnable {
 
-        private OperatorBuffer buffer;
+        private OperatorBuffer<AggregateRow> buffer;
         private StorageQueryContext storageQueryContext;
 
-        QueryTask(StorageQueryContext storageQueryContext, OperatorBuffer buffer) {
+        QueryTask(StorageQueryContext storageQueryContext, OperatorBuffer<AggregateRow> buffer) {
             this.buffer = buffer;
             this.storageQueryContext = storageQueryContext;
         }
 
         @Override
         public void run() {
+            String originThreadName = Thread.currentThread().getName();
+            String newThreadName = originThreadName + "-" + storageQueryContext.getQueryId();
+            Thread.currentThread().setName(newThreadName);
             log.debug("start QueryTask,  " + storageQueryContext);
             try {
                 createStorageQuery(storageQueryContext, buffer);
@@ -191,6 +204,7 @@ public abstract class StorageConnector {
                 log.error("QueryTask createStorageQuery error", e);
             }
             log.debug("finish QueryTask");
+            Thread.currentThread().setName(originThreadName);
         }
     }
 

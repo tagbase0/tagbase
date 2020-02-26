@@ -1,5 +1,6 @@
 package com.oppo.tagbase.storage.hbase;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.constraints.NotNull;
@@ -28,7 +29,7 @@ public class HbaseStorageConnectorConfig {
     @JsonProperty
     private String qualifier = "q1";
 
-    @JsonProperty
+    @JsonIgnore
     private String rowkeyDelimiter = "_";
 
     @JsonProperty

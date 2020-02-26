@@ -9,8 +9,6 @@ import java.util.stream.Collectors;
  */
 public class AggregateRow {
 
-    public static final AggregateRow EOF = new AggregateRow();
-
     byte[][] dimValues;
 
     ImmutableRoaringBitmap metric;
