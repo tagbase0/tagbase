@@ -78,9 +78,9 @@ public class HbaseStorageExample {
         eventColumnRange.add(Range.singleton("install"));
         dimQueryList.add(new ColumnDomain<String>(eventColumnRange, "event"));
 
-//        RangeSet<String> versionColumnRange = TreeRangeSet.create();
-//        versionColumnRange.add(Range.singleton("5.4"));
-//        dimQueryList.add(new ColumnDomain<String>(versionColumnRange, "version"));
+        RangeSet<String> versionColumnRange = TreeRangeSet.create();
+        versionColumnRange.add(Range.singleton("5.4"));versionColumnRange.add(Range.singleton("5.2"));
+        dimQueryList.add(new ColumnDomain<String>(versionColumnRange, "version"));
 
         RangeSet<Date> sliceRange = TreeRangeSet.create();
         sliceRange.add(Range.lessThan(new Date(System.currentTimeMillis())));
@@ -109,7 +109,6 @@ public class HbaseStorageExample {
 
         return query;
     }
-
 
     public static void addEventData(StorageConnector connector) throws IOException, StorageException {
         MutableRoaringBitmap bitmap = new MutableRoaringBitmap();

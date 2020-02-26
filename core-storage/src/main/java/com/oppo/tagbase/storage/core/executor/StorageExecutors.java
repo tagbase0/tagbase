@@ -3,6 +3,9 @@ package com.oppo.tagbase.storage.core.executor;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Created by liangjingya on 2020/2/20.
+ */
 public class StorageExecutors {
 
     public static ExecutorService newThreadPool(int coreThreads, int maxThreads, long keepAliveTime, int queueSize) {
