@@ -8,6 +8,7 @@ import com.oppo.tagbase.meta.obj.TaskState;
 
 import javax.inject.Inject;
 import java.sql.Date;
+import java.util.List;
 
 /**
  * Metadata service for job
@@ -25,6 +26,12 @@ public class MetadataJob {
 
     public void deleteJOb(String jobId) {
         metadataConnector.deleteJOb(jobId);
+    }
+
+    public List<Job> listNotCompletedJob(String dbName, String tableName, Date startTime, Date endTime) {
+        // TODO
+        // not completed job : jobs in JobState.PENDING RUNNING FAILED SUSPEND state.
+        return null;
     }
 
     public void completeJOb(String jobId, JobState state, Date endTime) {

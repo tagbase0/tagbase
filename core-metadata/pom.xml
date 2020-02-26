@@ -32,6 +32,12 @@
             <groupId>org.jdbi</groupId>
             <artifactId>jdbi3-guava</artifactId>
             <version>${jdbi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jdbi</groupId>

@@ -7,5 +7,12 @@ public enum JobState {
     PENDING,
     RUNNING,
     FAILED,
+    SUSPEND,
+    DISCARD,
     SUCCESS
+    ;
+
+    boolean isCompleted() {
+        return this == DISCARD || this == SUCCESS;
+    }
 }

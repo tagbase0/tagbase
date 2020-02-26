@@ -47,6 +47,7 @@
         <hadoop.version>2.6.0</hadoop.version>
         <hbase.version>1.2.0</hbase.version>
         <jackson.version>2.10.0</jackson.version>
+        <zookeeper.version>3.4.14</zookeeper.version>
     </properties>
 
 
@@ -99,7 +100,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.16</version>
+                        <version>8.29</version>
                     </dependency>
 
                     <!--                    <dependency>-->
