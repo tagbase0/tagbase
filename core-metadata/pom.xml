@@ -16,12 +16,6 @@
             <groupId>com.oppo</groupId>
             <artifactId>core-common</artifactId>
             <version>${parent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>javax.el-api</artifactId>
-                    <groupId>javax.el</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jdbi</groupId>

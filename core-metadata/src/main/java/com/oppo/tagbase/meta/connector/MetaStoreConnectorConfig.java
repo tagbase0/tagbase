@@ -1,5 +1,6 @@
 package com.oppo.tagbase.meta.connector;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.oppo.tagbase.common.guice.Config;
 
 /**
@@ -8,8 +9,13 @@ import com.oppo.tagbase.common.guice.Config;
 @Config("tagbase.metadata.storage.connector")
 public class MetaStoreConnectorConfig {
 
+    @JsonProperty("uri")
     private String connectURI;
+
+    @JsonProperty("user")
     private String user;
+
+    @JsonProperty("password")
     private String password;
 
     public String getConnectURI() {
