@@ -14,7 +14,7 @@ import com.oppo.tagbase.meta.obj.Table;
 import com.oppo.tagbase.meta.obj.TableType;
 import com.oppo.tagbase.meta.type.DataType;
 import org.junit.Before;
-import org.junit.Test;
+
 
 import java.text.ParseException;
 import java.time.LocalDateTime;
@@ -42,18 +42,18 @@ public class MetadataTest {
     }
 
     /*-------------Metadata initialization part--------------*/
-    @Test
+
     public void initSchemaTest() {
         metadata.initSchema();
     }
 
     /*-------------Metadata DDL part--------------*/
-    @Test
+
     public void addDb() {
         metadata.addDb("test_db", "For test");
     }
 
-    @Test
+
     public void addTable() {
 
         // tag - city test
@@ -150,7 +150,6 @@ public class MetadataTest {
     }
 
     /*-------------Metadata API for data building--------------*/
-    @Test
     public void getTable() {
         Table table = metadata.getTable("test_db", "test_table_tag_city");
 
@@ -162,7 +161,6 @@ public class MetadataTest {
     }
 
 
-    @Test
     public void addSlice() throws ParseException {
         Slice sliceCity = new Slice();
         sliceCity.setStartTime(LocalDateTime.now());
@@ -193,46 +191,42 @@ public class MetadataTest {
 
     }
 
-    @Test
     public void updateSliceStatus() {
 
         metadata.updateSliceStatus(1, 1, SliceStatus.READY);
     }
 
-    @Test
     public void updateSliceSinkStatistics() {
 
         metadata.updateSliceSinkStatistics(1, 80, 760);
     }
 
     /*-------------Metadata API for query--------------*/
-    @Test
+
     public void getSlices() {
 
         System.out.println(metadata.getSlices("test_db", "test_table_tag_city"));
     }
 
-    @Test
     public void getSlices1() {
     }
 
-    @Test
     public void getSlicesGT() {
     }
 
-    @Test
+
     public void getSlicesGE() {
     }
 
-    @Test
+
     public void getSlicesLT() {
     }
 
-    @Test
+
     public void getSlicesLE() {
     }
 
-    @Test
+
     public void getSlicesBetween() {
     }
 
