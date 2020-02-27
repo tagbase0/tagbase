@@ -1,5 +1,7 @@
 package com.oppo.tagbase.job.spark.example
 
+import java.io.File
+
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
 import com.oppo.tagbase.job.obj.HiveMeta
 import org.apache.spark.SparkConf
@@ -13,28 +15,46 @@ object InvertedDictBuildingTaskExample {
 
   case class imeiHiveTable(imei: String, daynum: String)
 
-  case class invertedDictHiveTable(imei: String, id: Long, daynum: String)
+  case class invertedDict(imei: String, id: Long)
 
   def main(args: Array[String]): Unit = {
 
-    val hiveMeataJson = "{\"hiveDictTable\":{\"dbName\":\"default\",\"tableName\":\"dictTable\",\"imeiColumnName\":\"imei\",\"idColumnName\":\"id\",\"sliceColumnName\":\"daynum\",\"maxId\":10},\"hiveSrcTable\":{\"dbName\":\"default\",\"tableName\":\"eventTable\",\"dimColumns\":[\"imei\"],\"sliceColumn\":{\"columnName\":\"daynum\",\"columnValueLeft\":\"20200220\",\"columnValueRight\":\"20200221\"},\"imeiColumnName\":\"imei\"},\"output\":\"20200220\",\"rowCountPath\":\"D:\\\\workStation\\\\sparkTaskHfile\\\\rowCount\"}";
+    val hiveMeataJson =
+      """
+        |{
+        |	"dictTablePath":"D:\\workStation\\tagbase\\invertedDict\\",
+        |	"maxId":"10",
+        |	"hiveSrcTable":{
+        |		"dbName":"default",
+        |		"tableName":"imeiTable",
+        |		"dimColumns":[],
+        |		"sliceColumn":{
+        |			"columnName":"daynum",
+        |			"columnValueLeft":"20200220",
+        |			"columnValueRight":"20200221"
+        |		},
+        |		"imeiColumnName":"imei"
+        |	},
+        |	"outputPath":"20200220",
+        |	"rowCountPath":""
+        |}
+        |""".stripMargin;
+
     val objectMapper = new ObjectMapper
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     val hiveMeata = objectMapper.readValue(hiveMeataJson, classOf[HiveMeta])
 
-    val partition = hiveMeata.getOutput
-    val dbA = hiveMeata.getHiveDictTable.getDbName
-    val tableA = hiveMeata.getHiveDictTable.getTableName
-    val maxId = hiveMeata.getHiveDictTable.getMaxId
-    val imeiColumnA = hiveMeata.getHiveDictTable.getImeiColumnName
-    val dbB = hiveMeata.getHiveSrcTable.getDbName
-    val tableB = hiveMeata.getHiveSrcTable.getTableName
-    val imeiColumnB = hiveMeata.getHiveSrcTable.getImeiColumnName
-    val sliceColumnB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnName
-    val sliceLeftValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueLeft
-    val sliceRightValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueRight
+    val dictInputPath = hiveMeata.getDictTablePath + "*" + File.separator + "*"
+    val dictOutputPath = hiveMeata.getDictTablePath + hiveMeata.getOutputPath
+    val maxId = hiveMeata.getMaxId
+    val db = hiveMeata.getHiveSrcTable.getDbName
+    val table = hiveMeata.getHiveSrcTable.getTableName
+    val imeiColumn = hiveMeata.getHiveSrcTable.getImeiColumnName
+    val sliceColumn = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnName
+    val sliceLeftValue = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueLeft
+    val sliceRightValue = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueRight
 
-    val appName = "invertedDict_task_" + partition//appName
+    val appName = "invertedDict_task"//appName
 
     val sparkConf = new SparkConf()
       .setAppName(appName)
@@ -45,13 +65,13 @@ object InvertedDictBuildingTaskExample {
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     val spark = SparkSession.builder()
       .config(sparkConf)
-//      .enableHiveSupport()
+      //      .enableHiveSupport()
       .getOrCreate()
     import spark.implicits._
 
     //driver广播相关参数到executor
     val maxIdBroadcast = spark.sparkContext.broadcast(maxId)
-    val partitionBroadcast = spark.sparkContext.broadcast(partition)
+    val delimiterBroadcast = spark.sparkContext.broadcast(",")
 
     //此处先伪造本地数据模拟，后续从hive表获取
     val imeiDS = Seq(
@@ -60,41 +80,32 @@ object InvertedDictBuildingTaskExample {
       imeiHiveTable("imeie", "20200220"),
       imeiHiveTable("imeig", "20200220")
     ).toDS()
-    val invertedDictDS = Seq(
-      invertedDictHiveTable("imeia", 1, "20200220"),
-      invertedDictHiveTable("imeib", 2, "20200220"),
-      invertedDictHiveTable("imeic", 3, "20200220"),
-      invertedDictHiveTable("imeid", 4, "20200220"),
-      invertedDictHiveTable("imeie", 5, "20200220"),
-      invertedDictHiveTable("imeif", 6, "20200220"),
-      invertedDictHiveTable("imeig", 7, "20200220")
-    ).toDS()
+    imeiDS.createTempView(s"$db$table")
 
-    invertedDictDS.createTempView(s"$dbA$tableA")
-    imeiDS.createTempView(s"$dbB$tableB")
+    val dictDs = spark.sparkContext.textFile(dictInputPath)
+      .map(row => {
+        val imeiIdMap = row.split(delimiterBroadcast.value)
+        invertedDict(imeiIdMap(0), imeiIdMap(1).toLong)
+      })
+      .toDS()
 
-    val data = spark.sql(
+    spark.sql(
       s"""
-         |select b.$imeiColumnB from $dbB$tableB b
-         |where b.$sliceColumnB>=$sliceLeftValueB and b.$sliceColumnB<$sliceRightValueB
+         |select b.$imeiColumn from $db$table b
+         |where b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue
          |""".stripMargin)
-        .except(
-          spark.sql(
-            s"""
-               |select a.$imeiColumnA from $dbA$tableA a
-               |""".stripMargin)
-        )
+      .except(
+        dictDs.select("imei")
+      )
       .rdd
-      .map(imei => imei(0))
       .zipWithIndex()
       .map(imeiMap => {
         val maxId = maxIdBroadcast.value
-        val partition = partitionBroadcast.value
-        invertedDictHiveTable(imeiMap._1.toString(), maxId + 1 + imeiMap._2, partition)
+        val delimiter = delimiterBroadcast.value
+        (imeiMap._1)(0)  + delimiter + (maxId + 1 + imeiMap._2)
       })
       .repartition(1)
-      .toDS()
-      .show()
+      .saveAsTextFile(dictOutputPath)
 
     spark.stop()
 

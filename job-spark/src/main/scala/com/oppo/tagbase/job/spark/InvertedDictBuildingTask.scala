@@ -1,9 +1,11 @@
 package com.oppo.tagbase.job.spark.example
 
+import java.io.File
+
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
 import com.oppo.tagbase.job.obj.HiveMeta
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.{SaveMode, SparkSession}
+import org.apache.spark.sql.SparkSession
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
@@ -11,9 +13,9 @@ import org.slf4j.{Logger, LoggerFactory}
  * 该spark任务功能：构造反向字典
  */
 
-case class invertedDictHiveTable(imei: String, id: Long, daynum: String)
-
 object InvertedDictBuildingTask{
+
+  case class invertedDict(imei: String, id: Long)
 
   val log: Logger = LoggerFactory.getLogger(getClass)
 
@@ -30,21 +32,18 @@ object InvertedDictBuildingTask{
     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     val hiveMeata = objectMapper.readValue(hiveMeataJson, classOf[HiveMeta])
 
-    val partition = hiveMeata.getOutput
-    val dbA = hiveMeata.getHiveDictTable.getDbName
-    val tableA = hiveMeata.getHiveDictTable.getTableName
-    val maxId = hiveMeata.getHiveDictTable.getMaxId
-    val imeiColumnA = hiveMeata.getHiveDictTable.getImeiColumnName
-    val partitionColumnA = hiveMeata.getHiveDictTable.getSliceColumnName
-    val dbB = hiveMeata.getHiveSrcTable.getDbName
-    val tableB = hiveMeata.getHiveSrcTable.getTableName
-    val imeiColumnB = hiveMeata.getHiveSrcTable.getImeiColumnName
-    val sliceColumnB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnName
-    val sliceLeftValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueLeft
-    val sliceRightValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueRight
+    val dictInputPath = hiveMeata.getDictTablePath + "*" + File.separator + "*"
+    val dictOutputPath = hiveMeata.getDictTablePath + hiveMeata.getOutputPath
+    val maxId = hiveMeata.getMaxId
+    val db = hiveMeata.getHiveSrcTable.getDbName
+    val table = hiveMeata.getHiveSrcTable.getTableName
+    val imeiColumn = hiveMeata.getHiveSrcTable.getImeiColumnName
+    val sliceColumn = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnName
+    val sliceLeftValue = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueLeft
+    val sliceRightValue = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueRight
 
     //appName命名规范？
-    val appName = "invertedDict_task_" + partition
+    val appName = "invertedDict_task"
 
     val sparkConf = new SparkConf()
       .setAppName(appName)
@@ -58,33 +57,32 @@ object InvertedDictBuildingTask{
 
     //driver广播相关参数到executor
     val maxIdBroadcast = spark.sparkContext.broadcast(maxId)
-    val partitionBroadcast = spark.sparkContext.broadcast(partition)
+    val delimiterBroadcast = spark.sparkContext.broadcast(",")
 
-    val newImeiDs = spark.sql(
+    val dictDs = spark.sparkContext.textFile(dictInputPath)
+      .map(row => {
+        val imeiIdMap = row.split(delimiterBroadcast.value)
+        invertedDict(imeiIdMap(0), imeiIdMap(1).toLong)
+      })
+      .toDS()
+
+    spark.sql(
       s"""
-         |select b.$imeiColumnB from $dbB.$tableB b
-         |where b.$sliceColumnB>=$sliceLeftValueB and b.$sliceColumnB<$sliceRightValueB
+         |select b.$imeiColumn from $db.$table b
+         |where b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue
          |""".stripMargin)
       .except(
-        spark.sql(
-          s"""
-             |select a.$imeiColumnA from $dbA.$tableA a
-             |""".stripMargin)
+        dictDs.select("imei")
       )
       .rdd
-      .map(imei => imei(0))
       .zipWithIndex()
       .map(imeiMap => {
         val maxId = maxIdBroadcast.value
-        val partition = partitionBroadcast.value
-        invertedDictHiveTable(imeiMap._1.toString(), maxId + 1 + imeiMap._2, partition)
+        val delimiter = delimiterBroadcast.value
+        (imeiMap._1)(0)  + delimiter + (maxId + 1 + imeiMap._2)
       })
       .repartition(1)
-      .toDS()
-      .write
-      .mode(SaveMode.Append)
-      .partitionBy(partitionColumnA)
-      .saveAsTable(s"$dbA.$tableA")
+      .saveAsTextFile(dictOutputPath)
 
     spark.stop()
 

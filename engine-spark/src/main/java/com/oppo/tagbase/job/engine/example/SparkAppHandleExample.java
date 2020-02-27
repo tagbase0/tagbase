@@ -1,4 +1,4 @@
-package com.oppo.tagbase.job.spark.example;
+package com.oppo.tagbase.job.engine.example;
 
 import org.apache.spark.launcher.SparkAppHandle;
 import org.apache.spark.launcher.SparkLauncher;

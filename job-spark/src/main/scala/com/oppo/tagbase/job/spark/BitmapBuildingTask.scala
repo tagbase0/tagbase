@@ -1,6 +1,7 @@
 package com.oppo.tagbase.job.spark
 
-import java.io.{ByteArrayOutputStream, DataOutputStream}
+import java.io.{ByteArrayOutputStream, DataOutputStream, File}
+
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
 import com.oppo.tagbase.job.obj.HiveMeta
 import org.apache.hadoop.conf.Configuration
@@ -14,13 +15,16 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.roaringbitmap.buffer.{ImmutableRoaringBitmap, MutableRoaringBitmap}
 import org.slf4j.{Logger, LoggerFactory}
+
 import scala.collection.JavaConverters._
 
 /**
  * Created by liangjingya on 2020/2/11.
- * 该spark任务功能：读取反向字典hive表和维度hive表，批量生成hfile
+ * 该spark任务功能：读取反向字典和维度hive表，批量生成hfile
  */
 object BitmapBuildingTask {
+
+  case class invertedDict(imei: String, id: Long)
 
   val log: Logger = LoggerFactory.getLogger(getClass)
 
@@ -39,26 +43,23 @@ object BitmapBuildingTask {
     val hiveMeata = objectMapper.readValue(hiveMeataJson, classOf[HiveMeta])
     log.info("hiveMeata: " + hiveMeata)
 
-    val outputPath = hiveMeata.getOutput
-    val dbA = hiveMeata.getHiveDictTable.getDbName
-    val tableA = hiveMeata.getHiveDictTable.getTableName
-    val idColumnA = hiveMeata.getHiveDictTable.getIdColumnName
-    val imeiColumnA = hiveMeata.getHiveDictTable.getImeiColumnName
-    val dbB = hiveMeata.getHiveSrcTable.getDbName
-    val tableB = hiveMeata.getHiveSrcTable.getTableName
-    val imeiColumnB = hiveMeata.getHiveSrcTable.getImeiColumnName
-    val sliceColumnB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnName
-    val sliceLeftValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueLeft
-    val sliceRightValueB = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueRight
+    val hfileOutputPath = hiveMeata.getOutputPath
+    val dictInputPath = hiveMeata.getDictTablePath + "*" + File.separator + "*"
+    val db = hiveMeata.getHiveSrcTable.getDbName
+    val table = hiveMeata.getHiveSrcTable.getTableName
+    val imeiColumn = hiveMeata.getHiveSrcTable.getImeiColumnName
+    val sliceColumn = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnName
+    val sliceLeftValue = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueLeft
+    val sliceRightValue = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueRight
     val dimColumnBuilder = new StringBuilder
     hiveMeata.getHiveSrcTable.getDimColumns.asScala.toStream
       .foreach(dimColumnBuilder.append("b.").append(_).append(","))
-    val dimColumnB = dimColumnBuilder.deleteCharAt(dimColumnBuilder.size-1).toString()
+    val dimColumn = dimColumnBuilder.deleteCharAt(dimColumnBuilder.size-1).toString()
 
     val rowkeyDelimiter = "_" //rowkey分隔符
     val familyName = "f1" //hbase的列簇
     val qualifierName = "q1" //hbase的列名
-    val appName = dbA + "_" +  tableA + "_bitmap_task" //appName命名规范？
+    val appName = "bitmap_task" //appName命名规范？
 
     val sparkConf = new SparkConf()
       .setAppName(appName)
@@ -75,13 +76,23 @@ object BitmapBuildingTask {
     val familyNameBroadcast = spark.sparkContext.broadcast(familyName)
     val qualifierNameBroadcast = spark.sparkContext.broadcast(qualifierName)
     val rowkeyDelimiterBroadcast = spark.sparkContext.broadcast(rowkeyDelimiter)
+    val delimiterBroadcast = spark.sparkContext.broadcast(",")
+
+    val dictDs = spark.sparkContext.textFile(dictInputPath)
+      .map(row => {
+        val imeiIdMap = row.split(delimiterBroadcast.value)
+        invertedDict(imeiIdMap(0), imeiIdMap(1).toLong)
+      })
+      .toDS()
+    val dictTable = "dictTable"
+    dictDs.createOrReplaceTempView(s"$dictTable")
 
     val data = spark.sql(
       s"""
-         |select CONCAT_WS('$rowkeyDelimiter',$dimColumnB) as dimension,
-         |a.$idColumnA as index from $dbA.$tableA a join $dbB.$tableB b
-         |on a.$imeiColumnA=b.$imeiColumnB
-         |where b.$sliceColumnB>=$sliceLeftValueB and b.$sliceColumnB<$sliceRightValueB
+         |select CONCAT_WS('$rowkeyDelimiter', $dimColumn) as dimension,
+         |a.id as index from $dictTable a join $db.$table b
+         |on a.imei=b.$imeiColumn
+         |where b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue
          |""".stripMargin)
       .rdd
       .map(row => (row(0).toString, row(1).toString.toInt))
@@ -120,12 +131,12 @@ object BitmapBuildingTask {
     job.setOutputFormatClass(classOf[HFileOutputFormat2])
 
     val fileSystem = FileSystem.get(hadoopConf)
-    if (fileSystem.exists(new Path(outputPath))) {
-      fileSystem.delete(new Path(outputPath), true)
+    if (fileSystem.exists(new Path(hfileOutputPath))) {
+      fileSystem.delete(new Path(hfileOutputPath), true)
     }
 
     data.saveAsNewAPIHadoopFile(
-      outputPath,
+      hfileOutputPath,
       classOf[ImmutableBytesWritable],
       classOf[KeyValue],
       classOf[HFileOutputFormat2],

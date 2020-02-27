@@ -1,8 +1,8 @@
 package com.oppo.tagbase.job;
 
 import com.google.inject.Injector;
-import com.oppo.tagbase.job.obj.HiveMeta;
-import com.oppo.tagbase.job.obj.TaskMessage;
+import com.oppo.tagbase.job.engine.obj.HiveMeta;
+import com.oppo.tagbase.job.engine.obj.TaskMessage;
 import com.oppo.tagbase.job.util.TableHelper;
 import com.oppo.tagbase.job.util.TaskHelper;
 import com.oppo.tagbase.meta.Metadata;

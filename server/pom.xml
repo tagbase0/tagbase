@@ -28,9 +28,14 @@
             <artifactId>storage-hbase</artifactId>
             <version>${parent.version}</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.oppo</groupId>-->
+<!--            <artifactId>job-spark</artifactId>-->
+<!--            <version>${parent.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.oppo</groupId>
-            <artifactId>job-spark</artifactId>
+            <artifactId>engine-spark</artifactId>
             <version>${parent.version}</version>
         </dependency>
     </dependencies>

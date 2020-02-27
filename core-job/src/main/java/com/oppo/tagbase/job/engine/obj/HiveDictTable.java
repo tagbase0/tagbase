@@ -1,4 +1,4 @@
-package com.oppo.tagbase.job.obj;
+package com.oppo.tagbase.job.engine.obj;
 
 /**
  * Created by liangjingya on 2020/2/20.

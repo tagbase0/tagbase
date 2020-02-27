@@ -2,8 +2,8 @@ package com.oppo.tagbase.job.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oppo.tagbase.dict.ForwardDictionaryWriter;
-import com.oppo.tagbase.job.obj.HiveMeta;
-import com.oppo.tagbase.job.obj.HiveSrcTable;
+import com.oppo.tagbase.job.engine.obj.HiveMeta;
+import com.oppo.tagbase.job.engine.obj.HiveSrcTable;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataDict;
 import com.oppo.tagbase.meta.obj.Dict;

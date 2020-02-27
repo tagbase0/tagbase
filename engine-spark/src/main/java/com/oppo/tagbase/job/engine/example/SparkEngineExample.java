@@ -4,10 +4,12 @@ package com.oppo.tagbase.job.engine.example;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
 import com.oppo.tagbase.common.guice.*;
-import com.oppo.tagbase.job.TaskEngine;
 import com.oppo.tagbase.job.engine.SparkTaskEngineModule;
-import com.oppo.tagbase.job.obj.*;
-import com.oppo.tagbase.meta.obj.JobType;
+import com.oppo.tagbase.job.engine.TaskEngine;
+import com.oppo.tagbase.job.engine.obj.HiveMeta;
+import com.oppo.tagbase.job.engine.obj.HiveSrcTable;
+import com.oppo.tagbase.job.engine.obj.JobType;
+import com.oppo.tagbase.job.engine.obj.SliceColumn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,13 +30,10 @@ public class SparkEngineExample {
 
         TaskEngine executable = ij.getInstance(TaskEngine.class);
 
-        HiveDictTable hiveDictTable = new HiveDictTable("default","imeiTable","imei","id","daynum",0);
         SliceColumn sliceColumn = new SliceColumn("daynum","20200220","20200221");
         List<String> dimColumns = new ArrayList<String>(){{add("app");add("event");add("version");}};
         HiveSrcTable hiveSrcTable = new HiveSrcTable("default","eventTable",dimColumns,sliceColumn,"imei");
-        HiveMeta hiveMeta = new HiveMeta(hiveDictTable,hiveSrcTable,"D:\\workStation\\sparkTaskHfile\\city_20200211_task","D:\\workStation\\sparkTaskHfile\\rowCount");
-
-
+        HiveMeta hiveMeta = new HiveMeta("D:\\workStation\\tagbase\\invertedDict\\",10, hiveSrcTable,"D:\\workStation\\tagbase\\jobidxxxx\\hfile\\","D:\\workStation\\tagbase\\jobidxxxx\\rowCount");
 
         try {
 //            ObjectMapper objectMapper=new ObjectMapper();

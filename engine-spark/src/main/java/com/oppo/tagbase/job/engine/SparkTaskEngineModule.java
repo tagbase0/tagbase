@@ -4,7 +4,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.oppo.tagbase.common.guice.ConfBind;
 import com.oppo.tagbase.common.guice.PolyBind;
-import com.oppo.tagbase.job.TaskEngine;
 
 /**
  * Created by liangjingya on 2020/2/8.

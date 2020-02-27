@@ -1,9 +1,9 @@
 package com.oppo.tagbase.job.util;
 
-import com.oppo.tagbase.job.obj.HiveDictTable;
-import com.oppo.tagbase.job.obj.HiveMeta;
-import com.oppo.tagbase.job.obj.HiveSrcTable;
-import com.oppo.tagbase.job.obj.SliceColumn;
+import com.oppo.tagbase.job.engine.obj.HiveDictTable;
+import com.oppo.tagbase.job.engine.obj.HiveMeta;
+import com.oppo.tagbase.job.engine.obj.HiveSrcTable;
+import com.oppo.tagbase.job.engine.obj.SliceColumn;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataDict;
 import com.oppo.tagbase.meta.obj.Column;

@@ -21,11 +21,11 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>com.oppo</groupId>
-            <artifactId>core-job</artifactId>
-            <version>${parent.version}</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.oppo</groupId>-->
+<!--            <artifactId>core-common</artifactId>-->
+<!--            <version>${parent.version}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
@@ -110,21 +110,6 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-<!--    <repositories>-->
-<!--        <repository>-->
-<!--            <id>central</id>-->
-<!--            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>-->
-<!--        </repository>-->
-<!--    </repositories>-->
-
-<!--    <pluginRepositories>-->
-<!--        <pluginRepository>-->
-<!--            <id>central</id>-->
-<!--            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>-->
-<!--        </pluginRepository>-->
-<!--    </pluginRepositories>-->
-
 
     <build>
         <plugins>

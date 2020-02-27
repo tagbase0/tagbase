@@ -3,11 +3,11 @@ package com.oppo.tagbase.job.engine;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.oppo.tagbase.job.TaskEngine;
-import com.oppo.tagbase.job.exception.JobException;
-import com.oppo.tagbase.job.obj.HiveMeta;
-import com.oppo.tagbase.job.obj.TaskMessage;
-import com.oppo.tagbase.meta.obj.JobType;
+import com.oppo.tagbase.job.engine.exception.JobErrorCode;
+import com.oppo.tagbase.job.engine.exception.JobException;
+import com.oppo.tagbase.job.engine.obj.HiveMeta;
+import com.oppo.tagbase.job.engine.obj.JobType;
+import com.oppo.tagbase.job.engine.obj.TaskMessage;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -44,9 +44,10 @@ public class SparkTaskEngine extends TaskEngine {
         ObjectMapper objectMapper=new ObjectMapper();
         String appArgs = null;
         try {
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             appArgs = objectMapper.writeValueAsString(hiveMeta);
         } catch (JsonProcessingException e) {
-            throw new JobException("submit spark job error", e);
+            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, e, "parse json error");
         }
         String result = null;
         switch (type){
@@ -64,32 +65,37 @@ public class SparkTaskEngine extends TaskEngine {
     }
 
     @Override
-    public TaskMessage getTaskStatus(String appid, JobType type) throws IOException, JobException {
+    public TaskMessage getTaskStatus(String appid, JobType type) throws JobException {
 
         //向hadoop集群根据appid发送请求获取job执行进度
         String message = null;
-        switch (type){
-            case DATA:
-                message = sendGet(bitmapBuildingTaskConfig.getTrackUrl(), appid);
-                break;
-            case DICTIONARY:
-                message = sendGet(invertedDictTaskConfig.getTrackUrl(), appid);
-                break;
-            default:
-                break;
-        }
-
-        //解析集群返回的信息
-        String appJsonKey = "app";
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode rootNode = objectMapper.readTree(message);
         TaskMessage taskMessage = null;
-        if(rootNode.has(appJsonKey)){
-            JsonNode appNode = rootNode.get(appJsonKey);
-            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            taskMessage = objectMapper.readValue(appNode.toString(), TaskMessage.class);
-        }else {
-            throw new JobException("get job status error, message: \n" + message);
+        try {
+            switch (type){
+                case DATA:
+                    message = sendGet(bitmapBuildingTaskConfig.getTrackUrl(), appid);
+                    break;
+                case DICTIONARY:
+                    message = sendGet(invertedDictTaskConfig.getTrackUrl(), appid);
+                    break;
+                default:
+                    break;
+            }
+
+            //解析集群返回的信息
+            String appJsonKey = "app";
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(message);
+
+            if(rootNode.has(appJsonKey)){
+                JsonNode appNode = rootNode.get(appJsonKey);
+                objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                taskMessage = objectMapper.readValue(appNode.toString(), TaskMessage.class);
+            }else {
+                throw new JobException(JobErrorCode.JOB_MONITOR_ERROR, "job response error, message : %s", message);
+            }
+        } catch (IOException e) {
+            throw new JobException(JobErrorCode.JOB_MONITOR_ERROR, e, "get job status error");
         }
         return taskMessage;
     }
@@ -105,10 +111,10 @@ public class SparkTaskEngine extends TaskEngine {
 
         String sparkHome = System.getenv("SPARK_HOME");
         if(sparkHome == null){
-            throw new JobException("submit spark job error, not found SPARK_HOME");
+            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, "submit spark job error, not found SPARK_HOME");
         }
-        log.debug("submitSparkJob hiveMeta:" + hiveMeta);
-        log.debug("submitSparkJob SparkJobConfig:" + config);
+        log.debug("submit Spark Job : {}", hiveMeta);
+        log.debug("submit Spark Job : {}", config);
 
         System.setProperty("user.name", config.getUser());
         SparkAppHandle handle = null;
@@ -133,7 +139,7 @@ public class SparkTaskEngine extends TaskEngine {
                     .setVerbose(true)
                     .startApplication();
         } catch (IOException e) {
-            throw new JobException("submit spark job error", e);
+            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, e, "SparkLauncher submit error");
         }
         //提交任务后轮询appid返回
         while (!handle.getState().isFinal()){
@@ -147,9 +153,9 @@ public class SparkTaskEngine extends TaskEngine {
                 log.error("thread sleep error", e);
             }
         }
-        //如果出现这种情况？
+        //TODO 提交失败，多次提交，如果出现这种情况？
         if(appid == null && handle.getState() != SparkAppHandle.State.FINISHED){
-            throw new JobException("submit spark job error");
+            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, "SparkLauncher error, appid is null");
         }
         return appid;
 
