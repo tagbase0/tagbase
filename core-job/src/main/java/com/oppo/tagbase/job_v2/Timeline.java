@@ -25,7 +25,8 @@ public class Timeline {
 
 
     public boolean overlap(Range<Date> range) {
-        return false;
+//        range.
+        return true;
     }
 
 
