@@ -1,6 +1,6 @@
 package com.oppo.tagbase.meta.obj;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,10 +16,10 @@ public class Job {
     private String name;
     private String dbName;
     private String tableName;
-    private Date startTime;
-    private Date endTime;
-    private Date dataLowerTime; // include
-    private Date dataUpperTime; // exclude
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private LocalDateTime dataLowerTime; // include
+    private LocalDateTime dataUpperTime; // exclude
     private String latestTask;
     private JobState state;
     private JobType type;
@@ -58,35 +58,35 @@ public class Job {
         this.tableName = tableName;
     }
 
-    public Date getStartTime() {
+    public LocalDateTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Date startTime) {
+    public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
 
-    public Date getEndTime() {
+    public LocalDateTime getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(Date endTime) {
+    public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
     }
 
-    public Date getDataLowerTime() {
+    public LocalDateTime getDataLowerTime() {
         return dataLowerTime;
     }
 
-    public void setDataLowerTime(Date dataLowerTime) {
+    public void setDataLowerTime(LocalDateTime dataLowerTime) {
         this.dataLowerTime = dataLowerTime;
     }
 
-    public Date getDataUpperTime() {
+    public LocalDateTime getDataUpperTime() {
         return dataUpperTime;
     }
 
-    public void setDataUpperTime(Date dataUpperTime) {
+    public void setDataUpperTime(LocalDateTime dataUpperTime) {
         this.dataUpperTime = dataUpperTime;
     }
 

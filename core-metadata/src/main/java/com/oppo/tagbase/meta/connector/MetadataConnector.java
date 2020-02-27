@@ -6,13 +6,12 @@ import com.google.common.collect.RangeSet;
 import com.oppo.tagbase.meta.MetadataErrorCode;
 import com.oppo.tagbase.meta.MetadataException;
 import com.oppo.tagbase.meta.obj.*;
-import com.oppo.tagbase.meta.util.SqlDateUtil;
 import org.jdbi.v3.core.HandleCallback;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.Batch;
 
 import javax.inject.Inject;
-import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -351,7 +350,7 @@ public abstract class MetadataConnector {
     }
 
     //TODO use a more efficient fashion
-    public List<Slice> getSlices(String dbName, String tableName, RangeSet<Date> range) {
+    public List<Slice> getSlices(String dbName, String tableName, RangeSet<LocalDateTime> range) {
         List<Slice> sliceList = getSlices(dbName, tableName);
         List<Slice> ret = sliceList.stream()
                 .filter(slice -> range.encloses(Range.closedOpen(slice.getStartTime(), slice.getEndTime())))
@@ -363,7 +362,7 @@ public abstract class MetadataConnector {
      * get slices which greater than the value
      */
     @Deprecated
-    public List<Slice> getSlicesGT(String dbName, String tableName, Date time) {
+    public List<Slice> getSlicesGT(String dbName, String tableName, LocalDateTime time) {
 
         return submit(handle -> handle.createQuery("Select `SLICE`.* from " +
                 "`DB` join `TBL` on `DB`.`id`=`TBL`.`dbId` join `SLICE` on `TBL`.`id`=`SLICE`.`tableId` " +
@@ -381,7 +380,7 @@ public abstract class MetadataConnector {
      * get slices which greater than or equal the value
      */
     @Deprecated
-    public List<Slice> getSlicesGE(String dbName, String tableName, Date time) {
+    public List<Slice> getSlicesGE(String dbName, String tableName, LocalDateTime time) {
         return submit(handle -> handle.createQuery("Select `SLICE`.* from " +
                 "`DB` join `TBL` on `DB`.`id`=`TBL`.`dbId` join `SLICE` on `TBL`.`id`=`SLICE`.`tableId` " +
                 "where `DB`.`name`=:dbName And `TBL`.`name`=:tableName and `SLICE`.`status`=:sliceStatus and " +
@@ -399,7 +398,7 @@ public abstract class MetadataConnector {
      * get slices which less than the value
      */
     @Deprecated
-    public List<Slice> getSlicesLT(String dbName, String tableName, Date time) {
+    public List<Slice> getSlicesLT(String dbName, String tableName, LocalDateTime time) {
 
         return submit(handle -> handle.createQuery("Select `SLICE`.* from " +
                 "`DB` join `TBL` on `DB`.`id`=`TBL`.`dbId` join `SLICE` on `TBL`.`id`=`SLICE`.`tableId` " +
@@ -417,7 +416,7 @@ public abstract class MetadataConnector {
      * get slices which less or equal than the value
      */
     @Deprecated
-    public List<Slice> getSlicesLE(String dbName, String tableName, Date time) {
+    public List<Slice> getSlicesLE(String dbName, String tableName, LocalDateTime time) {
         return submit(handle -> handle.createQuery("Select `SLICE`.* from " +
                 "`DB` join `TBL` on `DB`.`id`=`TBL`.`dbId` join `SLICE` on `TBL`.`id`=`SLICE`.`tableId` " +
                 "where `DB`.`name`=:dbName And `TBL`.`name`=:tableName and `SLICE`.`status`=:sliceStatus and" +
@@ -435,8 +434,8 @@ public abstract class MetadataConnector {
      * get slices which between the lower and upper
      */
     @Deprecated
-    public List<Slice> getSlicesBetween(String dbName, String tableName, Date lower, Date upper) {
-        Date nextUpperDate = SqlDateUtil.addSomeDays(upper, 1);
+    public List<Slice> getSlicesBetween(String dbName, String tableName, LocalDateTime lower, LocalDateTime upper) {
+        LocalDateTime nextUpperDate = upper.plusDays(1);
 
         return submit(handle -> handle.createQuery("Select `SLICE`.* from " +
                 "`DB` join `TBL` on `DB`.`id`=`TBL`.`dbId` join `SLICE` on `TBL`.`id`=`SLICE`.`tableId` " +
@@ -495,7 +494,7 @@ public abstract class MetadataConnector {
         });
     }
 
-    public void completeJOb(String jobId, JobState state, Date endTime) {
+    public void completeJOb(String jobId, JobState state, LocalDateTime endTime) {
         submit(handle -> {
             String sql = "Update `JOB` set `state`=? and `endTime`=? where `id`=?";
             return handle.execute(sql, state, endTime, jobId);
@@ -540,7 +539,7 @@ public abstract class MetadataConnector {
         });
     }
 
-    public void completeTask(String taskId, TaskState state, Date endTime, String output) {
+    public void completeTask(String taskId, TaskState state, LocalDateTime endTime, String output) {
         submit(handle -> {
             String sql = "Update `TASK` set `state`=? and `endTime`=? and `output`=? where `id`=?";
             return handle.execute(sql, state, endTime, output, taskId);

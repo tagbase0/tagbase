@@ -68,6 +68,7 @@ public class Lifecycle {
         try {
             Class clazz = o.getClass();
 
+            // TODO support interface annotated invoking
             for (Method method : clazz.getMethods()) {
                 if (method.isAnnotationPresent(annotationClass)) {
                     method.invoke(o);

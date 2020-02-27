@@ -6,14 +6,18 @@ import com.oppo.tagbase.common.guice.ExampleGuiceInjectors;
 import com.oppo.tagbase.common.guice.PropsModule;
 import com.oppo.tagbase.common.guice.ValidatorModule;
 import com.oppo.tagbase.meta.connector.MetaStoreConnectorConfig;
-import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.obj.Column;
+import com.oppo.tagbase.meta.obj.ColumnType;
+import com.oppo.tagbase.meta.obj.Slice;
+import com.oppo.tagbase.meta.obj.SliceStatus;
+import com.oppo.tagbase.meta.obj.Table;
+import com.oppo.tagbase.meta.obj.TableType;
 import com.oppo.tagbase.meta.type.DataType;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.sql.Date;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -161,8 +165,8 @@ public class MetadataTest {
     @Test
     public void addSlice() throws ParseException {
         Slice sliceCity = new Slice();
-        sliceCity.setStartTime(new Date(new SimpleDateFormat("yyyyMMdd").parse("20200221").getTime()));
-        sliceCity.setEndTime(new Date(new SimpleDateFormat("yyyyMMdd").parse("20200222").getTime()));
+        sliceCity.setStartTime(LocalDateTime.now());
+        sliceCity.setEndTime(LocalDateTime.now());
         sliceCity.setTableId(1);
         sliceCity.setSink("/tagbase_tag_city");
         sliceCity.setShardNum(1);
@@ -174,8 +178,8 @@ public class MetadataTest {
         metadata.addSlice(sliceCity);
 
         Slice sliceAction = new Slice();
-        sliceAction.setStartTime(new Date(new SimpleDateFormat("yyyyMMdd").parse("20200221").getTime()));
-        sliceAction.setEndTime(new Date(new SimpleDateFormat("yyyyMMdd").parse("20200222").getTime()));
+        sliceAction.setStartTime(LocalDateTime.now());
+        sliceAction.setEndTime(LocalDateTime.now());
         sliceAction.setTableId(2);
         sliceAction.setSink("/tagbase_action");
         sliceAction.setShardNum(1);

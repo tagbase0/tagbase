@@ -1,11 +1,16 @@
 package com.oppo.tagbase.job_v2;
 
+import com.google.common.collect.Lists;
+import com.oppo.tagbase.common.util.LocalDateTimeUtil;
 import com.oppo.tagbase.common.util.Preconditions;
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.Job;
+import com.oppo.tagbase.meta.obj.JobState;
+import com.oppo.tagbase.meta.obj.Task;
 
 import javax.inject.Inject;
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
 
@@ -23,27 +28,55 @@ public class JobManager {
     @Inject
     private MetadataJob metadataJob;
 
-    public Job build(String dbName, String tableName, Date dataLowerTime, Date dataUpperTime) {
+    public Job build(String dbName, String tableName, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
 
-        List<Job> jobList = metadataJob.listNotCompletedJob(dbName, tableName, dataLowerTime, dataUpperTime);
+        // check preconditions
         check(dbName, tableName, dataLowerTime, dataUpperTime);
+
+        // submit job
+        Job job = new Job();
+        job.setId(JobIdGenerator.nextId());
+        job.setDbName(dbName);
+        job.setTableName(tableName);
+        job.setDataLowerTime(dataLowerTime);
+        job.setDataUpperTime(dataUpperTime);
+        job.setState(JobState.PENDING);
+        job.setStartTime(LocalDateTime.now());
+
+        // add job tasks
+        List<Task> taskList = Lists.newArrayList();
+        job.setTasks(taskList);
+        job.setLatestTask(taskList.get(0).getId());
+
+        // makeJobExecutable
+
+        metadataJob.addJob(job);
+        for(Task task : taskList) {
+            metadataJob.addTask(task);
+        }
+
+        return job;
+    }
+
+
+    private JobExecutable makeJobExecutable(Job job) {
         return null;
     }
 
-    private void check(String dbName, String tableName, Date dataLowerTime, Date dataUpperTime) {
+    private void check(String dbName, String tableName, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
         // check dataLowerTime < dataUpperTime
-        Preconditions.check(dataLowerTime.before(dataUpperTime), "lower time must less than upper time");
+        Preconditions.check(dataLowerTime.isBefore(dataUpperTime), "lower time must less than upper time");
 
         // check dataUpperTime - dataLowerTime = n Days
-        long diff = dataUpperTime.getTime() - dataLowerTime.getTime();
-//        Preconditions.check((diff % MILLS_OF_DAY == 0, "build time range must be n Days");
+        long diff = LocalDateTimeUtil.minus(dataLowerTime, dataLowerTime);
+        Preconditions.check((diff % MILLS_OF_DAY == 0), "build time range must be n Days");
 
         // check time line
-//        Timeline timeline = new Timeline();
-
+        List<Job> jobList = metadataJob.listNotCompletedJob(dbName, tableName, dataLowerTime, dataUpperTime);
+        //TODO
     }
 
-    public Job rebuild(String dbName, String tableName, Date dataLowerTime, Date dataUpperTime) {
+    public Job rebuild(String dbName, String tableName, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
 
         check(dbName, tableName, dataLowerTime, dataUpperTime);
         return null;

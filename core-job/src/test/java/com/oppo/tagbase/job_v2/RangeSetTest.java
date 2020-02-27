@@ -3,24 +3,23 @@ package com.oppo.tagbase.job_v2;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
-import com.oppo.tagbase.meta.util.SqlDateUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 
 /**
  * Created by wujianchao on 2020/2/27.
  */
 public class RangeSetTest {
 
-    Date _0101 = SqlDateUtil.create(2020, 00, 01);
-    Date _0105 = SqlDateUtil.create(2020, 00, 05);
-    Date _0110 = SqlDateUtil.create(2020, 00, 10);
+    LocalDateTime _0101 = LocalDateTime.of(2020, 01, 01, 0, 0);
+    LocalDateTime _0105 = LocalDateTime.of(2020, 01, 05, 0, 0);
+    LocalDateTime _0110 = LocalDateTime.of(2020, 01, 10, 0, 0);
 
     @Test
     public void rangeSizeTest(){
-        RangeSet<Date> rangeSet = TreeRangeSet.create();
+        RangeSet<LocalDateTime> rangeSet = TreeRangeSet.create();
 
         rangeSet.add(Range.closedOpen(_0101, _0105));
         rangeSet.add(Range.closedOpen(_0105, _0110));
@@ -31,33 +30,33 @@ public class RangeSetTest {
 
     @Test
     public void rangeContainingTest() {
-        RangeSet<Date> rangeSet = TreeRangeSet.create();
+        RangeSet<LocalDateTime> rangeSet = TreeRangeSet.create();
 
         rangeSet.add(Range.closedOpen(_0101, _0105));
         rangeSet.add(Range.closedOpen(_0105, _0110));
 
-        Range<Date> r = rangeSet.rangeContaining(_0101);
+        Range<LocalDateTime> r = rangeSet.rangeContaining(_0101);
         Assert.assertEquals(Range.closedOpen(_0101, _0110), r);
     }
 
     @Test
     public void intersectionTest() {
-        RangeSet<Date> rangeSet = TreeRangeSet.create();
+        RangeSet<LocalDateTime> rangeSet = TreeRangeSet.create();
 
         rangeSet.add(Range.closedOpen(_0101, _0105));
         rangeSet.add(Range.closedOpen(_0105, _0110));
 
 
-        Date _0120 = SqlDateUtil.create(2020, 00, 20);
+        LocalDateTime _0120 = LocalDateTime.of(2020, 01, 20, 0, 0);;
         boolean intersects = rangeSet.intersects(Range.closedOpen(_0110, _0120));
         Assert.assertTrue(!intersects);
     }
 
     @Test
     public void singleValueTest() {
-        Date _0102 = SqlDateUtil.create(2020, 00, 02);
-        Range<Date> r1 = Range.singleton(_0101);
-        Range<Date> r2 = Range.closedOpen(_0101, _0102);
+        LocalDateTime _0102 = LocalDateTime.of(2020, 01, 02, 0, 0);;
+        Range<LocalDateTime> r1 = Range.singleton(_0101);
+        Range<LocalDateTime> r2 = Range.closedOpen(_0101, _0102);
 
         Assert.assertNotEquals(r1, r2);
 

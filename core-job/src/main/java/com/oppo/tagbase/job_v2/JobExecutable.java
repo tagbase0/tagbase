@@ -1,11 +1,23 @@
 package com.oppo.tagbase.job_v2;
 
+import com.oppo.tagbase.meta.obj.Job;
+
 /**
  * Created by wujianchao on 2020/2/26.
  */
 public class JobExecutable {
 
-    TaskChain taskChain;
 
+    private Job job;
+
+    ExecutableChain taskChain;
+
+    public JobExecutable(Job job) {
+        this.job = job;
+    }
+
+    public void perform() {
+        taskChain.perform();
+    }
 
 }

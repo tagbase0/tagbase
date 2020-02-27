@@ -8,7 +8,7 @@ import java.io.IOException;
  *
  * Created by wujianchao on 2020/2/26.
  */
-public abstract class ExternalExecutor<C> implements Executor<ExternalTask<C>> {
+public abstract class ExternalExecutor<C> implements Executor<ExternalExecutable<C>> {
 
     /**
      * get external task execution status.
@@ -18,7 +18,7 @@ public abstract class ExternalExecutor<C> implements Executor<ExternalTask<C>> {
     protected abstract ExternalTaskStatus getTaskStatus(String externalAppId) throws IOException, JobException;
 
     @Override
-    public void perform(ExternalTask<C> task) {
+    public void perform(ExternalExecutable<C> task) {
 
     }
 }

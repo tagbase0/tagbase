@@ -24,7 +24,20 @@ public class JobResource {
     @Inject
     private JobManager manager;
 
-    @POST
+    @POST()
+    @Path("/build/dict")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Job buildDict(@FormParam("dbName") @NotNull String dbName,
+                     @FormParam("tableName") @NotNull String tableName,
+                     @FormParam("dataLowerTime") @NotNull Date dataLowerTime,
+                     @FormParam("dataUpperTime") @NotNull Date dataUpperTime) {
+
+        return manager.build(dbName, tableName, dataLowerTime, dataUpperTime);
+    }
+
+    @POST()
+    @Path("/build")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Job build(@FormParam("dbName") @NotNull String dbName,
@@ -36,6 +49,7 @@ public class JobResource {
     }
 
     @POST
+    @Path("/rebuild")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Job rebuild(@FormParam("dbName") @NotNull String dbName,

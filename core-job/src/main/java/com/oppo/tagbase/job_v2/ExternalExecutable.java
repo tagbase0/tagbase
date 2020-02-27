@@ -3,7 +3,7 @@ package com.oppo.tagbase.job_v2;
 /**
  * Created by wujianchao on 2020/2/26.
  */
-public class ExternalTask<C> {
+public class ExternalExecutable<C> {
 
     enum Name {
         BUILD_INVERTED_DICT,
@@ -15,7 +15,7 @@ public class ExternalTask<C> {
 
     private C context;
 
-    public ExternalTask(Name name, C context) {
+    public ExternalExecutable(Name name, C context) {
         this.name = name;
         this.context = context;
     }

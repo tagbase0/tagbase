@@ -1,6 +1,6 @@
 package com.oppo.tagbase.meta.obj;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -13,7 +13,7 @@ public class Dict {
     private DictStatus status;
     private String location;
     private long elementCount;
-    private Date createDate;
+    private LocalDateTime createDate;
     private DictType type;
 
     public long getId() {
@@ -56,11 +56,11 @@ public class Dict {
         this.elementCount = elementCount;
     }
 
-    public Date getCreateDate() {
+    public LocalDateTime getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(Date createDate) {
+    public void setCreateDate(LocalDateTime createDate) {
         this.createDate = createDate;
     }
 
