@@ -12,6 +12,10 @@ public class StorageException extends TagbaseException {
         super(errorCode, reason);
     }
 
+    public StorageException(String reason, Exception cause) {
+        super(StorageErrorCode.STORAGE_INSERT_ERROR, reason,cause);
+    }
+
     public StorageException(ErrorCode errorCode, String reasonFormat, Object... args) {
         super(errorCode, reasonFormat, args);
     }

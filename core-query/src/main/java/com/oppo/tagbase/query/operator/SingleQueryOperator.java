@@ -3,7 +3,9 @@ package com.oppo.tagbase.query.operator;
 import com.oppo.tagbase.query.node.OperatorType;
 import com.oppo.tagbase.query.row.AggregateRow;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
+import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 import com.oppo.tagbase.storage.core.obj.QueryHandler;
+import com.oppo.tagbase.storage.core.obj.RawRow;
 import org.javatuples.Pair;
 
 import java.util.HashMap;
@@ -20,8 +22,7 @@ public class SingleQueryOperator extends AbstractOperator {
     private String sourceId;
     private int groupMaxsize;
 
-
-    public SingleQueryOperator(int id,QueryHandler queryHandler, OperatorBuffer outputBuffer, StorageConnector connector,int groupMaxSize,String sourceId) {
+    public SingleQueryOperator(int id, QueryHandler queryHandler, OperatorBuffer outputBuffer, StorageConnector connector, int groupMaxSize, String sourceId) {
         super(id);
         this.outputBuffer = outputBuffer;
         this.queryHandler = queryHandler;
@@ -37,15 +38,16 @@ public class SingleQueryOperator extends AbstractOperator {
 
         // get output from storage module according table filter dim
 //        OperatorBuffer<AggregateRow> source = connector.createQuery(queryHandler);
-        OperatorBuffer<AggregateRow> source = null;
+        OperatorBuffer<RawRow> source = connector.createQuery(queryHandler);
 
-        AggregateRow row;
+        RawRow rawRow;
 
         //hash aggregate according dimensions of row
         Map<String, Pair<AggregateRow, Integer>> map = new HashMap<>();
 
-        while ((row = source.next()) != null) {
-            row.setId(sourceId);
+        while ((rawRow = source.next()) != null) {
+            AggregateRow row = new AggregateRow(sourceId,rawRow.getDim(),rawRow.getMetric());
+//            row.setId(sourceId);
 
             if (map.containsKey(row.getDim())) {
 

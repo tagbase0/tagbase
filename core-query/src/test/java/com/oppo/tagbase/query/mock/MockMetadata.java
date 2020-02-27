@@ -1,4 +1,4 @@
-package com.oppo.tagbase.query;
+package com.oppo.tagbase.query.mock;
 
 
 import com.oppo.tagbase.meta.Metadata;

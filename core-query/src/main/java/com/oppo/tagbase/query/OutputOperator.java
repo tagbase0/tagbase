@@ -1,9 +1,10 @@
 package com.oppo.tagbase.query;
 
 import com.google.common.collect.ImmutableMap;
-import com.oppo.tagbase.query.operator.*;
+import com.oppo.tagbase.query.operator.AbstractOperator;
 import com.oppo.tagbase.query.row.ResultRow;
 import com.oppo.tagbase.query.row.RowMeta;
+import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 
 import java.util.Map;
 
@@ -48,5 +49,10 @@ public class OutputOperator extends AbstractOperator {
             outputBuffer.postData(mapRowBuilder.build());
         }
         outputBuffer.postEnd();
+    }
+
+    @Override
+    public String toString() {
+        return "OutputOperator{" + '}';
     }
 }

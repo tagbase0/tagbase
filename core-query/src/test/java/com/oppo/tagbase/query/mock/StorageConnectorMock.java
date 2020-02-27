@@ -1,8 +1,8 @@
-package com.oppo.tagbase.query;
+package com.oppo.tagbase.query.mock;
 
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import com.oppo.tagbase.storage.core.exception.StorageException;
-import com.oppo.tagbase.storage.core.obj.AggregateRow;
+import com.oppo.tagbase.storage.core.obj.RawRow;
 import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 import com.oppo.tagbase.storage.core.obj.QueryHandler;
 import com.oppo.tagbase.storage.core.obj.StorageQueryContext;
@@ -18,7 +18,7 @@ import java.util.List;
 public class StorageConnectorMock extends StorageConnector {
 
     OperatorBuffer outputBuffer;
-    public StorageConnectorMock(List<AggregateRow> dataset ){
+    public StorageConnectorMock(List<RawRow> dataset ){
         outputBuffer = new OperatorBuffer(1);
         dataset.forEach(row -> outputBuffer.postData(row));
     }

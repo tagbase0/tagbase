@@ -41,10 +41,15 @@ public class Analysis {
 
     }
 
+
+    public void addGroupByColumns(Query query,List<String> groupByColumns) {
+        queryDims.put(query,groupByColumns);
+    }
+
+
     public void addScope(Query query, Scope scope) {
         scopes.put(query, scope);
     }
-
 
     public Scope getScope(Query query) {
         return scopes.get(query);

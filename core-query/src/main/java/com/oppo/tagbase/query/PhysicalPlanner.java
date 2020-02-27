@@ -3,10 +3,14 @@ package com.oppo.tagbase.query;
 import com.oppo.tagbase.meta.obj.ColumnType;
 import com.oppo.tagbase.meta.obj.Table;
 import com.oppo.tagbase.query.node.*;
-import com.oppo.tagbase.query.operator.*;
+import com.oppo.tagbase.query.operator.CollectionOperator;
+import com.oppo.tagbase.query.operator.Operator;
+import com.oppo.tagbase.query.operator.PersistResultOperator;
+import com.oppo.tagbase.query.operator.SingleQueryOperator;
 import com.oppo.tagbase.query.row.RowMeta;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import com.oppo.tagbase.storage.core.obj.ColumnDomain;
+import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 import com.oppo.tagbase.storage.core.obj.QueryHandler;
 import org.javatuples.Pair;
 
@@ -27,7 +31,13 @@ public class PhysicalPlanner {
 
     private static final int ROOT_ID = 0;
 
+    PhysicalPlanner(){
 
+    }
+
+    public void setStorageConnector(StorageConnector connector){
+        this.connector = connector;
+    }
     public PhysicalPlan plan(Query query, Analysis analysis) {
 
 
@@ -72,6 +82,8 @@ public class PhysicalPlanner {
         public PhysicalPlan.PhysicalPlanBuilder process(PhysicalPlan.PhysicalPlanBuilder planBuilder,OperatorBuffer root) {
             this.planBuilder = planBuilder;
             stack.push(new Pair<>(0, root));
+
+            rootQuery.accept(this);
             return planBuilder;
         }
 

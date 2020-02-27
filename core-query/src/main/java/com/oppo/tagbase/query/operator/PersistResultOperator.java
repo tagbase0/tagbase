@@ -3,6 +3,7 @@ package com.oppo.tagbase.query.operator;
 import com.google.inject.Inject;
 import com.oppo.tagbase.dict.ForwardDictionary;
 import com.oppo.tagbase.query.row.AggregateRow;
+import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 //import org.apache.hadoop.conf.Configuration;
@@ -64,5 +65,10 @@ public class PersistResultOperator extends AbstractOperator {
     }
 
     private void writeMeta() {
+    }
+
+    @Override
+    public String toString() {
+        return "OutputOperator{" + '}';
     }
 }

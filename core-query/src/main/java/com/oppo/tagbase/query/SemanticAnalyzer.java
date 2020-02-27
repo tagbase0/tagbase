@@ -73,7 +73,7 @@ public class SemanticAnalyzer {
 
             // group columns equal  output dimension column
             List<String> groupByColumns = query.getDimensions();
-            List<DataType> groupByColumnTypes = analyzeGroupBy(table, groupByColumns);
+            List<DataType> groupByColumnTypes = analyzeGroupBy(query,table);
 
             int groupMaxSize = evaluateGroupMaxSize(groupByColumns, columnDomains, table);
             int outputMaxSize = evaluateOutputSize(groupByColumns, columnDomains);
@@ -153,17 +153,19 @@ public class SemanticAnalyzer {
             }
 
             if (groupMaxSize != Integer.MAX_VALUE) {
-                if (ImmutableSet.<String>builder().addAll(groupbyColumns).addAll(filterColumns).build().size() != table.getColumns().size()) {
+                int dimensionColumnsSize = table.getColumns().size() - 1;
+                if (ImmutableSet.<String>builder().addAll(groupbyColumns).addAll(filterColumns).build().size() != dimensionColumnsSize) {
                     groupMaxSize = Integer.MAX_VALUE;
                 }
             }
             return groupMaxSize;
         }
 
-        private List<DataType> analyzeGroupBy(Table table, List<String> dims) {
+        private List<DataType> analyzeGroupBy(SingleQuery query,Table table) {
+            List<String> groupByColumns = query.getDimensions();
             Set<String> dimColumns = new HashSet<>();
             List<DataType> outputFields = new ArrayList<>();
-            for (String dim : dims) {
+            for (String dim : groupByColumns) {
                 if (dimColumns.contains(dim)) {
                     throw new SemanticException(DUPLICATE_FILTER_COLUMN, "duplicate column %s in dimension", dim);
                 }
@@ -174,6 +176,7 @@ public class SemanticAnalyzer {
                 dimColumns.add(dim);
                 outputFields.add(table.getColumn(dim).getDataType());
             }
+            analysis.addGroupByColumns(query,groupByColumns);
             return outputFields;
         }
 
@@ -249,6 +252,7 @@ public class SemanticAnalyzer {
 
         }
 
+        //TODO
         private int getDayInterval(Date lower, Date upper, boolean upperStrict, boolean lowerStrict) {
             return 1;
         }

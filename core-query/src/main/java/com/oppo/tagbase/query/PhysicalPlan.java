@@ -3,10 +3,14 @@ package com.oppo.tagbase.query;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.oppo.tagbase.query.operator.Operator;
+import org.javatuples.Pair;
 
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * @author huangfeng
@@ -50,8 +54,39 @@ public class PhysicalPlan {
         }
     }
 
-    private Operator getOutputOperator(){
+    private Operator getOutputOperator() {
         return operators.get(operators.size() - 1);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        Operator outputOperator = getOutputOperator();
+        LinkedList<Pair<Integer,Operator>> stack = new LinkedList<>();
+        builder.append("PhysicalPlan{\n");
+
+        stack.push(Pair.with(3,outputOperator));
+        while(!stack.isEmpty()) {
+            Pair<Integer,Operator>  p = stack.pop();
+            final Operator curOperator = p.getValue1();
+            int indent = p.getValue0();
+
+            builder.append(String.join("", Collections.nCopies(indent, " ")));
+            builder.append(p.getValue1().toString());
+            builder.append("\n");
+
+            List<Integer> childId = operatorMapping.entrySet().stream().
+                    filter(entry -> entry.getValue() == curOperator.getId()).
+                    map(Map.Entry::getKey).collect(Collectors.toList());
+
+            operators.stream().filter(operator -> childId.contains(operator.getId())).map(item -> Pair.with(indent + 3, item)).
+                    forEach(pair -> stack.push(pair));
+
+        }
+
+        builder.append("\n}");
+
+        return  builder.toString();
     }
 
     public static class PhysicalPlanBuilder {
@@ -75,4 +110,6 @@ public class PhysicalPlan {
             return new PhysicalPlan(queryId, operators.build(), operatorMapping.build());
         }
     }
+
+
 }

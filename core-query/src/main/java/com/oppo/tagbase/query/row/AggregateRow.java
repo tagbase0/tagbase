@@ -1,26 +1,23 @@
 package com.oppo.tagbase.query.row;
 
 import com.oppo.tagbase.query.node.OperatorType;
+import com.oppo.tagbase.storage.core.obj.Dimensions;
+import com.oppo.tagbase.storage.core.obj.RawRow;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
-
-import java.nio.ByteBuffer;
 
 /**
  * Created by huangfeng on 2020/2/14.
  */
-public class AggregateRow extends AbstractRow {
-    ImmutableRoaringBitmap metric;
+public class AggregateRow extends RawRow {
 
-    public AggregateRow(byte[][] dims, byte[] bitmap) {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(bitmap);
-        this.metric = new ImmutableRoaringBitmap(byteBuffer);
-        this.dims = new Dimensions(dims);
+    public AggregateRow(byte[][] dims, ImmutableRoaringBitmap bitmap) {
+        super(dims,bitmap);
     }
 
+
     public AggregateRow(String id, Dimensions dims, ImmutableRoaringBitmap metric) {
-        this.metric = metric;
-        this.dims = dims;
+      super(dims,metric);
         this.id = id;
     }
 

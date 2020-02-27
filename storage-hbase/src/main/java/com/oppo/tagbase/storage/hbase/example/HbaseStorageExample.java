@@ -52,8 +52,8 @@ public class HbaseStorageExample {
 //            metadata.setType(TestMetadata.MetaDataType.TAG);
 //            QueryHandler query = queryTagData(connector);
 
-            OperatorBuffer<AggregateRow> buffer = connector.createQuery(query);
-            AggregateRow row = null;
+            OperatorBuffer<RawRow> buffer = connector.createQuery(query);
+            RawRow row = null;
             while ((row = buffer.next()) != null){
                 System.out.println("OperatorBuffer: " + row);
             }

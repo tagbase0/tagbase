@@ -1,4 +1,7 @@
-package com.oppo.tagbase.query.row;
+package com.oppo.tagbase.storage.core.obj;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * @author huangfeng
@@ -11,8 +14,6 @@ public class Dimensions {
     public Dimensions(byte[][] value) {
         this.internalDimensionValues = value;
     }
-
-
 
 
     public static Dimensions join(Dimensions dim1, Dimensions dim2) {
@@ -45,10 +46,12 @@ public class Dimensions {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
 
-        for (byte[] value : internalDimensionValues) {
-            builder.append(new String(value));
+        StringBuilder builder = new StringBuilder();
+        if (internalDimensionValues == null) {
+            builder.append("[ ]");
+        } else {
+            builder.append(Arrays.stream(internalDimensionValues).map(str -> new String(str)).collect(Collectors.toList()));
         }
         return builder.toString();
     }

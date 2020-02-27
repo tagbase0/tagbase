@@ -1,20 +1,22 @@
 package com.oppo.tagbase.query.row;
 
+import com.oppo.tagbase.storage.core.obj.AbstractRow;
+import com.oppo.tagbase.storage.core.obj.Dimensions;
+
 /**
  * Created by huangfeng on 2020/2/14.
  */
-public class ResultRow<T>  extends  AbstractRow{
+public class ResultRow<T> extends AbstractRow {
     String id;
     T metric;
+
     public ResultRow(Dimensions dims, T cardinality) {
-        super();
-        this.dims = dims;
+        super(dims);
         this.metric = cardinality;
     }
 
-    public ResultRow(String id,Dimensions dims, T cardinality) {
-        super();
-        this.dims = dims;
+    public ResultRow(String id, Dimensions dims, T cardinality) {
+        super(dims);
         this.id = id;
         this.metric = cardinality;
     }

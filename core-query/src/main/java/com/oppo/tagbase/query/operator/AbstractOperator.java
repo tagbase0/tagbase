@@ -1,5 +1,7 @@
 package com.oppo.tagbase.query.operator;
 
+import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
+
 import java.util.function.Consumer;
 
 /**

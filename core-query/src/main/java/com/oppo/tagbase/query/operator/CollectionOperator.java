@@ -4,6 +4,7 @@ package com.oppo.tagbase.query.operator;
 import com.oppo.tagbase.query.node.OperatorType;
 import com.oppo.tagbase.query.node.OutputType;
 import com.oppo.tagbase.query.row.AggregateRow;
+import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class CollectionOperator extends  AbstractOperator {
     private OutputType outputType;
 
 
-    public CollectionOperator(int id,OperatorBuffer<AggregateRow> leftSource, OperatorBuffer<AggregateRow> rightSource, OperatorBuffer outputBuffer, OperatorType operator, OutputType outputType) {
+    public CollectionOperator(int id, OperatorBuffer<AggregateRow> leftSource, OperatorBuffer<AggregateRow> rightSource, OperatorBuffer outputBuffer, OperatorType operator, OutputType outputType) {
         super(id);
         this.leftSource = leftSource;
         this.rightSource = rightSource;

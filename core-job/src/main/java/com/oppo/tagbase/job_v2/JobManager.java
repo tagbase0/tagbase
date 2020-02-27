@@ -36,10 +36,10 @@ public class JobManager {
 
         // check dataUpperTime - dataLowerTime = n Days
         long diff = dataUpperTime.getTime() - dataLowerTime.getTime();
-        Preconditions.check((diff % MILLS_OF_DAY == 0, "build time range must be n Days");
+//        Preconditions.check((diff % MILLS_OF_DAY == 0, "build time range must be n Days");
 
         // check time line
-        Timeline timeline = new Timeline();
+//        Timeline timeline = new Timeline();
 
     }
 
