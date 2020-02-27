@@ -24,7 +24,7 @@ public class RawRow extends AbstractRow {
 
     @Override
     public String toString() {
-        return "AggregateRow{" +
+        return "RawRow{" +
                 "key=" + dims.toString() +
                 " metric=" + metric +
                 '}';

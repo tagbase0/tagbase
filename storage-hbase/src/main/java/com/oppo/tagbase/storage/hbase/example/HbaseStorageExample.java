@@ -14,7 +14,7 @@ import com.oppo.tagbase.storage.core.obj.*;
 import com.oppo.tagbase.storage.hbase.HbaseStorageModule;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 import java.io.IOException;
-import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,9 +82,9 @@ public class HbaseStorageExample {
         versionColumnRange.add(Range.singleton("5.4"));versionColumnRange.add(Range.singleton("5.2"));
         dimQueryList.add(new ColumnDomain<String>(versionColumnRange, "version"));
 
-        RangeSet<Date> sliceRange = TreeRangeSet.create();
-        sliceRange.add(Range.lessThan(new Date(System.currentTimeMillis())));
-        ColumnDomain<Date> sliceQuery = new ColumnDomain<Date>(sliceRange,"daynum");
+        RangeSet<LocalDateTime> sliceRange = TreeRangeSet.create();
+        sliceRange.add(Range.lessThan(LocalDateTime.now()));
+        ColumnDomain<LocalDateTime> sliceQuery = new ColumnDomain<LocalDateTime>(sliceRange,"daynum");
 
         List<String> dims = new ArrayList<String>(){{add("app");add("event");add("version");add("daynum");}};
       //  List<String> dims = null;

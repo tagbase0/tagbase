@@ -1,6 +1,6 @@
 package com.oppo.tagbase.storage.core.obj;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -16,7 +16,7 @@ public class QueryHandler {
 
     private List<ColumnDomain<String>> filterColumnList;
 
-    private ColumnDomain<Date> sliceColumn;
+    private ColumnDomain<LocalDateTime> sliceColumn;
 
     private String queryId;
 
@@ -28,7 +28,7 @@ public class QueryHandler {
         return sliceColumn != null;
     }
 
-    public QueryHandler(String dbName, String tableName, List<String> dimensions, List<ColumnDomain<String>> filterColumnList, ColumnDomain<Date> sliceColumn, String queryId) {
+    public QueryHandler(String dbName, String tableName, List<String> dimensions, List<ColumnDomain<String>> filterColumnList, ColumnDomain<LocalDateTime> sliceColumn, String queryId) {
         this.dbName = dbName;
         this.tableName = tableName;
         this.dimensions = dimensions;
@@ -69,11 +69,11 @@ public class QueryHandler {
         this.filterColumnList = filterColumnList;
     }
 
-    public ColumnDomain<Date> getSliceColumn() {
+    public ColumnDomain<LocalDateTime> getSliceColumn() {
         return sliceColumn;
     }
 
-    public void setSliceColumn(ColumnDomain<Date> sliceColumn) {
+    public void setSliceColumn(ColumnDomain<LocalDateTime> sliceColumn) {
         this.sliceColumn = sliceColumn;
     }
 

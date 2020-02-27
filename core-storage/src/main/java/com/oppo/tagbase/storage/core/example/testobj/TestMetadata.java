@@ -4,7 +4,8 @@ package com.oppo.tagbase.storage.core.example.testobj;
 import com.google.common.collect.RangeSet;
 import com.oppo.tagbase.meta.obj.*;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,8 @@ public class TestMetadata {
     }
 
     private MetaDataType type = MetaDataType.EVENT;
+
+    private DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public void setType(MetaDataType type) {
         this.type = type;
@@ -56,13 +59,13 @@ public class TestMetadata {
 
     }
 
-    public List<Slice> getSlices(String dbName, String tableName, RangeSet<Date> range) {
+    public List<Slice> getSlices(String dbName, String tableName, RangeSet<LocalDateTime> range) {
         List<Slice> sliecs = new ArrayList<>();
-        Slice a=new Slice();a.setStartTime(Date.valueOf("2020-02-10"));a.setSink("event_20200210");a.setStatus(SliceStatus.READY);a.setShardNum(1);
+        Slice a=new Slice();a.setStartTime(LocalDateTime.parse("2020-02-10"));a.setSink("event_20200210");a.setStatus(SliceStatus.READY);a.setShardNum(1);
         sliecs.add(a);
-        Slice b=new Slice();b.setStartTime(Date.valueOf("2020-02-09"));b.setSink("event_20200209");b.setStatus(SliceStatus.READY);b.setShardNum(1);
+        Slice b=new Slice();b.setStartTime(LocalDateTime.parse("2020-02-09"));b.setSink("event_20200209");b.setStatus(SliceStatus.READY);b.setShardNum(1);
         sliecs.add(b);
-        Slice c=new Slice();c.setStartTime(Date.valueOf("2020-02-11"));c.setSink("event_20200211");c.setStatus(SliceStatus.READY);c.setShardNum(1);
+        Slice c=new Slice();c.setStartTime(LocalDateTime.parse("2020-02-11"));c.setSink("event_20200211");c.setStatus(SliceStatus.READY);c.setShardNum(1);
         sliecs.add(c);
 
         return sliecs;
@@ -72,14 +75,14 @@ public class TestMetadata {
     public List<Slice> getSlices(String dbName, String tableName) {
         List<Slice> sliecs = new ArrayList<>();
         if(tableName.contains("event")){
-            Slice a=new Slice();a.setStartTime(Date.valueOf("2020-02-10"));a.setSink("event_20200210");a.setStatus(SliceStatus.READY);a.setShardNum(1);
+            Slice a=new Slice();a.setStartTime(LocalDateTime.parse("2020-02-10"));a.setSink("event_20200210");a.setStatus(SliceStatus.READY);a.setShardNum(1);
             sliecs.add(a);
-            Slice b=new Slice();b.setStartTime(Date.valueOf("2020-02-09"));b.setSink("event_20200209");b.setStatus(SliceStatus.READY);b.setShardNum(1);
+            Slice b=new Slice();b.setStartTime(LocalDateTime.parse("2020-02-09"));b.setSink("event_20200209");b.setStatus(SliceStatus.READY);b.setShardNum(1);
             sliecs.add(b);
-            Slice c=new Slice();c.setStartTime(Date.valueOf("2020-02-11"));c.setSink("event_20200211");c.setStatus(SliceStatus.READY);c.setShardNum(1);
+            Slice c=new Slice();c.setStartTime(LocalDateTime.parse("2020-02-11"));c.setSink("event_20200211");c.setStatus(SliceStatus.READY);c.setShardNum(1);
             sliecs.add(c);
         }else {
-            Slice d=new Slice();d.setStartTime(Date.valueOf("2020-02-10"));d.setSink("city_20200210");d.setStatus(SliceStatus.READY);d.setShardNum(1);
+            Slice d=new Slice();d.setStartTime(LocalDateTime.parse("2020-02-10"));d.setSink("city_20200210");d.setStatus(SliceStatus.READY);d.setShardNum(1);
             sliecs.add(d);
         }
         return sliecs;
