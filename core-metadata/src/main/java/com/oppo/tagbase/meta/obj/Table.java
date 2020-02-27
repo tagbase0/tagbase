@@ -123,4 +123,19 @@ public class Table {
     public int hashCode() {
         return Objects.hash(dbId, name);
     }
+
+    @Override
+    public String toString() {
+        return "Table{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", dbId=" + dbId +
+                ", srcDb='" + srcDb + '\'' +
+                ", srcTable='" + srcTable + '\'' +
+                ", latestSlice='" + latestSlice + '\'' +
+                ", type=" + type +
+                ", desc='" + desc + '\'' +
+                ", columns=" + columns +
+                '}';
+    }
 }
