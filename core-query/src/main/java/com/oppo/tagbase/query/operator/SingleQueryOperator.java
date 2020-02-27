@@ -1,6 +1,7 @@
 package com.oppo.tagbase.query.operator;
 
 import com.oppo.tagbase.query.node.OperatorType;
+import com.oppo.tagbase.query.node.OutputType;
 import com.oppo.tagbase.query.row.AggregateRow;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
@@ -19,13 +20,15 @@ public class SingleQueryOperator extends AbstractOperator {
 
     private StorageConnector connector;
     private QueryHandler queryHandler;
+
     private String sourceId;
     private int groupMaxsize;
+    private OutputType outputType;
 
-    public SingleQueryOperator(int id, QueryHandler queryHandler, OperatorBuffer outputBuffer, StorageConnector connector, int groupMaxSize, String sourceId) {
-        super(id);
-        this.outputBuffer = outputBuffer;
+    public SingleQueryOperator(int operatorId, QueryHandler queryHandler, OperatorBuffer outputBuffer,OutputType outPutType, StorageConnector connector, int groupMaxSize, String sourceId) {
+        super(operatorId,outputBuffer);
         this.queryHandler = queryHandler;
+        this.outputType = outPutType;
         this.connector = connector;
         this.groupMaxsize = groupMaxSize;
         this.sourceId = sourceId;
@@ -49,19 +52,19 @@ public class SingleQueryOperator extends AbstractOperator {
             AggregateRow row = new AggregateRow(sourceId,rawRow.getDim(),rawRow.getMetric());
 //            row.setId(sourceId);
 
-            if (map.containsKey(row.getDim())) {
+            if (map.containsKey(row.getDim().toString())) {
 
-                Pair<AggregateRow, Integer> pair = map.get(row.getDim().getSignature());
+                Pair<AggregateRow, Integer> pair = map.get(row.getDim().toString());
                 AggregateRow groupRow = pair.getValue0();
                 int groupCount = pair.getValue1();
 
                 groupRow.combine(row.getMetric(), OperatorType.UNION);
                 groupCount++;
                 if (groupCount == groupMaxsize) {
-                    outputBuffer.postData(groupRow);
-                    map.remove(row.getDim().getSignature());
+                    sendData(groupRow);
+                    map.remove(row.getDim().toString());
                 } else {
-                    map.put(row.getDim().getSignature(), new Pair<>(groupRow, groupCount));
+                    map.put(row.getDim().toString(), new Pair<>(groupRow, groupCount));
                 }
 
             } else {
@@ -70,14 +73,22 @@ public class SingleQueryOperator extends AbstractOperator {
         }
 
         // put result to output
-        map.values().forEach(pair -> outputBuffer.postData(pair.getValue0()));
+        map.values().forEach(pair -> sendData(pair.getValue0()));
         outputBuffer.postEnd();
+    }
+
+    private void sendData(AggregateRow groupRow) {
+        if(outputType == OutputType.COUNT) {
+            outputBuffer.postData(groupRow.transitToResult());
+        }else{
+            outputBuffer.postData(groupRow);
+        }
     }
 
 
     @Override
     public String toString() {
-        return String.format("SingleQueryOperator{scanTable=%s}",queryHandler.getTableName());
+        return String.format("SingleQueryOperator{scanTable=%s,outputType=%s}",queryHandler.getTableName(),outputType);
     }
 }
 

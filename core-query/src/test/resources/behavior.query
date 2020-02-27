@@ -1,0 +1,32 @@
+{
+    "queryType":"single",
+    "tableName":"behavior",
+    "dbName":"tagbase",
+    "output":"count",
+    "dimensions":[
+        "app"
+    ],
+    "filters":[
+        {
+            "type":"bound",
+            "column":"dayno",
+            "upper":"20200227",
+            "lower":"20200225"
+         },
+        {
+            "type":"in",
+            "column":"app",
+            "values":[
+                "wechat",
+                "qq"
+            ]
+        },
+          {
+            "type":"in",
+            "column":"behavior",
+            "values":[
+                "install"
+            ]
+          }
+    ]
+}

@@ -17,13 +17,12 @@ import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
  */
 public class PersistResultOperator extends AbstractOperator {
     OperatorBuffer<AggregateRow> inputBuffer;
-    OperatorBuffer<AggregateRow> outputBuffer;
 
     @Inject
     ForwardDictionary dictionary;
 
     public PersistResultOperator(int id,OperatorBuffer<AggregateRow> inputBuffer) {
-        super(id);
+        super(id,new OperatorBuffer<AggregateRow>());
         this.inputBuffer = inputBuffer;
     }
 

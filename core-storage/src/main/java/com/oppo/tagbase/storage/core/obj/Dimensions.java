@@ -1,5 +1,6 @@
 package com.oppo.tagbase.storage.core.obj;
 
+
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -9,10 +10,12 @@ import java.util.stream.Collectors;
  */
 public class Dimensions {
 
+    private static  final byte[][] EMPTY_BYTES = new byte[0][];
+
     byte[][] internalDimensionValues;
 
     public Dimensions(byte[][] value) {
-        this.internalDimensionValues = value;
+       this.internalDimensionValues = value!=null?value:EMPTY_BYTES;
     }
 
 
@@ -43,17 +46,15 @@ public class Dimensions {
         return internalDimensionValues.length;
     }
 
+    public static void main(String[] args) {
+        byte[][] a = new byte[0][];
+
+        System.out.println(new Dimensions(a).toString());
+    }
 
     @Override
     public String toString() {
-
-        StringBuilder builder = new StringBuilder();
-        if (internalDimensionValues == null) {
-            builder.append("[ ]");
-        } else {
-            builder.append(Arrays.stream(internalDimensionValues).map(str -> new String(str)).collect(Collectors.toList()));
-        }
-        return builder.toString();
+      return Arrays.stream(internalDimensionValues).map(str -> new String(str)).collect(Collectors.toList()).toString();
     }
 
     public String getSignature() {

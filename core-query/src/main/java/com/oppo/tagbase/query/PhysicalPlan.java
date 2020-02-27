@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
  * @date 2020/2/26 15:31
  */
 public class PhysicalPlan {
+
     private List<Operator> operators;
     private String queryId;
     private Map<Integer, Integer> operatorMapping;
@@ -45,6 +46,9 @@ public class PhysicalPlan {
     }
 
     public Object getResult() {
+//        OperatorBuffer output = getOutputOperator().getOutputBuffer();
+
+
         return getOutputOperator().getOutputBuffer().next();
     }
 
@@ -57,6 +61,11 @@ public class PhysicalPlan {
     private Operator getOutputOperator() {
         return operators.get(operators.size() - 1);
     }
+
+    public List<Operator> getOperators() {
+        return operators;
+    }
+
 
     @Override
     public String toString() {

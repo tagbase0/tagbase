@@ -15,7 +15,10 @@ import com.oppo.tagbase.query.node.*;
 import com.oppo.tagbase.query.row.RowMeta;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static com.oppo.tagbase.query.exception.SemanticErrorCode.*;
@@ -27,8 +30,8 @@ import static com.oppo.tagbase.query.exception.SemanticErrorCode.*;
 public class SemanticAnalyzer {
 
     private Metadata meta;
-    private static final Date LOW_BOUND = new Date(1577808000);
-
+    private static final LocalDate LOW_BOUND = LocalDate.parse("2007-12-03");
+    private static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     //    private static DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
     @Inject
@@ -65,20 +68,20 @@ public class SemanticAnalyzer {
         public Scope visitSingleQuery(SingleQuery query) {
 
             String dbName = analyzeDB(query);
-            Table table = analyzeTable(query,dbName);
+            Table table = analyzeTable(query, dbName);
 
             // analysis for filter and groupby columns
             List<Filter> filters = query.getFilters();
-            Map<String, FilterAnalysis> columnDomains = analyzeFilter(query,table, filters);
+            Map<String, FilterAnalysis> columnDomains = analyzeFilter(query, table, filters);
 
             // group columns equal  output dimension column
             List<String> groupByColumns = query.getDimensions();
-            List<DataType> groupByColumnTypes = analyzeGroupBy(query,table);
+            List<DataType> groupByColumnTypes = analyzeGroupBy(query, table);
 
             int groupMaxSize = evaluateGroupMaxSize(groupByColumns, columnDomains, table);
             int outputMaxSize = evaluateOutputSize(groupByColumns, columnDomains);
 
-            RowMeta rowMeta = new RowMeta(groupByColumns, groupByColumnTypes, nextSingleQueryId());
+            RowMeta rowMeta = new RowMeta(nextSingleQueryId(), groupByColumns, groupByColumnTypes);
             Scope scope = Scope.builder().withOutputType(query.getOutput()).addRowMeta(rowMeta).withOutputSize(outputMaxSize).withGroupMaxSize(groupMaxSize).build();
             analysis.addScope(query, scope);
             return scope;
@@ -133,7 +136,7 @@ public class SemanticAnalyzer {
 
         private String nextSingleQueryId() {
             singleQueryId++;
-            return singleQueryId+"";
+            return singleQueryId + "";
         }
 
 
@@ -161,7 +164,7 @@ public class SemanticAnalyzer {
             return groupMaxSize;
         }
 
-        private List<DataType> analyzeGroupBy(SingleQuery query,Table table) {
+        private List<DataType> analyzeGroupBy(SingleQuery query, Table table) {
             List<String> groupByColumns = query.getDimensions();
             Set<String> dimColumns = new HashSet<>();
             List<DataType> outputFields = new ArrayList<>();
@@ -176,7 +179,7 @@ public class SemanticAnalyzer {
                 dimColumns.add(dim);
                 outputFields.add(table.getColumn(dim).getDataType());
             }
-            analysis.addGroupByColumns(query,groupByColumns);
+            analysis.addGroupByColumns(query, groupByColumns);
             return outputFields;
         }
 
@@ -217,18 +220,24 @@ public class SemanticAnalyzer {
                         throw new SemanticException(SLICE_MUST_BE_BOUND_FILTER, "slice column must be bound filter", columnName);
                     }
 
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+
                     BoundFilter boundFilter = (BoundFilter) filter;
                     FilterAnalysis sliceDomain;
                     int gapDay;
                     try {
-                        Date lower = parseDate(dateFormat, boundFilter.getLower(), LOW_BOUND);
-                        Date upper = parseDate(dateFormat, boundFilter.getUpper(), new Date());
-                        BoundType upperBoundType = boundFilter.isUpperStrict() ? BoundType.CLOSED : BoundType.OPEN;
-                        BoundType lowBoundType = boundFilter.isLowerStrict() ? BoundType.CLOSED : BoundType.OPEN;
+                        LocalDate lower = parseDate(boundFilter.getLower(), LOW_BOUND);
+                        LocalDate upper = parseDate(boundFilter.getUpper(), LocalDate.now());
 
                         gapDay = getDayInterval(lower, upper, boundFilter.isUpperStrict(), boundFilter.isLowerStrict());
-                        sliceDomain = new FilterAnalysis(column, ImmutableRangeSet.of(Range.range(lower, lowBoundType, upper, upperBoundType)), gapDay);
+
+                        LocalDateTime lowerTime = boundFilter.isLowerStrict() ? lower.plusDays(1).atStartOfDay() : lower.atStartOfDay();
+                        LocalDateTime upperTime = boundFilter.isUpperStrict() ? upper.atStartOfDay() : upper.plusDays(1).atStartOfDay();
+                        BoundType lowBoundType = BoundType.CLOSED;
+                        BoundType upperBoundType = BoundType.OPEN;
+
+                        sliceDomain = new FilterAnalysis(column, ImmutableRangeSet.of(Range.range(lowerTime, lowBoundType, upperTime, upperBoundType)), gapDay);
+
+
                     } catch (ParseException e) {
                         throw new SemanticException(WRONG_DATE_FORMAT, "wrong date format");
                     }
@@ -252,25 +261,25 @@ public class SemanticAnalyzer {
 
         }
 
-        //TODO
-        private int getDayInterval(Date lower, Date upper, boolean upperStrict, boolean lowerStrict) {
-            return 1;
+
+        private int getDayInterval(LocalDate lower, LocalDate upper, boolean upperStrict, boolean lowerStrict) {
+            int days = Period.between(lower, upper).getDays();
+            days = lowerStrict ? --days : days;
+            days = upperStrict ? days : ++days;
+            return days;
         }
 
-        private Date parseDate(SimpleDateFormat dateFormat, String dateStr, Date defaultValue) throws ParseException {
-            if (dateStr == null) {
-                return defaultValue;
-            } else {
-                return dateFormat.parse(dateStr);
-            }
+
+        private LocalDate parseDate(String dateStr, LocalDate defaultValue) throws ParseException {
+            return dateStr == null ? defaultValue : LocalDate.parse(dateStr, DATE_TIME_FORMATTER);
         }
 
-        private Table analyzeTable(SingleQuery query,String dbName) {
-            Table table = meta.getTable(dbName,query.getTableName());
+        private Table analyzeTable(SingleQuery query, String dbName) {
+            Table table = meta.getTable(dbName, query.getTableName());
             if (table == null) {
                 throw new SemanticException(MISSING_TABLE, "table %s doesn't exist", dbName);
             }
-            analysis.addTable(query,table);
+            analysis.addTable(query, table);
             return table;
         }
 
@@ -280,7 +289,7 @@ public class SemanticAnalyzer {
             if (meta.getDb(dbName) == null) {
                 throw new SemanticException(MISSING_DB, "db %s doesn't exist", dbName);
             }
-            analysis.addDB(query,dbName);
+            analysis.addDB(query, dbName);
             return dbName;
         }
 

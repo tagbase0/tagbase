@@ -24,10 +24,9 @@ public class CollectionOperator extends  AbstractOperator {
 
 
     public CollectionOperator(int id, OperatorBuffer<AggregateRow> leftSource, OperatorBuffer<AggregateRow> rightSource, OperatorBuffer outputBuffer, OperatorType operator, OutputType outputType) {
-        super(id);
+        super(id,outputBuffer);
         this.leftSource = leftSource;
         this.rightSource = rightSource;
-        this.outputBuffer = outputBuffer;
         this.outputType = outputType;
         this.operator = operator;
     }

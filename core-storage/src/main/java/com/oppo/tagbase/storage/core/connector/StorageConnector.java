@@ -10,12 +10,16 @@ import com.oppo.tagbase.storage.core.executor.StorageExecutors;
 import com.oppo.tagbase.storage.core.obj.*;
 import com.oppo.tagbase.storage.core.util.StorageConstant;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 /**
@@ -189,7 +193,7 @@ public abstract class StorageConnector {
                 break;
             case ACTION:
                 if(queryHandler.hasSliceColumn()){
-                    sliceList = meta.getSlices(queryHandler.getDbName(), queryHandler.getTableName(), queryHandler.getSliceColumn().getColumnRange());
+//                    sliceList = meta.getSlices(queryHandler.getDbName(), queryHandler.getTableName(), queryHandler.getSliceColumn().getColumnRange());
 
                 }else {
                     sliceList = meta.getSlices(queryHandler.getDbName(), queryHandler.getTableName());

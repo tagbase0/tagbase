@@ -14,7 +14,7 @@ import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 import com.oppo.tagbase.storage.core.obj.QueryHandler;
 import org.javatuples.Pair;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -119,7 +119,7 @@ public class PhysicalPlanner {
             Map<String, FilterAnalysis> filterAnalysisMap = analysis.getQueryFilterAnalysis(query);
 
             List<ColumnDomain<String>> dimColumnList = new ArrayList<>();
-            ColumnDomain<Date> sliceColumn = null;
+            ColumnDomain<LocalDateTime> sliceColumn = null;
 
             for (FilterAnalysis filterAnalysis : filterAnalysisMap.values()) {
                 if (filterAnalysis.getColumn().getType() == ColumnType.SLICE_COLUMN) {
@@ -132,7 +132,7 @@ public class PhysicalPlanner {
             QueryHandler queryHandler = new QueryHandler(dbName, table.getName(), dims, dimColumnList, sliceColumn,query.getId());
             int maxGroupSize = scope.getGroupMaxSize();
 
-            planBuilder.addOperator(parentId, new SingleQueryOperator(incrementId++, queryHandler, outputBuffer, connector, maxGroupSize, scope.getOutRelations().get(0).getID()));
+            planBuilder.addOperator(parentId, new SingleQueryOperator(incrementId++, queryHandler, outputBuffer, scope.getOutputType(),connector, maxGroupSize, scope.getOutRelations().get(0).getID()));
 
             return null;
 

@@ -1,6 +1,7 @@
 package com.oppo.tagbase.query;
 
 import com.google.inject.Inject;
+import com.oppo.tagbase.query.operator.Operator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,9 @@ public class QueryEngine {
 
 
     public void execute(PhysicalPlan physicalPlan) {
-
+        for(Operator operator:physicalPlan.getOperators()){
+            service.execute(operator);
+        }
 
 
 

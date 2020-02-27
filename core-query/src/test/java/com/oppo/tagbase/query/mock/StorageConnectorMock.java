@@ -2,13 +2,12 @@ package com.oppo.tagbase.query.mock;
 
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import com.oppo.tagbase.storage.core.exception.StorageException;
-import com.oppo.tagbase.storage.core.obj.RawRow;
 import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 import com.oppo.tagbase.storage.core.obj.QueryHandler;
+import com.oppo.tagbase.storage.core.obj.RawRow;
 import com.oppo.tagbase.storage.core.obj.StorageQueryContext;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -21,6 +20,7 @@ public class StorageConnectorMock extends StorageConnector {
     public StorageConnectorMock(List<RawRow> dataset ){
         outputBuffer = new OperatorBuffer(1);
         dataset.forEach(row -> outputBuffer.postData(row));
+        outputBuffer.postEnd();
     }
 
     public OperatorBuffer createQuery(QueryHandler queryHandler) {
@@ -58,7 +58,7 @@ public class StorageConnectorMock extends StorageConnector {
     }
 
     @Override
-    protected void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer buffer) throws IOException, StorageException {
+    protected void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer buffer) throws  StorageException {
 
     }
 }

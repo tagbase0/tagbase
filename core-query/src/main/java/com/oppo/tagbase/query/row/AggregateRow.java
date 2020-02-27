@@ -137,7 +137,7 @@ public class AggregateRow extends RawRow {
 
 
     public ResultRow transitToResult() {
-        return new ResultRow(dims, metric.getCardinality());
+        return new ResultRow(id,dims, metric.getCardinality());
     }
 
 

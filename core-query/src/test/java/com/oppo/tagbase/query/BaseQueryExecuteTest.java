@@ -3,9 +3,10 @@ package com.oppo.tagbase.query;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import com.oppo.tagbase.query.mock.StorageConnectorMock;
 import com.oppo.tagbase.query.node.Query;
-import com.oppo.tagbase.query.row.AggregateRow;
 import com.oppo.tagbase.storage.core.obj.Dimensions;
+import com.oppo.tagbase.storage.core.obj.RawRow;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
@@ -31,14 +32,35 @@ public class BaseQueryExecuteTest extends BasePhysicalPlanTest {
     }
 
 
+
+    @Test
+    public void testExecuteSingQueryForBehavior() throws IOException {
+        Query query = buildQueryFromFile("behavior.query");
+        Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
+        List<RawRow> rows = readDataFrom("behavior.data");
+
+
+        PHYSICAL_PLANNER.setStorageConnector(new StorageConnectorMock(rows));
+
+        PhysicalPlan physicalPlan = PHYSICAL_PLANNER.plan(query, analysis);
+
+
+        QUERY_ENGINE.execute(physicalPlan);
+
+        System.out.println(physicalPlan.getResult());
+
+
+    }
+
     @Test
     public void testSingQueryResult() throws IOException {
 
         Query query = buildQueryFromFile("province.query");
         Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
 
-        List<AggregateRow> rows = readDataFrom("province.data");
-//        PHYSICAL_PLANNER.setStorageConnector(new StorageConnectorMock(rows));
+        List<RawRow> rows = readDataFrom("province.data");
+
+        PHYSICAL_PLANNER.setStorageConnector(new StorageConnectorMock(rows));
 
         PhysicalPlan physicalPlan = PHYSICAL_PLANNER.plan(query, analysis);
 
@@ -51,8 +73,8 @@ public class BaseQueryExecuteTest extends BasePhysicalPlanTest {
 
     }
 
-    private List<AggregateRow> readDataFrom(String dataPath) {
-        ImmutableList.Builder<AggregateRow> rowBuilder = ImmutableList.builder();
+    private List<RawRow> readDataFrom(String dataPath) {
+        ImmutableList.Builder<RawRow> rowBuilder = ImmutableList.builder();
         try {
             List<String> lines = Files.readLines(getResourceFile(dataPath), Charset.defaultCharset());
 
@@ -73,7 +95,7 @@ public class BaseQueryExecuteTest extends BasePhysicalPlanTest {
 
                 byte[][] byteDims = null;
 
-                if (dimStr.length != 0 && dimStr[0].equals("")) {
+                if (dimStr.length != 0 && !dimStr[0].equals("")) {
                     byteDims = new byte[dimStr.length][];
                     for (int n = 0; n < dimStr.length; n++) {
                         byteDims[n] = dimStr[n].getBytes();
@@ -81,7 +103,7 @@ public class BaseQueryExecuteTest extends BasePhysicalPlanTest {
 
 
                 }
-                rowBuilder.add(new AggregateRow("0", new Dimensions(byteDims), bitmap));
+                rowBuilder.add(new RawRow(new Dimensions(byteDims), bitmap));
             }
 
 
