@@ -31,6 +31,6 @@ public class MetadataTest {
 
     @Test
     public void initSchemaTest() {
-        metadata.initSchema();
+//        metadata.initSchema();
     }
 }

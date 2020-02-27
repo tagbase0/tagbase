@@ -25,6 +25,11 @@
     </module>
     -->
 
+    <!-- 每行字符数 -->
+    <module name="LineLength">
+        <property name="max" value="8000"/>
+    </module>
+
     <module name="TreeWalker">
 
         <module name="SuppressionCommentFilter"/>
@@ -203,11 +208,6 @@
         <!-- Checks the number of parameters of a method or constructor. max default 7个. -->
         <module name="ParameterNumber">
             <property name="max" value="19"/>
-        </module>
-
-        <!-- 每行字符数 -->
-        <module name="LineLength">
-            <property name="max" value="8000"/>
         </module>
 
         <!-- Checks for long methods and constructors. max default 150行. max=300 设置长度300 -->
