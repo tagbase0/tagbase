@@ -10,17 +10,12 @@ import com.oppo.tagbase.storage.core.executor.StorageExecutors;
 import com.oppo.tagbase.storage.core.obj.*;
 import com.oppo.tagbase.storage.core.util.StorageConstant;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 
 /**
@@ -40,6 +35,9 @@ public abstract class StorageConnector {
 
     protected Logger log = LoggerFactory.getLogger(StorageConnector.class);
 
+    /**
+     * init query thread pool and connector
+     */
     public void init(){
         log.info(commonConfig.toString());
         synchronized (StorageConnector.class) {
@@ -54,8 +52,11 @@ public abstract class StorageConnector {
         initConnector();
     }
 
-    protected abstract void initConnector();
+    protected abstract void initConnector() throws StorageException ;
 
+    /**
+     * destroy query thread pool and connector
+     */
     public void destroy(){
         if (queryExecutor == null) {
             return;
@@ -66,13 +67,16 @@ public abstract class StorageConnector {
                 queryExecutor.shutdownNow();
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.error("destroy storage error", e);
         }
         destroyConnector();
     }
 
     protected abstract void destroyConnector();
 
+    /**
+     * create storage table
+     */
     public void createTable(String dbName, String tableName) throws StorageException {
         //从元数据slice获取分片数,目前默认为1
         int partition = 1;
@@ -81,15 +85,27 @@ public abstract class StorageConnector {
 
     protected abstract void createTable(String dbName, String tableName, int partition) throws StorageException;
 
+    /**
+     * delete storage table
+     */
     public abstract void deleteTable(String dbName, String tableName) throws StorageException;
 
+    /**
+     * insert one record into storage
+     */
     public abstract void createRecord(String dbName, String tableName, String key, ImmutableRoaringBitmap value) throws StorageException;
 
+    /**
+     * insert multiple records into storage
+     */
     public abstract void createBatchRecords(String dbName, String tableName, String dataPath) throws StorageException;
 
+    /**
+     * query interface
+     */
     public OperatorBuffer<RawRow> createQuery(QueryHandler queryHandler) {
 
-        Table metaTable = meta.getTable(queryHandler.getDbName(), queryHandler.getDbName());
+        Table metaTable = meta.getTable(queryHandler.getDbName(), queryHandler.getTableName());
         List<SliceSegment> sliceList = getSliceSegments(metaTable, queryHandler);
         OperatorBuffer<RawRow> buffer = new OperatorBuffer<>(sliceList.size());
         //假如没有slice符合查询条件，直接返回
@@ -113,6 +129,9 @@ public abstract class StorageConnector {
         return buffer;
     }
 
+    /**
+     * get dimension context by queryHandler
+     */
     private List<DimContext>  getDimContexts(Table metaTable, QueryHandler queryHandler){
         Map<String, DimContext> dimContextMap = new HashMap<>();
 
@@ -158,7 +177,9 @@ public abstract class StorageConnector {
         return dimContextList;
     }
 
-
+    /**
+     * get Slices by queryHandler
+     */
     private List<SliceSegment> getSliceSegments(Table metaTable, QueryHandler queryHandler){
         List<SliceSegment> sliceSegments = new ArrayList<>();
         List<Slice> sliceList = null;
@@ -178,14 +199,18 @@ public abstract class StorageConnector {
                 break;
         }
         if(sliceList != null) {
-            sliceList.stream().forEach(slice -> sliceSegments.add(new SliceSegment(slice.getStartTime().toString(), slice.getSink(), slice.getShardNum())));
+            sliceList.stream()
+                    .forEach(slice -> sliceSegments.add(new SliceSegment(slice.getStartTime().toString(), slice.getSink(), slice.getShardNum())));
         }
 
         return sliceSegments;
     }
 
-    protected abstract void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer<RawRow> buffer) throws IOException, StorageException;
+    protected abstract void createStorageQuery(StorageQueryContext storageQueryContext, OperatorBuffer<RawRow> buffer) throws StorageException;
 
+    /**
+     * Runnable query task
+     */
     class QueryTask implements Runnable {
 
         private OperatorBuffer<RawRow> buffer;
@@ -200,8 +225,9 @@ public abstract class StorageConnector {
         public void run() {
             String originThreadName = Thread.currentThread().getName();
             String newThreadName = originThreadName + "-" + storageQueryContext.getQueryId();
+            //修改线程名，添加queryId
             Thread.currentThread().setName(newThreadName);
-            log.debug("start QueryTask,  " + storageQueryContext);
+            log.debug("start QueryTask, {}", storageQueryContext);
             try {
                 createStorageQuery(storageQueryContext, buffer);
             } catch (Exception e) {
