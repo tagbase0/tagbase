@@ -13,7 +13,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.sql.Date;
+import java.time.LocalDateTime;
 
 /**
  * Created by wujianchao on 2020/2/26.
@@ -30,8 +30,8 @@ public class JobResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Job buildDict(@FormParam("dbName") @NotNull String dbName,
                      @FormParam("tableName") @NotNull String tableName,
-                     @FormParam("dataLowerTime") @NotNull Date dataLowerTime,
-                     @FormParam("dataUpperTime") @NotNull Date dataUpperTime) {
+                     @FormParam("dataLowerTime") @NotNull LocalDateTime dataLowerTime,
+                     @FormParam("dataUpperTime") @NotNull LocalDateTime dataUpperTime) {
 
         return manager.build(dbName, tableName, dataLowerTime, dataUpperTime);
     }
@@ -42,8 +42,8 @@ public class JobResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Job build(@FormParam("dbName") @NotNull String dbName,
                      @FormParam("tableName") @NotNull String tableName,
-                     @FormParam("dataLowerTime") @NotNull Date dataLowerTime,
-                     @FormParam("dataUpperTime") @NotNull Date dataUpperTime) {
+                     @FormParam("dataLowerTime") @NotNull LocalDateTime dataLowerTime,
+                     @FormParam("dataUpperTime") @NotNull LocalDateTime dataUpperTime) {
 
         return manager.build(dbName, tableName, dataLowerTime, dataUpperTime);
     }
@@ -54,8 +54,8 @@ public class JobResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Job rebuild(@FormParam("dbName") @NotNull String dbName,
                      @FormParam("tableName") @NotNull String tableName,
-                     @FormParam("dataLowerTime") @NotNull Date dataLowerTime,
-                     @FormParam("dataUpperTime") @NotNull Date dataUpperTime) {
+                     @FormParam("dataLowerTime") @NotNull LocalDateTime dataLowerTime,
+                     @FormParam("dataUpperTime") @NotNull LocalDateTime dataUpperTime) {
 
         return manager.rebuild(dbName, tableName, dataLowerTime, dataUpperTime);
     }
@@ -113,8 +113,8 @@ public class JobResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Job listJob(@PathParam("dbName") @NotNull String dbName,
                        @PathParam("dbName") @NotNull String tableName,
-                       @FormParam("startTime") @NotNull Date startTime,
-                       @FormParam("endTime") @NotNull Date endTime) {
+                       @FormParam("startTime") @NotNull LocalDateTime startTime,
+                       @FormParam("endTime") @NotNull LocalDateTime endTime) {
 
         return manager.listJob(dbName, tableName, startTime, endTime);
     }

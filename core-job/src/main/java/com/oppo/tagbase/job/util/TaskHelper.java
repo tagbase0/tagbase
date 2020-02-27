@@ -6,18 +6,34 @@ import com.oppo.tagbase.job.obj.HiveMeta;
 import com.oppo.tagbase.job.obj.HiveSrcTable;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataDict;
-import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.obj.Dict;
+import com.oppo.tagbase.meta.obj.DictStatus;
+import com.oppo.tagbase.meta.obj.DictType;
+import com.oppo.tagbase.meta.obj.Slice;
+import com.oppo.tagbase.meta.obj.Task;
+import com.oppo.tagbase.meta.obj.TaskState;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -85,7 +101,7 @@ public class TaskHelper {
 
         // 5. update forwardDict Metadata
         dict.setLocation(forwardDictHDFSPath);
-        dict.setCreateDate(new Date(System.currentTimeMillis()));
+        dict.setCreateDate(LocalDateTime.now());
         dict.setStatus(DictStatus.READY);
         dict.setElementCount(numOld + mapInverted.size());
         dict.setId(System.currentTimeMillis());
@@ -233,8 +249,8 @@ public class TaskHelper {
 
         slice.setId(sliceId);
         slice.setTableId(tableId);
-        slice.setStartTime(startTime);
-        slice.setEndTime(endTime);
+        slice.setStartTime(LocalDateTime.now());
+        slice.setEndTime(LocalDateTime.now());
         slice.setSink(sink);
         slice.setSrcCount(srcCount);
         slice.setSinkCount(sinkCount);

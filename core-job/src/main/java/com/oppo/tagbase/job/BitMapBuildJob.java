@@ -7,16 +7,20 @@ import com.oppo.tagbase.job.util.TableHelper;
 import com.oppo.tagbase.job.util.TaskHelper;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataJob;
-import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.obj.Job;
+import com.oppo.tagbase.meta.obj.JobState;
+import com.oppo.tagbase.meta.obj.JobType;
+import com.oppo.tagbase.meta.obj.Slice;
+import com.oppo.tagbase.meta.obj.Task;
+import com.oppo.tagbase.meta.obj.TaskState;
+import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import com.oppo.tagbase.storage.core.exception.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Callable;
-
-import com.oppo.tagbase.storage.core.connector.StorageConnector;
 
 /**
  * Created by daikai on 2020/2/16.
@@ -114,7 +118,7 @@ public class BitMapBuildJob extends Task implements Callable<Slice> {
 
         //3. update Metadata
         new MetadataJob().completeTask(task.getId(), state,
-                new Date(System.currentTimeMillis()), task.getOutput());
+                LocalDateTime.now(), task.getOutput());
         log.debug("BulkLoadTask {} finished.", task.getId());
 
         new Metadata().addSlice(slice);
@@ -150,7 +154,7 @@ public class BitMapBuildJob extends Task implements Callable<Slice> {
 
         //3. update Metadata
         new MetadataJob().completeTask(task.getId(), state,
-                new Date(System.currentTimeMillis()), toPath);
+                LocalDateTime.now(), toPath);
 
         return hiveMeta;
     }

@@ -9,7 +9,6 @@ import com.oppo.tagbase.meta.obj.JobState;
 import com.oppo.tagbase.meta.obj.Task;
 
 import javax.inject.Inject;
-import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -102,7 +101,7 @@ public class JobManager {
         return null;
     }
 
-    public Job listJob(String dbName, String tableName, Date startTime, Date endTime) {
+    public Job listJob(String dbName, String tableName, LocalDateTime startTime, LocalDateTime endTime) {
         return null;
     }
 }

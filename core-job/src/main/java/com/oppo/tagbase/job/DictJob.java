@@ -8,12 +8,17 @@ import com.oppo.tagbase.job.util.TableHelper;
 import com.oppo.tagbase.job.util.TaskHelper;
 import com.oppo.tagbase.meta.MetadataDict;
 import com.oppo.tagbase.meta.MetadataJob;
-import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.obj.Dict;
+import com.oppo.tagbase.meta.obj.Job;
+import com.oppo.tagbase.meta.obj.JobState;
+import com.oppo.tagbase.meta.obj.JobType;
+import com.oppo.tagbase.meta.obj.Task;
+import com.oppo.tagbase.meta.obj.TaskState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -40,7 +45,7 @@ public class DictJob implements AbstractJob {
         build(job);
 
         // update MetadataJob job info
-        new MetadataJob().completeJOb(job.getId(), job.getState(), new Date(System.currentTimeMillis()));
+        new MetadataJob().completeJOb(job.getId(), job.getState(), LocalDateTime.now());
 
         log.info("{} is finished.", job.getId());
 
@@ -69,7 +74,7 @@ public class DictJob implements AbstractJob {
         dictJob.setName(dbName + "_" + tableName + "_" + dictJobId);
         dictJob.setDbName(dbName);
         dictJob.setTableName(tableName);
-        dictJob.setStartTime(new Date(System.currentTimeMillis()));
+        dictJob.setStartTime(LocalDateTime.now());
         dictJob.setState(JobState.PENDING);
         dictJob.setType(JobType.DICTIONARY);
 
@@ -212,7 +217,7 @@ public class DictJob implements AbstractJob {
         task.setOutput(fileLocationForwardNew);
         new MetadataJob().completeTask(task.getId(),
                 task.getState(),
-                new Date(System.currentTimeMillis()),
+                LocalDateTime.now(),
                 task.getOutput());
 
         new MetadataDict().addDict(dictForwardToday);
@@ -248,7 +253,7 @@ public class DictJob implements AbstractJob {
         // 3. update Metadata
         new MetadataJob().completeTask(task.getId(),
                 state,
-                new Date(System.currentTimeMillis()),
+                LocalDateTime.now(),
                 task.getOutput());
     }
 

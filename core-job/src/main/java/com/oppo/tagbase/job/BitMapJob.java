@@ -3,12 +3,18 @@ package com.oppo.tagbase.job;
 import com.oppo.tagbase.job.util.DateFormat;
 import com.oppo.tagbase.job.util.IdGenerator;
 import com.oppo.tagbase.meta.MetadataJob;
-import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.obj.Job;
+import com.oppo.tagbase.meta.obj.JobState;
+import com.oppo.tagbase.meta.obj.JobType;
+import com.oppo.tagbase.meta.obj.Slice;
+import com.oppo.tagbase.meta.obj.Task;
+import com.oppo.tagbase.meta.obj.TaskState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.concurrent.Future;
 
 /**
@@ -33,7 +39,7 @@ public class BitMapJob implements AbstractJob {
         String jobId = build(job);
 
         // update MetadataJob job info
-        new MetadataJob().completeJOb(jobId, job.getState(), new Date(System.currentTimeMillis()));
+        new MetadataJob().completeJOb(jobId, job.getState(), LocalDateTime.now());
         log.info("{} is finished.", job.getId());
 
         return jobId;
@@ -61,9 +67,9 @@ public class BitMapJob implements AbstractJob {
         bitMapJob.setName(jobName);
         bitMapJob.setDbName(dbName);
         bitMapJob.setTableName(tableName);
-        bitMapJob.setStartTime(new Date(System.currentTimeMillis()));
-        bitMapJob.setDataLowerTime(dataLowerDate);
-        bitMapJob.setDataUpperTime(dataUpperDate);
+        bitMapJob.setStartTime(LocalDateTime.now());
+        bitMapJob.setDataLowerTime(LocalDateTime.now());
+        bitMapJob.setDataUpperTime(LocalDateTime.now());
         bitMapJob.setState(JobState.PENDING);
         bitMapJob.setType(JobType.DATA);
 
@@ -124,7 +130,7 @@ public class BitMapJob implements AbstractJob {
             Future<Slice> slice = JOB_EXECUTORS.submit(new BitMapBuildJob(bitMapJobHead.getId()));
 
             new MetadataJob().completeJOb(bitMapJobHead.getId(), bitMapJobHead.getState(),
-                    new Date(System.currentTimeMillis()));
+                    LocalDateTime.now());
 
             log.info("{} is finished.", bitMapJobHead.getId());
         }
