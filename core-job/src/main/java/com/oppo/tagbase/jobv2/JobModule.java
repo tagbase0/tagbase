@@ -1,4 +1,4 @@
-package com.oppo.tagbase.job_v2;
+package com.oppo.tagbase.jobv2;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;

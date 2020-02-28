@@ -1,39 +1,39 @@
-package com.oppo.tagbase.job_v2;
+package com.oppo.tagbase.jobv2;
 
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeRangeSet;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 
 /**
  * Created by wujianchao on 2020/2/26.
  */
-public class Timeline {
+public final class Timeline {
 
-    private RangeSet<Date> rangeSet = TreeRangeSet.create();
+    private RangeSet<LocalDateTime> rangeSet = TreeRangeSet.create();
 
 
-    private Timeline(Set<Range<Date>> ranges) {
-        for (Range<Date> range : ranges) {
+    private Timeline(Set<Range<LocalDateTime>> ranges) {
+        for (Range<LocalDateTime> range : ranges) {
             rangeSet.add(range);
         }
     }
 
 
-    public boolean overlap(Range<Date> range) {
+    public boolean overlap(Range<LocalDateTime> range) {
 //        range.
         return true;
     }
 
 
     class Builder {
-        private Set<Range<Date>> ranges = Sets.newHashSet();
+        private Set<Range<LocalDateTime>> ranges = Sets.newHashSet();
 
-        public Builder add(Collection<Range<Date>> ranges) {
+        public Builder add(Collection<Range<LocalDateTime>> ranges) {
             this.ranges.addAll(ranges);
             return this;
         }

@@ -1,4 +1,4 @@
-package com.oppo.tagbase.job_v2;
+package com.oppo.tagbase.jobv2;
 
 import com.oppo.tagbase.common.guice.LifecycleStart;
 import com.oppo.tagbase.common.guice.LifecycleStop;

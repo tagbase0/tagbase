@@ -1,4 +1,4 @@
-package com.oppo.tagbase.job_v2;
+package com.oppo.tagbase.jobv2;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;

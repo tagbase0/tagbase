@@ -1,4 +1,4 @@
-package com.oppo.tagbase.job_v2.skeleton;
+package com.oppo.tagbase.jobv2.skeleton;
 
 /**
  * Created by wujianchao on 2020/2/27.
