@@ -15,6 +15,7 @@ import com.oppo.tagbase.storage.hbase.HbaseStorageModule;
 import org.roaringbitmap.buffer.MutableRoaringBitmap;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,10 +59,10 @@ public class HbaseStorageExample {
                 System.out.println("OperatorBuffer: " + row);
             }
 
+            lifecycle.join();
+
         } catch (Exception e) {
             e.printStackTrace();
-        }finally {
-            lifecycle.stop();
         }
 
     }
