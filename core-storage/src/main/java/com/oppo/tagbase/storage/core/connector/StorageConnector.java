@@ -193,7 +193,7 @@ public abstract class StorageConnector {
                 break;
             case ACTION:
                 if(queryHandler.hasSliceColumn()){
-//                    sliceList = meta.getSlices(queryHandler.getDbName(), queryHandler.getTableName(), queryHandler.getSliceColumn().getColumnRange());
+                    sliceList = meta.getSlices(queryHandler.getDbName(), queryHandler.getTableName(), queryHandler.getSliceColumn().getColumnRange());
 
                 }else {
                     sliceList = meta.getSlices(queryHandler.getDbName(), queryHandler.getTableName());

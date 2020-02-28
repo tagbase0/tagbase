@@ -27,7 +27,7 @@ public class StatusResource {
     @GET
     @Path("/detail")
     public Response detail(@Context final HttpServletRequest req,
-                           @NotNull @QueryParam("p")  String p) {
+                           @NotNull(message = "p must be not null") @QueryParam("p")  String p) {
         return Response.ok("detailed status of " + p).build();
     }
 

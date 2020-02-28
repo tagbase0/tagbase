@@ -3,8 +3,7 @@ package com.oppo.tagbase.common.guice;
 import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.sun.jersey.guice.JerseyServletModule;
-import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
+import com.google.inject.servlet.ServletModule;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -13,29 +12,30 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * Created by wujianchao on 2020/1/21.
  */
-public class JettyModule extends JerseyServletModule {
+public class JettyModule extends ServletModule {
 
     private Logger log = LoggerFactory.getLogger(getClass());
-
 
     //configureServlets
     @Override
     protected void configureServlets() {
         Binder binder = binder();
         ConfBind.bind(binder, "tagbase.server", JettyConfig.class);
-        binder.bind(GuiceContainer.class).to(ResourceContainer.class);
+        binder.bind(ServletContainer.class).to(ResourceContainer.class);
         Lifecycle.registerInstance(binder, JettyInitializer.class);
     }
 
     @Provides
     @Singleton
-    private Server getJettyServer(JettyConfig config, GuiceContainer container) {
+    private Server getJettyServer(JettyConfig config, ServletContainer container) {
 
         System.out.println("new jetty server");
 
@@ -61,8 +61,16 @@ public class JettyModule extends JerseyServletModule {
 
         ServletContextHandler handler = new ServletContextHandler();
         handler.setContextPath("/");
-        handler.addServlet(new ServletHolder(container), "/*");
+
+        ServletHolder holder = new ServletHolder(container);
+        holder.setInitOrder(1);
+        holder.setInitParameter("jersey.config.server.provider.packages", "com.jersey");
+        holder.setInitParameter("jersey.config.server.provider.classnames", "org.glassfish.jersey.server.filter.CsrfProtectionFilter");
+
+
+        handler.addServlet(holder, "/*");
         server.setHandler(handler);
+
 
         return server;
     }

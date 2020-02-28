@@ -1,39 +1,24 @@
 package com.oppo.tagbase.common.guice;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import com.sun.jersey.api.core.DefaultResourceConfig;
-import com.sun.jersey.api.core.ResourceConfig;
-import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
-import com.sun.jersey.spi.container.servlet.WebConfig;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
+import org.glassfish.jersey.servlet.ServletContainer;
 
-import java.util.Map;
 import java.util.Set;
 
 /**
  * Created by wujianchao on 2020/1/15.
  */
 @Singleton
-public class ResourceContainer extends GuiceContainer {
-
-    private final Set<Class<?>> resources;
+public class ResourceContainer extends ServletContainer {
 
     @Inject
-    public ResourceContainer(
-            Injector injector,
-            @Resource Set<Class<?>> resources
-    ) {
-        super(injector);
-        this.resources = resources;
+    public ResourceContainer(@Resource Set<Class<?>> resources) {
+        super(new ResourceConfig(resources).property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE,true));
         System.out.println(resources);
-    }
 
-    @Override
-    protected ResourceConfig getDefaultResourceConfig(
-            Map<String, Object> props, WebConfig webConfig
-    ) {
-        return new DefaultResourceConfig(resources);
     }
 
 }

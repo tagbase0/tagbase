@@ -27,8 +27,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <guava.version>28.1-jre</guava.version>
         <guice.version>4.2.2</guice.version>
-        <jetty.version>9.4.25.v20191220</jetty.version>
-        <jersey.version>1.19.4</jersey.version>
+
+        <jersey2.version>2.30</jersey2.version>
+        <jetty2.version>9.4.17.v20190418</jetty2.version>
+<!--        <jetty.version>9.4.25.v20191220</jetty.version>-->
+<!--        <jersey.version>1.19.4</jersey.version>-->
+
         <jackson.version>2.10.0</jackson.version>
         <slf4j.version>1.7.25</slf4j.version>
         <junit.version>4.12</junit.version>
