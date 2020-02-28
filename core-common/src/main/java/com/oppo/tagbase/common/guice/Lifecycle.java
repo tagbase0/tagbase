@@ -16,7 +16,7 @@ import java.util.Set;
 /**
  * Created by wujianchao on 2020/1/21.
  */
-public class Lifecycle {
+public final class Lifecycle {
 
     private static Logger LOG = LoggerFactory.getLogger(Lifecycle.class);
 
@@ -43,7 +43,7 @@ public class Lifecycle {
 
         for (Object instance : instances) {
             LOG.debug("Start - {}", instance.getClass().getSimpleName());
-            new Handler(instance).start();
+            Handler.wrap(instance).start();
         }
     }
 
@@ -58,13 +58,13 @@ public class Lifecycle {
         }, "shutdown-hook"));
     }
 
-    public void stop() {
+    private void stop() {
         for (Object handler : instances) {
-            new Handler(handler).stop();
+            Handler.wrap(handler).stop();
         }
     }
 
-    public static <T extends Annotation> void invokeAnnotatedMethod(Object o, Class<T> annotationClass) {
+    private static <T extends Annotation> void invokeAnnotatedMethod(Object o, Class<T> annotationClass) {
         try {
             Class clazz = o.getClass();
 
@@ -79,11 +79,15 @@ public class Lifecycle {
         }
     }
 
-    static class Handler {
+    static final class Handler {
         private Object instance;
 
-        Handler(Object instance) {
+        private Handler(Object instance) {
             this.instance = instance;
+        }
+
+        public static Handler wrap(Object instance){
+            return new Handler(instance);
         }
 
         public void start() {

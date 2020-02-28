@@ -1,8 +1,14 @@
 package com.oppo.tagbase.common.guice;
 
-import com.google.inject.*;
+import com.google.inject.Binder;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.Provider;
+import com.google.inject.Scopes;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.util.Types;
+import com.oppo.tagbase.common.util.AnnotationUtil;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Map;
@@ -13,8 +19,21 @@ import java.util.Properties;
  */
 public final class PolyBind {
 
+    @Deprecated
+    public static <T> void bind(Binder binder, Class<T> i, String propKey, String defaultImpl) {
+        binder.bind(i).toProvider(new PolyProvider<T>(i, propKey, defaultImpl)).in(Scopes.SINGLETON);
+    }
+
     /**
-     * 1. register an implementation
+     * 1. bind named implementation to interface by prop key
+     */
+    public static <T> void bind(Binder binder, Class<T> i) {
+        Poly poly = AnnotationUtil.getAnnotation(i, Poly.class);
+        binder.bind(i).toProvider(new PolyProvider<T>(i, poly.key(), poly.defaultImpl())).in(Scopes.SINGLETON);
+    }
+
+    /**
+     * 2. register an implementation
      */
     public static <T> void registerImpl(Binder binder,
                                         Class<T> i,
@@ -22,14 +41,6 @@ public final class PolyBind {
                                         Class<? extends T> implClazz) {
         MapBinder.newMapBinder(binder, String.class, i)
                 .addBinding(implName).to(implClazz).in(Scopes.SINGLETON);
-    }
-
-
-    /**
-     * 2. bind named implementation to interface by prop key
-     */
-    public static <T> void bind(Binder binder, Class<T> i, String propKey, String defaultImpl) {
-        binder.bind(i).toProvider(new PolyProvider<T>(i, propKey, defaultImpl)).in(Scopes.SINGLETON);
     }
 
 
