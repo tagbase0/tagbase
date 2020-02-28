@@ -88,4 +88,17 @@ public class Dict {
     public int hashCode() {
         return Objects.hash(id);
     }
+
+    @Override
+    public String toString() {
+        return "Dict{" +
+                "id=" + id +
+                ", version='" + version + '\'' +
+                ", status=" + status +
+                ", location='" + location + '\'' +
+                ", elementCount=" + elementCount +
+                ", createDate=" + createDate +
+                ", type=" + type +
+                '}';
+    }
 }

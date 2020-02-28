@@ -127,4 +127,20 @@ public class Slice {
         return Objects.hash(tableId, startTime, endTime);
     }
 
+    @Override
+    public String toString() {
+        return "Slice{" +
+                "id=" + id +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", tableId=" + tableId +
+                ", sink='" + sink + '\'' +
+                ", status=" + status +
+                ", shardNum=" + shardNum +
+                ", srcSizeMb=" + srcSizeMb +
+                ", srcCount=" + srcCount +
+                ", sinkSizeMb=" + sinkSizeMb +
+                ", sinkCount=" + sinkCount +
+                '}';
+    }
 }

@@ -247,7 +247,7 @@ public abstract class MetadataConnector {
     public void addSlice(Slice slice) {
         submit(handle -> {
 
-            if(slice.getStatus() != SliceStatus.BUILDING) {
+            if (slice.getStatus() != SliceStatus.BUILDING) {
                 throw new MetadataException(MetadataErrorCode.METADATA_ERROR, "Newly added slice must be BUILDING status.");
             }
 
@@ -279,7 +279,7 @@ public abstract class MetadataConnector {
 //                return handle.execute(sqlAddSlice);
 //            }
 
-            if(tableType == TableType.TAG) {
+            if (tableType == TableType.TAG) {
                 handle.execute("Update `SLICE` set `status`=? where `tableId`=? and `status`=?",
                         SliceStatus.DISABLED,
                         slice.getTableId(),
@@ -311,7 +311,7 @@ public abstract class MetadataConnector {
                         .bind("tableId", tableId)
                         .mapTo(TableType.class)
                         .one();
-                if(tableType == TableType.TAG) {
+                if (tableType == TableType.TAG) {
                     handle.execute("Update `SLICE` set `status`=? where `tableId`=? and `status`=?",
                             SliceStatus.DISABLED,
                             tableId,
@@ -321,15 +321,15 @@ public abstract class MetadataConnector {
 
             return handle.execute("Update `SLICE` set `status`=? where `id`=?",
                     status,
-                    tableId);
+                    id);
         });
     }
 
     public void updateSliceSinkStatistics(long id, long sinkSizeMb, long sinkCount) {
         submit(handle -> handle.execute("Update `SLICE` set `sinkSizeMb`=? , `sinkCount`=? where `id`=?",
-                    sinkSizeMb,
-                    sinkCount,
-                    id)
+                sinkSizeMb,
+                sinkCount,
+                id)
         );
     }
 
@@ -496,8 +496,28 @@ public abstract class MetadataConnector {
 
     public void completeJOb(String jobId, JobState state, LocalDateTime endTime) {
         submit(handle -> {
-            String sql = "Update `JOB` set `state`=? and `endTime`=? where `id`=?";
+            String sql = "Update `JOB` set `state`=? , `endTime`=? where `id`=?";
             return handle.execute(sql, state, endTime, jobId);
+        });
+    }
+
+    public void updateJob(Job job) {
+        submit(handle -> {
+            String sql = "Update `JOB` set  `name`=?, `dbName`=?, `tableName`=?, `startTime`=?, `endTime`=?, " +
+                    "`dataLowerTime`=?, `dataUpperTime`=?, `latestTask`=?, `state`=?, `type`=? where `id`=?";
+
+            return handle.execute(sql,
+                    job.getName(),
+                    job.getDbName(),
+                    job.getTableName(),
+                    job.getStartTime(),
+                    job.getEndTime(),
+                    job.getDataLowerTime(),
+                    job.getDataUpperTime(),
+                    job.getLatestTask(),
+                    job.getState(),
+                    job.getType(),
+                    job.getId());
         });
     }
 
@@ -524,7 +544,7 @@ public abstract class MetadataConnector {
     public void addTask(Task task) {
         submit(handle -> {
             String sql = "INSERT INTO `TASK`(`id`, `name`, `jobId`, `appId`, `startTime`, `endTime`, `step`, `state`, `output`) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             return handle.execute(sql,
                     task.getId(),
                     task.getName(),
@@ -539,10 +559,38 @@ public abstract class MetadataConnector {
         });
     }
 
+    public Task getTask(String taskId){
+        return (submit(handle -> {
+            Task task = handle.createQuery("Select `TASK`.* from `TASK` where `TASK`.`id`=:taskId")
+                    .bind("taskId", taskId)
+                    .mapToBean(Task.class)
+                    .one();
+            return task;
+        }));
+    }
+
     public void completeTask(String taskId, TaskState state, LocalDateTime endTime, String output) {
         submit(handle -> {
-            String sql = "Update `TASK` set `state`=? and `endTime`=? and `output`=? where `id`=?";
+            String sql = "Update `TASK` set `state`=? , `endTime`=? , `output`=? where `id`=?";
             return handle.execute(sql, state, endTime, output, taskId);
+        });
+    }
+
+    public void updateTask(Task task){
+        submit(handle -> {
+
+            String sql = "Update `TASK` set `name`=?, `jobId`=?, `appId`=?, `startTime`=?, " +
+                    "`endTime`=?, `step`=?, `state`=?, `output`=? where `id`=?";
+            return handle.execute(sql,
+                    task.getName(),
+                    task.getJobId(),
+                    task.getAppId(),
+                    task.getStartTime(),
+                    task.getEndTime(),
+                    task.getStep(),
+                    task.getState(),
+                    task.getOutput(),
+                    task.getId());
         });
     }
 

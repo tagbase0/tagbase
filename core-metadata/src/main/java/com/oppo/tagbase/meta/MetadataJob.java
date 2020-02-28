@@ -49,4 +49,16 @@ public class MetadataJob {
     public void completeTask(String taskId, TaskState state, LocalDateTime endTime, String output) {
         metadataConnector.completeTask(taskId, state, endTime, output);
     }
+
+    public void updateJob(Job job){
+        metadataConnector.updateJob(job);
+    }
+
+    public void updateTask(Task task){
+        metadataConnector.updateTask(task);
+    }
+
+    public Task getTask(String taskId) {
+        return metadataConnector.getTask(taskId);
+    }
 }

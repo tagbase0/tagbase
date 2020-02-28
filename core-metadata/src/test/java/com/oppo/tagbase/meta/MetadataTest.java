@@ -1,6 +1,9 @@
 package com.oppo.tagbase.meta;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.TreeRangeSet;
 import com.google.inject.Injector;
 import com.oppo.tagbase.common.guice.ExampleGuiceInjectors;
 import com.oppo.tagbase.common.guice.PropsModule;
@@ -14,12 +17,15 @@ import com.oppo.tagbase.meta.obj.Table;
 import com.oppo.tagbase.meta.obj.TableType;
 import com.oppo.tagbase.meta.type.DataType;
 import org.junit.Before;
+import org.junit.Test;
 
 
 import java.text.ParseException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by wujianchao on 2020/2/27.
@@ -42,18 +48,18 @@ public class MetadataTest {
     }
 
     /*-------------Metadata initialization part--------------*/
-
+    
     public void initSchemaTest() {
         metadata.initSchema();
     }
 
     /*-------------Metadata DDL part--------------*/
-
+    
     public void addDb() {
         metadata.addDb("test_db", "For test");
     }
 
-
+    
     public void addTable() {
 
         // tag - city test
@@ -150,6 +156,7 @@ public class MetadataTest {
     }
 
     /*-------------Metadata API for data building--------------*/
+    
     public void getTable() {
         Table table = metadata.getTable("test_db", "test_table_tag_city");
 
@@ -160,13 +167,13 @@ public class MetadataTest {
         System.out.println("tableAction: "+ tableAction);
     }
 
-
-    public void addSlice() throws ParseException {
+    
+    public void addSlice() {
         Slice sliceCity = new Slice();
-        sliceCity.setStartTime(LocalDateTime.now());
-        sliceCity.setEndTime(LocalDateTime.now());
+        sliceCity.setStartTime(LocalDateTime.parse("2018-06-03 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceCity.setEndTime(LocalDateTime.parse("2018-06-04 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         sliceCity.setTableId(1);
-        sliceCity.setSink("/tagbase_tag_city");
+        sliceCity.setSink("/tagbase_tag_city_03");
         sliceCity.setShardNum(1);
         sliceCity.setSrcSizeMb(50);
         sliceCity.setSrcCount(500);
@@ -176,10 +183,10 @@ public class MetadataTest {
         metadata.addSlice(sliceCity);
 
         Slice sliceAction = new Slice();
-        sliceAction.setStartTime(LocalDateTime.now());
-        sliceAction.setEndTime(LocalDateTime.now());
+        sliceAction.setStartTime(LocalDateTime.parse("2018-06-03 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceAction.setEndTime(LocalDateTime.parse("2018-06-04 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         sliceAction.setTableId(2);
-        sliceAction.setSink("/tagbase_action");
+        sliceAction.setSink("/tagbase_action_03");
         sliceAction.setShardNum(1);
         sliceAction.setSrcSizeMb(60);
         sliceAction.setSrcCount(600);
@@ -191,44 +198,63 @@ public class MetadataTest {
 
     }
 
+    
     public void updateSliceStatus() {
 
-        metadata.updateSliceStatus(1, 1, SliceStatus.READY);
+        metadata.updateSliceStatus(4, 2, SliceStatus.READY);
     }
 
+    
     public void updateSliceSinkStatistics() {
 
         metadata.updateSliceSinkStatistics(1, 80, 760);
     }
 
     /*-------------Metadata API for query--------------*/
-
+    
     public void getSlices() {
 
         System.out.println(metadata.getSlices("test_db", "test_table_tag_city"));
+        System.out.println(metadata.getSlices("test_db", "test_table_action"));
     }
 
-    public void getSlices1() {
+    
+    public void getSlicesFilter() {
+        RangeSet<LocalDateTime> range = TreeRangeSet.create();
+        range.add(Range.closed(LocalDateTime.parse("2018-06-01 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                LocalDateTime.parse("2018-06-05 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+
+        System.out.println(range);
+        for(Slice slice : metadata.getSlices("test_db", "test_table_action", range)){
+            System.out.println(slice);
+        }
+
     }
 
+    
     public void getSlicesGT() {
     }
 
-
+    
     public void getSlicesGE() {
     }
 
-
+    
     public void getSlicesLT() {
     }
 
-
+    
     public void getSlicesLE() {
     }
 
-
+    
     public void getSlicesBetween() {
     }
 
 
+    /*-------------Metadata API for checking status--------------*/
+    
+    public void getDb() {
+        System.out.println(metadata.getDb("test_db"));
+    }
 }
