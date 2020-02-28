@@ -18,7 +18,6 @@ import com.oppo.tagbase.meta.obj.TableType;
 import com.oppo.tagbase.meta.type.DataType;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
 
 
 import java.time.LocalDateTime;

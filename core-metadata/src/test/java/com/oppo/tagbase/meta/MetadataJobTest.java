@@ -9,7 +9,7 @@ import com.oppo.tagbase.meta.connector.MetaStoreConnectorConfig;
 import com.oppo.tagbase.meta.obj.*;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
+
 
 
 import java.time.LocalDateTime;
@@ -135,11 +135,11 @@ public class MetadataJobTest {
 
 
 
-    public void deleteJOb() {
+    public void deleteJob() {
         Assert.assertEquals("DictForwardBuild20200227",
                 metadataJob.getJob("DictForwardBuild20200227").getId());
 
-        metadataJob.deleteJOb("DictForwardBuild20200227");
+        metadataJob.deleteJob("DictForwardBuild20200227");
 
 //        Assert.assertEquals(null,
 //                metadataJob.getJob("DictForwardBuild20200227"));

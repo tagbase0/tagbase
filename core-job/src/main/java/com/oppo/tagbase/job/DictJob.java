@@ -45,7 +45,7 @@ public class DictJob implements AbstractJob {
         build(job);
 
         // update MetadataJob job info
-        new MetadataJob().completeJOb(job.getId(), job.getState(), LocalDateTime.now());
+        new MetadataJob().completeJob(job.getId(), job.getState(), LocalDateTime.now());
 
         log.info("{} is finished.", job.getId());
 

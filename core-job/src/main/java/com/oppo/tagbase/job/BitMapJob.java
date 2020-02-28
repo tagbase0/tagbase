@@ -39,7 +39,7 @@ public class BitMapJob implements AbstractJob {
         String jobId = build(job);
 
         // update MetadataJob job info
-        new MetadataJob().completeJOb(jobId, job.getState(), LocalDateTime.now());
+        new MetadataJob().completeJob(jobId, job.getState(), LocalDateTime.now());
         log.info("{} is finished.", job.getId());
 
         return jobId;
@@ -129,7 +129,7 @@ public class BitMapJob implements AbstractJob {
 
             Future<Slice> slice = JOB_EXECUTORS.submit(new BitMapBuildJob(bitMapJobHead.getId()));
 
-            new MetadataJob().completeJOb(bitMapJobHead.getId(), bitMapJobHead.getState(),
+            new MetadataJob().completeJob(bitMapJobHead.getId(), bitMapJobHead.getState(),
                     LocalDateTime.now());
 
             log.info("{} is finished.", bitMapJobHead.getId());

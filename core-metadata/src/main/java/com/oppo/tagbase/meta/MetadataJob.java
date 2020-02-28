@@ -24,8 +24,8 @@ public class MetadataJob {
         metadataConnector.addJob(job);
     }
 
-    public void deleteJOb(String jobId) {
-        metadataConnector.deleteJOb(jobId);
+    public void deleteJob(String jobId) {
+        metadataConnector.deleteJob(jobId);
     }
 
     public List<Job> listNotCompletedJob(String dbName, String tableName, LocalDateTime startTime, LocalDateTime endTime) {

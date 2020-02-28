@@ -489,7 +489,7 @@ public abstract class MetadataConnector {
         });
     }
 
-    public void deleteJOb(String jobId) {
+    public void deleteJob(String jobId) {
         submit(handle -> {
             return handle.inTransaction(transaction -> {
                 String sqlDeleteJob = String.format("DELETE FROM `JOB` where `id`='%s'", jobId);
