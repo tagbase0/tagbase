@@ -91,8 +91,7 @@ public class Dict {
 
     @Override
     public String toString() {
-        return "Dict{" +
-                "id=" + id +
+        return "Dict{"  +
                 ", version='" + version + '\'' +
                 ", status=" + status +
                 ", location='" + location + '\'' +

@@ -34,8 +34,8 @@ public class MetadataJob {
         return null;
     }
 
-    public void completeJOb(String jobId, JobState state, LocalDateTime endTime) {
-        metadataConnector.completeJOb(jobId, state, endTime);
+    public void completeJob(String jobId, JobState state, LocalDateTime endTime) {
+        metadataConnector.completeJob(jobId, state, endTime);
     }
 
     public Job getJob(String jobId) {

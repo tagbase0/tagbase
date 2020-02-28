@@ -139,7 +139,7 @@ public abstract class MetadataConnector {
                             "\t`status` VARCHAR(128),\n" +
                             "\t`location` VARCHAR(512),\n" +
                             "\t`elementCount` BIGINT,\n" +
-                            "\t`createDate` Date,\n" +
+                            "\t`createDate` DATETIME,\n" +
                             "\t`type` VARCHAR(128)\n" +
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1"
             );
@@ -333,6 +333,14 @@ public abstract class MetadataConnector {
         );
     }
 
+    public Slice getSlices(String sink){
+
+        return submit(handle -> handle.createQuery("Select `SLICE`.* from SLICE where sink =:sink")
+        .bind("sink", sink)
+        .mapToBean(Slice.class)
+        .one());
+    }
+
 
 
     /*-------------Metadata API for query--------------*/
@@ -494,7 +502,7 @@ public abstract class MetadataConnector {
         });
     }
 
-    public void completeJOb(String jobId, JobState state, LocalDateTime endTime) {
+    public void completeJob(String jobId, JobState state, LocalDateTime endTime) {
         submit(handle -> {
             String sql = "Update `JOB` set `state`=? , `endTime`=? where `id`=?";
             return handle.execute(sql, state, endTime, jobId);
@@ -523,19 +531,23 @@ public abstract class MetadataConnector {
 
     public Job getJob(String jobId) {
         return submit(handle -> {
+//            try{
+                Job job = handle.createQuery("Select `JOB`.* from `JOB` where `JOB`.`id`=:jobId")
+                        .bind("jobId", jobId)
+                        .mapToBean(Job.class)
+                        .one();
 
-            Job job = handle.createQuery("Select `JOB`.* from `JOB` where `JOB`.`id`=:jobId")
-                    .bind("jobId", jobId)
-                    .mapToBean(Job.class)
-                    .one();
+                List<Task> tasks = handle.createQuery("select * from `TASK` where `jobId`=:jobId order by `step`")
+                        .bind("jobId", jobId)
+                        .mapToBean(Task.class)
+                        .list();
 
-            List<Task> tasks = handle.createQuery("select * from `TASK` where `jobId`=:jobId order by `step`")
-                    .bind("jobId", jobId)
-                    .mapToBean(Task.class)
-                    .list();
+                job.setTasks(tasks);
+                return job;
+//            }catch (IllegalStateException e){
+//                return null;
+//            }
 
-            job.setTasks(tasks);
-            return job;
         });
 
     }

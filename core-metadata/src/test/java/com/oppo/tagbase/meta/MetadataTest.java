@@ -16,9 +16,9 @@ import com.oppo.tagbase.meta.obj.SliceStatus;
 import com.oppo.tagbase.meta.obj.Table;
 import com.oppo.tagbase.meta.obj.TableType;
 import com.oppo.tagbase.meta.type.DataType;
+import org.junit.Assert;
 import org.junit.Before;
-
-
+import org.junit.Test;
 
 
 import java.time.LocalDateTime;
@@ -48,18 +48,19 @@ public class MetadataTest {
     }
 
     /*-------------Metadata initialization part--------------*/
-    
+
     public void initSchemaTest() {
         metadata.initSchema();
     }
 
     /*-------------Metadata DDL part--------------*/
-    
+
     public void addDb() {
         metadata.addDb("test_db", "For test");
+        Assert.assertEquals("test_db", metadata.getDb("test_db").getName());
     }
 
-    
+
     public void addTable() {
 
         // tag - city test
@@ -98,7 +99,6 @@ public class MetadataTest {
         columnList.add(columnDim0);
 
         metadata.addTable(dbName, tableName, srcDb, srcTable, desc, type, columnList);
-
 
         // action - app_action_version  test
         String dbName1 = "test_db";
@@ -156,24 +156,27 @@ public class MetadataTest {
     }
 
     /*-------------Metadata API for data building--------------*/
-    
+
     public void getTable() {
         Table table = metadata.getTable("test_db", "test_table_tag_city");
 
         Table tableAction = metadata.getTable("test_db",
                 "test_table_action");
 
-        System.out.println("table: "+ table);
-        System.out.println("tableAction: "+ tableAction);
+        Assert.assertEquals("test_db_hive_srcDb_tag", table.getSrcDb());
+        Assert.assertEquals("test_table_hive_srcTable_tag", table.getSrcTable());
+
+        Assert.assertEquals("test_db_hive_srcDb_action", tableAction.getSrcDb());
+        Assert.assertEquals("test_table_hive_srcTable_action", tableAction.getSrcTable());
     }
 
-    
+
     public void addSlice() {
         Slice sliceCity = new Slice();
-        sliceCity.setStartTime(LocalDateTime.parse("2018-06-03 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        sliceCity.setEndTime(LocalDateTime.parse("2018-06-04 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceCity.setStartTime(LocalDateTime.parse("2018-06-01 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceCity.setEndTime(LocalDateTime.parse("2018-06-02 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         sliceCity.setTableId(1);
-        sliceCity.setSink("/tagbase_tag_city_03");
+        sliceCity.setSink("/tagbase_tag_city_01");
         sliceCity.setShardNum(1);
         sliceCity.setSrcSizeMb(50);
         sliceCity.setSrcCount(500);
@@ -182,11 +185,24 @@ public class MetadataTest {
         sliceCity.setStatus(SliceStatus.BUILDING);
         metadata.addSlice(sliceCity);
 
+        Slice sliceCity1 = new Slice();
+        sliceCity1.setStartTime(LocalDateTime.parse("2018-06-02 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceCity1.setEndTime(LocalDateTime.parse("2018-06-03 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceCity1.setTableId(1);
+        sliceCity1.setSink("/tagbase_tag_city_02");
+        sliceCity1.setShardNum(1);
+        sliceCity1.setSrcSizeMb(50);
+        sliceCity1.setSrcCount(500);
+        sliceCity1.setSinkSizeMb(50);
+        sliceCity1.setSinkCount(500);
+        sliceCity1.setStatus(SliceStatus.BUILDING);
+        metadata.addSlice(sliceCity1);
+
         Slice sliceAction = new Slice();
-        sliceAction.setStartTime(LocalDateTime.parse("2018-06-03 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        sliceAction.setEndTime(LocalDateTime.parse("2018-06-04 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceAction.setStartTime(LocalDateTime.parse("2018-06-01 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceAction.setEndTime(LocalDateTime.parse("2018-06-02 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         sliceAction.setTableId(2);
-        sliceAction.setSink("/tagbase_action_03");
+        sliceAction.setSink("/tagbase_action_01");
         sliceAction.setShardNum(1);
         sliceAction.setSrcSizeMb(60);
         sliceAction.setSrcCount(600);
@@ -196,38 +212,60 @@ public class MetadataTest {
 
         metadata.addSlice(sliceAction);
 
+        Slice sliceAction1 = new Slice();
+        sliceAction1.setStartTime(LocalDateTime.parse("2018-06-02 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceAction1.setEndTime(LocalDateTime.parse("2018-06-03 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceAction1.setTableId(2);
+        sliceAction1.setSink("/tagbase_action_02");
+        sliceAction1.setShardNum(1);
+        sliceAction1.setSrcSizeMb(60);
+        sliceAction1.setSrcCount(600);
+        sliceAction1.setSinkSizeMb(60);
+        sliceAction1.setSinkCount(600);
+        sliceAction1.setStatus(SliceStatus.BUILDING);
+
+        metadata.addSlice(sliceAction1);
+
     }
 
-    
+
     public void updateSliceStatus() {
 
+        metadata.updateSliceStatus(3, 2, SliceStatus.READY);
         metadata.updateSliceStatus(4, 2, SliceStatus.READY);
+        Assert.assertEquals("/tagbase_action_01", metadata.getSlice("/tagbase_action_01").getSink());
+
     }
 
-    
+
     public void updateSliceSinkStatistics() {
 
-        metadata.updateSliceSinkStatistics(1, 80, 760);
+        metadata.updateSliceSinkStatistics(3, 80, 760);
+        Assert.assertEquals(760, metadata.getSlice("/tagbase_action_01").getSinkCount());
+
     }
 
     /*-------------Metadata API for query--------------*/
-    
+
     public void getSlices() {
 
         System.out.println(metadata.getSlices("test_db", "test_table_tag_city"));
         System.out.println(metadata.getSlices("test_db", "test_table_action"));
+        Assert.assertEquals(2, metadata.getSlices("test_db", "test_table_action").size());
     }
 
-    
+
     public void getSlicesFilter() {
         RangeSet<LocalDateTime> range = TreeRangeSet.create();
         range.add(Range.closed(LocalDateTime.parse("2018-06-01 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                LocalDateTime.parse("2018-06-05 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+                LocalDateTime.parse("2018-06-02 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
 
         System.out.println(range);
         for(Slice slice : metadata.getSlices("test_db", "test_table_action", range)){
             System.out.println(slice);
         }
+
+        Assert.assertEquals(1, metadata.getSlices("test_db", "test_table_action", range).size());
 
     }
 
@@ -253,8 +291,9 @@ public class MetadataTest {
 
 
     /*-------------Metadata API for checking status--------------*/
-    
+
+
     public void getDb() {
-        System.out.println(metadata.getDb("test_db"));
+        Assert.assertEquals("For test", metadata.getDb("test_db").getDesc());
     }
 }

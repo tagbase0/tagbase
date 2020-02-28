@@ -64,6 +64,10 @@ public class Metadata {
         metadataConnector.addSlice(slice);
     }
 
+    public Slice getSlice(String sink){
+        return metadataConnector.getSlices(sink);
+    }
+
     public void updateSliceStatus(long id, long tableId, SliceStatus status) throws MetadataException {
         metadataConnector.updateSliceStatus(id, tableId, status);
     }
