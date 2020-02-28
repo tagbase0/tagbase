@@ -10,12 +10,12 @@ import com.oppo.tagbase.meta.obj.Dict;
 import com.oppo.tagbase.meta.obj.DictStatus;
 import com.oppo.tagbase.meta.obj.DictType;
 import org.junit.Before;
-import org.junit.Test;
+
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static org.junit.Assert.*;
+
 
 
 /**
