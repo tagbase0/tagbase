@@ -58,11 +58,11 @@ public class TestMetadata {
 
     public List<Slice> getSlices(String dbName, String tableName, RangeSet<LocalDateTime> range) {
         List<Slice> sliecs = new ArrayList<>();
-        Slice a=new Slice();a.setStartTime(LocalDateTime.parse("2020-02-10T00:00:00.000"));a.setSink("event_20200210");a.setStatus(SliceStatus.READY);a.setShardNum(1);
+        Slice a=new Slice();a.setStartTime(LocalDateTime.parse("2020-02-10T00:00:00.000"));a.setSink("tagbase:event_20200210");a.setStatus(SliceStatus.READY);a.setShardNum(1);
         sliecs.add(a);
-        Slice b=new Slice();b.setStartTime(LocalDateTime.parse("2020-02-09T00:00:00.000"));b.setSink("event_20200209");b.setStatus(SliceStatus.READY);b.setShardNum(1);
+        Slice b=new Slice();b.setStartTime(LocalDateTime.parse("2020-02-09T00:00:00.000"));b.setSink("tagbase:event_20200209");b.setStatus(SliceStatus.READY);b.setShardNum(1);
         sliecs.add(b);
-        Slice c=new Slice();c.setStartTime(LocalDateTime.parse("2020-02-11T00:00:00.000"));c.setSink("event_20200211");c.setStatus(SliceStatus.READY);c.setShardNum(1);
+        Slice c=new Slice();c.setStartTime(LocalDateTime.parse("2020-02-11T00:00:00.000"));c.setSink("tagbase:event_20200211");c.setStatus(SliceStatus.READY);c.setShardNum(1);
         sliecs.add(c);
 
         return sliecs;
@@ -72,14 +72,14 @@ public class TestMetadata {
     public List<Slice> getSlices(String dbName, String tableName) {
         List<Slice> sliecs = new ArrayList<>();
         if(tableName.contains("event")){
-            Slice a=new Slice();a.setStartTime(LocalDateTime.parse("2020-02-10T00:00:00.000"));a.setSink("event_20200210");a.setStatus(SliceStatus.READY);a.setShardNum(1);
+            Slice a=new Slice();a.setStartTime(LocalDateTime.parse("2020-02-10T00:00:00.000"));a.setSink("tagbase:event_20200210");a.setStatus(SliceStatus.READY);a.setShardNum(1);
             sliecs.add(a);
-            Slice b=new Slice();b.setStartTime(LocalDateTime.parse("2020-02-09T00:00:00.000"));b.setSink("event_20200209");b.setStatus(SliceStatus.READY);b.setShardNum(1);
+            Slice b=new Slice();b.setStartTime(LocalDateTime.parse("2020-02-09T00:00:00.000"));b.setSink("tagbase:event_20200209");b.setStatus(SliceStatus.READY);b.setShardNum(1);
             sliecs.add(b);
-            Slice c=new Slice();c.setStartTime(LocalDateTime.parse("2020-02-11T00:00:00.000"));c.setSink("event_20200211");c.setStatus(SliceStatus.READY);c.setShardNum(1);
+            Slice c=new Slice();c.setStartTime(LocalDateTime.parse("2020-02-11T00:00:00.000"));c.setSink("tagbase:event_20200211");c.setStatus(SliceStatus.READY);c.setShardNum(1);
             sliecs.add(c);
         }else {
-            Slice d=new Slice();d.setStartTime(LocalDateTime.parse("2020-02-10T00:00:00.000"));d.setSink("city_20200210");d.setStatus(SliceStatus.READY);d.setShardNum(1);
+            Slice d=new Slice();d.setStartTime(LocalDateTime.parse("2020-02-10T00:00:00.000"));d.setSink("tagbase:city_20200210");d.setStatus(SliceStatus.READY);d.setShardNum(1);
             sliecs.add(d);
         }
         return sliecs;
