@@ -53,16 +53,21 @@ public class MetadataJob {
         metadataConnector.updateJob(job);
     }
 
-    public void updateJobStatus(String jobId, JobState state){
-        // TODO
-    }
 
     public void updateTask(Task task){
         metadataConnector.updateTask(task);
     }
 
+    public void updateJobStatus(String jobId, JobState state){
+        metadataConnector.updateJobStatus(jobId, state);
+    }
+
     public void updateTaskStatus(String id, TaskState state){
-        // TODO
+        metadataConnector.updateTaskStatus(id, state);
+    }
+
+    public void updateTaskAppId(String id, String appId){
+        metadataConnector.updateTaskAppId(id, appId);
     }
 
     public Task getTask(String taskId) {

@@ -9,6 +9,7 @@ import com.oppo.tagbase.meta.connector.MetaStoreConnectorConfig;
 import com.oppo.tagbase.meta.obj.*;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 
 
 import java.time.LocalDateTime;
@@ -85,6 +86,7 @@ public class MetadataJobTest {
         Assert.assertEquals(task1, metadataJob.getTask(task1.getId()));
     }
 
+
     public void updateJob() {
         Job job = metadataJob.getJob("DictForwardBuild20200227");
         job.setLatestTask("TaskDictInvertedBuild20200227");
@@ -110,6 +112,20 @@ public class MetadataJobTest {
     }
 
 
+    public void updateTaskAppId() {
+        metadataJob.updateTaskAppId("TaskDictInvertedBuild20200227", "appid_test_20200227_1");
+        Assert.assertEquals("appid_test_20200227_1",
+                metadataJob.getTask("TaskDictInvertedBuild20200227").getAppId());
+    }
+
+
+    public void updateTaskStatus() {
+        metadataJob.updateTaskStatus("TaskDictInvertedBuild20200227", TaskState.FAILED);
+        Assert.assertEquals(TaskState.FAILED, metadataJob.getTask("TaskDictInvertedBuild20200227").getState());
+    }
+
+
+
     public void completeTask() {
         metadataJob.completeTask("TaskDictInvertedBuild20200227",
                 TaskState.SUCCESS,
@@ -130,6 +146,11 @@ public class MetadataJobTest {
     }
 
 
+    public void updateJobStatus() {
+        Assert.assertEquals(JobState.RUNNING, metadataJob.getJob("DictForwardBuild20200227").getState());
+    }
+
+
     public void completeJob() {
         metadataJob.completeJob("DictForwardBuild20200227",
                 JobState.SUCCESS,
@@ -147,4 +168,5 @@ public class MetadataJobTest {
         metadataJob.deleteJob("DictForwardBuild20200227");
 
     }
+
 }

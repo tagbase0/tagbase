@@ -559,6 +559,14 @@ public abstract class MetadataConnector {
         });
     }
 
+    public void updateJobStatus(String jobId, JobState state) {
+        submit(handle -> {
+            String sql = "Update `JOB` set `state`=? where `id`=?";
+
+            return handle.execute(sql, state, jobId);
+        });
+    }
+
     public Job getJob(String jobId) {
         return submit(handle -> {
 //            try{
@@ -624,6 +632,22 @@ public abstract class MetadataConnector {
                     .one();
             return task;
         }));
+    }
+
+    public void updateTaskStatus(String id, TaskState state) {
+        submit(handle -> {
+            String sql = "Update `TASK` set `state`=? where `id`=?";
+
+            return handle.execute(sql, state, id);
+        });
+    }
+
+    public void updateTaskAppId(String id, String appId) {
+        submit(handle -> {
+            String sql = "Update `TASK` set `appId`=? where `id`=?";
+
+            return handle.execute(sql, appId, id);
+        });
     }
 
     public void completeTask(String taskId, TaskState state, LocalDateTime endTime, String output) {
@@ -692,5 +716,6 @@ public abstract class MetadataConnector {
                 .mapTo(Long.class)
                 .one());
     }
+
 
 }
