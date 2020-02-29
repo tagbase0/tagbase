@@ -29,9 +29,8 @@ public class MetadataJob {
     }
 
     public List<Job> listNotCompletedJob(String dbName, String tableName, LocalDateTime startTime, LocalDateTime endTime) {
-        // TODO
         // not completed job : jobs in JobState.PENDING RUNNING FAILED SUSPEND state.
-        return null;
+        return metadataConnector.listNotCompletedJob(dbName, tableName, startTime, endTime);
     }
 
     public void completeJob(String jobId, JobState state, LocalDateTime endTime) {

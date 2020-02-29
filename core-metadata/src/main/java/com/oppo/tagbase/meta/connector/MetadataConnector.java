@@ -333,12 +333,12 @@ public abstract class MetadataConnector {
         );
     }
 
-    public Slice getSlices(String sink){
+    public Slice getSlices(String sink) {
 
         return submit(handle -> handle.createQuery("Select `SLICE`.* from SLICE where sink =:sink")
-        .bind("sink", sink)
-        .mapToBean(Slice.class)
-        .one());
+                .bind("sink", sink)
+                .mapToBean(Slice.class)
+                .one());
     }
 
 
@@ -467,6 +467,36 @@ public abstract class MetadataConnector {
                 .one());
     }
 
+    public ImmutableList<DB> listDBs() {
+        List<DB> dbsList= submit(handle -> handle.createQuery("Select * from `DB`")
+                        .mapToBean(DB.class)
+                        .list());
+
+        ImmutableList<DB> dbs = ImmutableList.copyOf(dbsList);
+
+        return dbs;
+    }
+
+    public ImmutableList<Table> listTable(String dbName){
+
+        List<Table> tables = submit(handle -> {
+
+            // 1. get dbId
+            int dbId = handle.createQuery("Select `id` from `DB` where `name`= :name")
+                    .bind("name", dbName)
+                    .mapTo(Integer.class)
+                    .one();
+
+            List<Table> tableList = handle.createQuery("select TBL.* from TBL where `dbId`=:dbId")
+                    .bind("dbId", dbId)
+                    .mapToBean(Table.class)
+                    .list();
+
+            return tableList;
+        });
+
+        return ImmutableList.copyOf(tables);
+    }
 
     /*-------------Metadata API for Job module--------------*/
 
@@ -532,18 +562,18 @@ public abstract class MetadataConnector {
     public Job getJob(String jobId) {
         return submit(handle -> {
 //            try{
-                Job job = handle.createQuery("Select `JOB`.* from `JOB` where `JOB`.`id`=:jobId")
-                        .bind("jobId", jobId)
-                        .mapToBean(Job.class)
-                        .one();
+            Job job = handle.createQuery("Select `JOB`.* from `JOB` where `JOB`.`id`=:jobId")
+                    .bind("jobId", jobId)
+                    .mapToBean(Job.class)
+                    .one();
 
-                List<Task> tasks = handle.createQuery("select * from `TASK` where `jobId`=:jobId order by `step`")
-                        .bind("jobId", jobId)
-                        .mapToBean(Task.class)
-                        .list();
+            List<Task> tasks = handle.createQuery("select * from `TASK` where `jobId`=:jobId order by `step`")
+                    .bind("jobId", jobId)
+                    .mapToBean(Task.class)
+                    .list();
 
-                job.setTasks(tasks);
-                return job;
+            job.setTasks(tasks);
+            return job;
 //            }catch (IllegalStateException e){
 //                return null;
 //            }
@@ -552,6 +582,21 @@ public abstract class MetadataConnector {
 
     }
 
+    public List<Job> listNotCompletedJob(String dbName, String tableName, LocalDateTime startTime, LocalDateTime endTime) {
+        return submit(handle -> {
+
+            List<Job> jobs = handle.createQuery("Select * from `JOB` where `JOB`.`dbName`=:dbName and `JOB`.`tableName`=:tableName " +
+                    "and  `JOB`.`startTime`>=:startTime and (`JOB`.`endTime` is null or `JOB`.`endTime`>=:endTime) and `JOB`.`state` != :state" )
+                    .bind("dbName", dbName)
+                    .bind("tableName", tableName)
+                    .bind("startTime", startTime)
+                    .bind("endTime", endTime)
+                    .bind("state", JobState.SUCCESS)
+                    .mapToBean(Job.class)
+                    .list();
+            return jobs;
+        });
+    }
 
     public void addTask(Task task) {
         submit(handle -> {
@@ -571,7 +616,7 @@ public abstract class MetadataConnector {
         });
     }
 
-    public Task getTask(String taskId){
+    public Task getTask(String taskId) {
         return (submit(handle -> {
             Task task = handle.createQuery("Select `TASK`.* from `TASK` where `TASK`.`id`=:taskId")
                     .bind("taskId", taskId)
@@ -588,7 +633,7 @@ public abstract class MetadataConnector {
         });
     }
 
-    public void updateTask(Task task){
+    public void updateTask(Task task) {
         submit(handle -> {
 
             String sql = "Update `TASK` set `name`=?, `jobId`=?, `appId`=?, `startTime`=?, " +
@@ -647,6 +692,5 @@ public abstract class MetadataConnector {
                 .mapTo(Long.class)
                 .one());
     }
-
 
 }

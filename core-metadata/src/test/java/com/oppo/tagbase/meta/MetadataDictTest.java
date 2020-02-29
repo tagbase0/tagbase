@@ -12,8 +12,6 @@ import com.oppo.tagbase.meta.obj.DictType;
 import org.junit.Assert;
 import org.junit.Before;
 
-
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 

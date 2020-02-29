@@ -291,8 +291,16 @@ public class MetadataTest {
 
     /*-------------Metadata API for checking status--------------*/
 
-
     public void getDb() {
         Assert.assertEquals("For test", metadata.getDb("test_db").getDesc());
+    }
+
+
+    public void listDBs() {
+        Assert.assertEquals("test_db", metadata.listDBs().get(0).getName());
+    }
+
+    public void listTables() {
+        Assert.assertEquals("test_table_tag_city", metadata.listTables("test_db").get(0).getName());
     }
 }

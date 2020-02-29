@@ -11,7 +11,6 @@ import org.junit.Assert;
 import org.junit.Before;
 
 
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -124,6 +123,13 @@ public class MetadataJobTest {
     }
 
 
+    public void listNotCompletedJob() {
+        Assert.assertEquals(1, metadataJob.listNotCompletedJob("hive", "gobal_imei",
+                LocalDateTime.parse("2020-02-27 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                LocalDateTime.now()).size());
+    }
+
+
     public void completeJob() {
         metadataJob.completeJob("DictForwardBuild20200227",
                 JobState.SUCCESS,
@@ -134,15 +140,11 @@ public class MetadataJobTest {
     }
 
 
-
     public void deleteJob() {
         Assert.assertEquals("DictForwardBuild20200227",
                 metadataJob.getJob("DictForwardBuild20200227").getId());
 
         metadataJob.deleteJob("DictForwardBuild20200227");
-
-//        Assert.assertEquals(null,
-//                metadataJob.getJob("DictForwardBuild20200227"));
 
     }
 }

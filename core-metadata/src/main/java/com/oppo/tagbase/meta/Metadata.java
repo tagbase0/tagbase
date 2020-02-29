@@ -141,14 +141,13 @@ public class Metadata {
         return metadataConnector.getDb(dbName);
     }
 
-    //TODO
+
     public ImmutableList<DB> listDBs() throws MetadataException {
-        return null;
+        return metadataConnector.listDBs();
     }
 
-    //TODO
     public ImmutableList<Table> listTables(String dbName) throws MetadataException {
-        return null;
+        return metadataConnector.listTable(dbName);
     }
 
 
