@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class HbaseStorageExample {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
 
         Injector ij = ExampleGuiceInjectors.makeInjector(
                 new PropsModule(ImmutableList.of("tagbase.properties")),
@@ -37,6 +37,7 @@ public class HbaseStorageExample {
 
         Lifecycle lifecycle = ij.getInstance(Lifecycle.class);
         lifecycle.start();
+        lifecycle.join();
         StorageConnector connector = ij.getInstance(StorageConnector.class);
         TestMetadata metadata = ij.getInstance(TestMetadata.class);
 

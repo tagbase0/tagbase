@@ -1,4 +1,4 @@
-package com.oppo.tagbase.jobv2;
+package com.oppo.tagbase.jobv2.skeleton;
 
 /**
  * Created by wujianchao on 2020/2/26.
@@ -6,7 +6,7 @@ package com.oppo.tagbase.jobv2;
 public class LocalExecutor implements Executor<Runnable> {
 
     @Override
-    public void perform(Runnable task) throws Exception {
+    public void submit(Runnable task) throws Exception {
         task.run();
     }
 

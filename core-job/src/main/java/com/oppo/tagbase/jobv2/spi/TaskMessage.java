@@ -1,4 +1,4 @@
-package com.oppo.tagbase.job.engine.obj;
+package com.oppo.tagbase.jobv2.spi;
 
 import com.oppo.tagbase.meta.obj.TaskState;
 

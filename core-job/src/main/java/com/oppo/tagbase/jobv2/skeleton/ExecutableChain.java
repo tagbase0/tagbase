@@ -1,4 +1,4 @@
-package com.oppo.tagbase.jobv2;
+package com.oppo.tagbase.jobv2.skeleton;
 
 import com.google.common.collect.Lists;
 import com.oppo.tagbase.common.Pair;

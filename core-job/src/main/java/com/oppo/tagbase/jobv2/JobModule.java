@@ -3,6 +3,7 @@ package com.oppo.tagbase.jobv2;
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.oppo.tagbase.common.guice.ConfBind;
+import com.oppo.tagbase.common.guice.Lifecycle;
 import com.oppo.tagbase.common.guice.PolyBind;
 
 /**
@@ -22,7 +23,10 @@ public class JobModule extends AbstractModule {
 
         binder.bind(JobManager.class);
 
-        PolyBind.bind(binder, Scheduler.class, "tagbase.job.scheduler.type", "singleton");
+        PolyBind.bind(binder, Scheduler.class);
         PolyBind.registerImpl(binder, Scheduler.class, "singleton", SingletonScheduler.class);
+
+        // TODO Adding registering interfaces support
+        Lifecycle.registerInstance(binder, SingletonScheduler.class);
     }
 }

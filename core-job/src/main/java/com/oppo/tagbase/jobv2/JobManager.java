@@ -34,7 +34,7 @@ public class JobManager {
 
         // submit job
         Job job = new Job();
-        job.setId(JobIdGenerator.nextId());
+        job.setId(JobInGenerator.nextId());
         job.setDbName(dbName);
         job.setTableName(tableName);
         job.setDataLowerTime(dataLowerTime);

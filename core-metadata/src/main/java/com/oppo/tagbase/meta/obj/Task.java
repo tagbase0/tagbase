@@ -94,6 +94,21 @@ public class Task {
     }
 
     @Override
+    public Task clone() {
+        Task task = new Task();
+        task.setId(id);
+        task.setName(name);
+        task.setEndTime(endTime);
+        task.setStartTime(startTime);
+        task.setAppId(appId);
+        task.setStep(step);
+        task.setJobId(jobId);
+        task.setState(state);
+        task.setOutput(output);
+        return task;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

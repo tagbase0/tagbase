@@ -8,6 +8,18 @@ import com.oppo.tagbase.common.TagbaseException;
  */
 public class JobException extends TagbaseException {
 
+    public JobException(String reason) {
+        this(JobErrorCode.JOB_ERROR, reason);
+    }
+
+    public JobException(String reasonFormat, Object... args) {
+        this(JobErrorCode.JOB_ERROR, reasonFormat, args);
+    }
+
+    public JobException(Throwable cause, String reasonFormat, Object... args) {
+        this(JobErrorCode.JOB_ERROR, cause, reasonFormat, args);
+    }
+
     public JobException(ErrorCode errorCode, String reason) {
         super(errorCode, reason);
     }

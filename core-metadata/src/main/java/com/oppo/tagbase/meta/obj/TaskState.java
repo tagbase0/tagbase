@@ -8,7 +8,5 @@ public enum TaskState {
     RUNNING,
     FAILED,
     SUCCESS,
-    KILLED,
-    PREP,
-    UNKNOWN
+    KILLED
 }

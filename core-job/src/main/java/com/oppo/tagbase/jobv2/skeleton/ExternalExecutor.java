@@ -1,4 +1,6 @@
-package com.oppo.tagbase.jobv2;
+package com.oppo.tagbase.jobv2.skeleton;
+
+import com.oppo.tagbase.jobv2.JobException;
 
 import java.io.IOException;
 
@@ -18,7 +20,20 @@ public abstract class ExternalExecutor<C> implements Executor<ExternalExecutable
     protected abstract ExternalTaskStatus getTaskStatus(String externalAppId) throws IOException, JobException;
 
     @Override
-    public void perform(ExternalExecutable<C> task) {
+    public void submit(ExternalExecutable<C> task) throws IOException {
+        String appId = submitInternal(task);
+        ExternalTaskStatus status = null;
+
+        while (!(status = getTaskStatus(appId)).isDone()) {
+            status = getTaskStatus(appId);
+        }
+
 
     }
+
+    public String submitInternal(ExternalExecutable<C> task) {
+        return null;
+    }
+
+
 }

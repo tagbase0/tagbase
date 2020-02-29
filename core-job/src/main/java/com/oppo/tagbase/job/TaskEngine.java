@@ -1,8 +1,8 @@
 package com.oppo.tagbase.job;
 
-import com.oppo.tagbase.job.exception.JobException;
 import com.oppo.tagbase.job.engine.obj.HiveMeta;
 import com.oppo.tagbase.job.engine.obj.TaskMessage;
+import com.oppo.tagbase.job.exception.JobException;
 import com.oppo.tagbase.meta.obj.JobType;
 
 import java.io.IOException;

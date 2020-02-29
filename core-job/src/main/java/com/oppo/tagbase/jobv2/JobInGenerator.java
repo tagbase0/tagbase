@@ -1,14 +1,12 @@
 package com.oppo.tagbase.jobv2;
 
-import java.util.UUID;
-
 /**
  * Created by wujianchao on 2020/2/26.
  */
-public class JobIdGenerator {
+public class JobInGenerator {
 
     public static String nextId() {
-        return UUID.randomUUID().toString();
+        return java.util.UUID.randomUUID().toString();
     }
 
     public static void main(String[] args) {
