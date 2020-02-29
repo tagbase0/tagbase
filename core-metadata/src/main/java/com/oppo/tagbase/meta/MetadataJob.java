@@ -97,6 +97,17 @@ public class MetadataJob {
         //TODO
     }
 
+    public void updateTaskStartTime(String id, LocalDateTime startTime) {
+        //TODO
+    }
+
+    public void updateTaskEndTime(String id, LocalDateTime endTime) {
+        //TODO
+    }
+    public void updateTaskOutput(String id, String output) {
+        //TODO
+    }
+
 
     public List<Job> listSuccessDictJobs(LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
         //TODO

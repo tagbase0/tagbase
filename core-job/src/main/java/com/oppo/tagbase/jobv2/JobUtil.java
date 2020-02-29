@@ -65,14 +65,12 @@ public class JobUtil {
         buildingBitmapTask.setStep((byte) 0);
         buildingBitmapTask.setName(BUILDING_BITMAP_TASK);
         buildingBitmapTask.setId(job.getId());
-        buildingBitmapTask.setStartTime(LocalDateTime.now());
 
         Task loadDataToStorageTask = new Task();
         loadDataToStorageTask.setState(TaskState.PENDING);
         loadDataToStorageTask.setStep((byte) 1);
         loadDataToStorageTask.setName(LOAD_BITMAP_TO_STORAGE_TASK);
         loadDataToStorageTask.setId(job.getId());
-        loadDataToStorageTask.setStartTime(LocalDateTime.now());
 
         job.setTasks(Lists.newArrayList(buildingBitmapTask, loadDataToStorageTask));
     }
@@ -83,14 +81,12 @@ public class JobUtil {
         buildingInvertedDictTask.setStep((byte) 0);
         buildingInvertedDictTask.setName(BUILDING_INVERTED_DICT_TASK);
         buildingInvertedDictTask.setId(job.getId());
-        buildingInvertedDictTask.setStartTime(LocalDateTime.now());
 
         Task loadDataToStorageTask = new Task();
         loadDataToStorageTask.setState(TaskState.PENDING);
         loadDataToStorageTask.setStep((byte) 1);
         loadDataToStorageTask.setName(BUILDING_FORWARD_DICT_TASK);
         loadDataToStorageTask.setId(job.getId());
-        loadDataToStorageTask.setStartTime(LocalDateTime.now());
 
         job.setTasks(Lists.newArrayList(buildingInvertedDictTask, loadDataToStorageTask));
     }

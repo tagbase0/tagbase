@@ -32,9 +32,7 @@ public final class PolyBind {
         binder.bind(i).toProvider(new PolyProvider<T>(i, poly.key(), poly.defaultImpl())).in(Scopes.SINGLETON);
     }
 
-    /**
-     * 2. register an implementation
-     */
+    @Deprecated
     public static <T> void registerImpl(Binder binder,
                                         Class<T> i,
                                         String implName,
@@ -43,8 +41,19 @@ public final class PolyBind {
                 .addBinding(implName).to(implClazz).in(Scopes.SINGLETON);
     }
 
+    /**
+     * 2. register an implementation
+     */
+    public static <T> void registerImpl(Binder binder,
+                                        Class<T> i,
+                                        Class<? extends T> implClazz) {
+        PolyName implName = AnnotationUtil.getAnnotation(i, PolyName.class);
+        MapBinder.newMapBinder(binder, String.class, i)
+                .addBinding(implName.name()).to(implClazz).in(Scopes.SINGLETON);
+    }
 
-    static final class PolyProvider<T> implements Provider {
+
+    static final class PolyProvider<T> implements Provider<T> {
 
         private final String propKey;
 

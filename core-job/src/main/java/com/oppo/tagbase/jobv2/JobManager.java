@@ -36,7 +36,7 @@ public class JobManager {
 
         // create job
         Job job = new Job();
-        job.setId(JobInGenerator.nextId());
+        job.setId(JobIdGenerator.nextId());
         job.setName(JobUtil.makeDataJobName(dbName, tableName, dataLowerTime, dataUpperTime));
         job.setDbName(dbName);
         job.setTableName(tableName);
@@ -91,7 +91,7 @@ public class JobManager {
         // create job
         Job job = new Job();
         job.setName(JobUtil.makeDictJobName(dataLowerTime, dataUpperTime));
-        job.setId(JobInGenerator.nextId());
+        job.setId(JobIdGenerator.nextId());
         job.setState(JobState.PENDING);
         job.setCreateTime(LocalDateTime.now());
         job.setDataLowerTime(dataLowerTime);

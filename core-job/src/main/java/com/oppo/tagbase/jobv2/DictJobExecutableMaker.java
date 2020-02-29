@@ -50,12 +50,12 @@ public class DictJobExecutableMaker {
 
         List<Task> taskList = job.getTasks();
 
-        List<Executable>  executableList = taskList.stream()
+        List<Executable> executableList = taskList.stream()
                 .filter(task -> task.getState().isCompleted())
                 .map(task -> makeTaskExecutable(job, task))
                 .collect(Collectors.toList());
 
-        return new JobExecutable(job, JobFSM.of(job, metadataJob), executableList);
+        return new JobExecutable(job, metadataJob, executableList);
     }
 
     private Executable makeTaskExecutable(Job job, Task task) {
@@ -70,14 +70,15 @@ public class DictJobExecutableMaker {
 
     }
 
-    private Executable makeBuildingInvertedDictStep(Job job,
-                                                    Task task) {
+    private Executable makeBuildingInvertedDictStep(Job job, Task task) {
         return () -> {
 
             TaskFSM taskFSM = TaskFSM.of(task, metadataJob);
             try {
 
                 taskFSM.toRunning();
+
+                metadataJob.updateTaskStartTime(task.getId(), LocalDateTime.now());
 
                 // TODO init HiveMeta
                 HiveMeta hiveMeta = null;
@@ -99,23 +100,21 @@ public class DictJobExecutableMaker {
                     throw new JobException("external job %s failed, reason: %s", appId, status.getErrorMessage());
                 }
 
-                task.setEndTime(LocalDateTime.now());
                 // TODO output = inverted dict location
-                task.setOutput(null);
-
-                metadataJob.updateTask(task);
+                metadataJob.updateTaskOutput(task.getId(), null);
 
                 taskFSM.toSuccess();
 
             } catch (Exception e) {
                 taskFSM.toFailed();
                 throw new JobException(e, "Task %s failed", task.getName());
+            } finally {
+                metadataJob.updateTaskEndTime(task.getId(), LocalDateTime.now());
             }
         };
     }
 
-    private Executable makeBuildingForwardDictStep(Job job,
-                                                   Task task) {
+    private Executable makeBuildingForwardDictStep(Job job, Task task) {
         return () -> {
 
             TaskFSM taskFSM = TaskFSM.of(task, metadataJob);

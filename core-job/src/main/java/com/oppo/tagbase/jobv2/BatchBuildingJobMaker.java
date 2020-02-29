@@ -2,6 +2,8 @@ package com.oppo.tagbase.jobv2;
 
 import com.oppo.tagbase.meta.obj.Job;
 
+import javax.inject.Inject;
+
 import static com.oppo.tagbase.meta.obj.JobType.DICTIONARY;
 
 /**
@@ -9,11 +11,17 @@ import static com.oppo.tagbase.meta.obj.JobType.DICTIONARY;
  */
 public final class BatchBuildingJobMaker {
 
-    public static JobExecutable make(Job job) {
+    @Inject
+    private DataJobExecutableMaker dataJobExecutableMaker;
+
+    @Inject
+    private DictJobExecutableMaker dictJobExecutableMaker;
+
+    public JobExecutable make(Job job) {
         if(job.getType() == DICTIONARY) {
-            return new DictJobExecutableMaker().make(job);
+            return dictJobExecutableMaker.make(job);
         }
-        return new DataJobExecutableMaker().make(job);
+        return dataJobExecutableMaker.make(job);
     }
 
 }

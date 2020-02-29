@@ -70,7 +70,7 @@ public class ForwardDictionaryBenchmark {
         ForwardDictionary dict = ForwardDictionary.create(dictFile);
 
         long searchTime = System.currentTimeMillis();
-        searchTimes = searchTimes < count ? searchTimes : count;
+        searchTimes = Math.min(searchTimes, count);
 
         for(int i=0; i<searchTimes; i++) {
             dict.element(ThreadLocalRandom.current().nextInt(count));
