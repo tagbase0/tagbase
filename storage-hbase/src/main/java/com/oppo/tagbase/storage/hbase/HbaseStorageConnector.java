@@ -78,7 +78,7 @@ public class HbaseStorageConnector extends StorageConnector {
      * hbase put data
      */
     @Override
-    public void createRecord(String dbName, String tableName, String key, ImmutableRoaringBitmap value) throws StorageException {
+    public void addRecord(String dbName, String tableName, String key, ImmutableRoaringBitmap value) throws StorageException {
         try {
             byte[] metric = BitmapUtil.serializeBitmap(value);
             put(hbaseConfig.getNameSpace(), tableName, key, hbaseConfig.getFamily(), hbaseConfig.getQualifier(), metric);
@@ -92,9 +92,18 @@ public class HbaseStorageConnector extends StorageConnector {
      * hbase bulkload data
      */
     @Override
-    public void createBatchRecords(String dbName, String tableName, String dataPath) throws StorageException {
-        createTable(hbaseConfig.getNameSpace(), tableName);
-        bulkLoad(tableName, dataPath);
+    public String addSlice(String dataPath) throws StorageException{
+
+        String tableName = hbaseConfig.getTablePrefix() + UUID.randomUUID().toString();
+        String nameSpace = hbaseConfig.getNameSpace();
+        createTable(nameSpace, tableName);
+        try {
+            bulkLoad(nameSpace, tableName, dataPath);
+        }catch (Exception e){
+            deleteHbaseTable(nameSpace, tableName);
+            throw new StorageException(StorageErrorCode.STORAGE_INSERT_ERROR, e, "hbaseStorageConnector bulkLoad error");
+        }
+        return nameSpace + ":" + tableName;
     }
 
     /**
@@ -105,6 +114,7 @@ public class HbaseStorageConnector extends StorageConnector {
 
         String tableName = storageQueryContext.getSliceSegment().getTableName();
         String dayNumValue = storageQueryContext.getSliceSegment().getSliceDate();
+
         int index = 1;
         Map<Integer,Integer> indexMap = new HashMap<>();
         boolean equalComparatorFlag = true;
@@ -140,7 +150,7 @@ public class HbaseStorageConnector extends StorageConnector {
         }
 
         log.debug("rowkey prefix list {}", rowkeyPrefixList);
-        scan(hbaseConfig.getNameSpace(), tableName, hbaseConfig.getFamily(), hbaseConfig.getQualifier(), hbaseConfig.getRowkeyDelimiter(), equalComparatorFlag, rowkeyPrefixList, indexMap, dayNumValue, buffer);
+        scan(tableName, hbaseConfig.getFamily(), hbaseConfig.getQualifier(), hbaseConfig.getRowkeyDelimiter(), equalComparatorFlag, rowkeyPrefixList, indexMap, dayNumValue, buffer);
 
     }
 
@@ -216,7 +226,7 @@ public class HbaseStorageConnector extends StorageConnector {
             }
             admin.createNamespace(NamespaceDescriptor.create(nameSpace).build());
         } catch (IOException e) {
-            throw new StorageException(StorageErrorCode.STORAGE_TABLE_ERROR, e, "hbaseStorageConnector createNamespace error",e);
+            throw new StorageException(StorageErrorCode.STORAGE_TABLE_ERROR, e, "hbaseStorageConnector createNamespace error");
         }
 
     }
@@ -231,7 +241,7 @@ public class HbaseStorageConnector extends StorageConnector {
                 admin.deleteTable(tName);
             }
         } catch (IOException e) {
-            throw new StorageException(StorageErrorCode.STORAGE_TABLE_ERROR, e, "hbaseStorageConnector deleteHbaseTable error",e);
+            throw new StorageException(StorageErrorCode.STORAGE_TABLE_ERROR, e, "hbaseStorageConnector deleteHbaseTable error");
         }
     }
 
@@ -283,28 +293,26 @@ public class HbaseStorageConnector extends StorageConnector {
         return null;
     }
 
-    private void bulkLoad(String tableName, String dataPath) throws StorageException {
+    private void bulkLoad(String nameSpase, String tableName, String dataPath) throws Exception {
 
-        try {
-            LoadIncrementalHFiles loader = new LoadIncrementalHFiles(connection.getConfiguration());
-            TableName table = TableName.valueOf(hbaseConfig.getNameSpace(), tableName);
-            loader.doBulkLoad(new Path(dataPath), admin, connection.getTable(table), connection.getRegionLocator(table));
-        }catch (Exception e){
-            throw new StorageException(StorageErrorCode.STORAGE_INSERT_ERROR, e, "hbaseStorageConnector bulkLoad error");
-        }
+        LoadIncrementalHFiles loader = new LoadIncrementalHFiles(connection.getConfiguration());
+        TableName table = TableName.valueOf(nameSpase, tableName);
+        loader.doBulkLoad(new Path(dataPath), admin, connection.getTable(table), connection.getRegionLocator(table));
+
     }
 
 
-    public void scan(String nameSpace, String tableName, String family, String qualifier, String delimiter, boolean equalComparatorFlag, List<String> rowkeyPrefixList, Map<Integer,Integer> indexMap, String dayNumValue, OperatorBuffer<RawRow> buffer) throws StorageException {
+    public void scan(String tableName, String family, String qualifier, String delimiter, boolean equalComparatorFlag, List<String> rowkeyPrefixList, Map<Integer,Integer> indexMap, String dayNumValue, OperatorBuffer<RawRow> buffer) throws StorageException {
 
         ResultScanner scanner = null;
         try {
-            Table table = connection.getTable(TableName.valueOf(nameSpace, tableName));
+            Table table = connection.getTable(TableName.valueOf(tableName));//此处tableName包含nameSpase
             Scan scan = new Scan();
             //设置缓冲
             scan.setCaching(hbaseConfig.getScanCacheSize());
             scan.setMaxResultSize(hbaseConfig.getScanMaxResultSize());
 
+            //分多次scan查找
             for(String rowkeyPrefix : rowkeyPrefixList) {
                 //设置startkey和endkey
                 scan.setRowPrefixFilter(rowkeyPrefix.getBytes());

@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class HbaseStorageExample {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
 
         Injector ij = ExampleGuiceInjectors.makeInjector(
                 new PropsModule(ImmutableList.of("tagbase.properties")),
@@ -37,12 +37,10 @@ public class HbaseStorageExample {
 
         Lifecycle lifecycle = ij.getInstance(Lifecycle.class);
         lifecycle.start();
-        lifecycle.join();
         StorageConnector connector = ij.getInstance(StorageConnector.class);
         TestMetadata metadata = ij.getInstance(TestMetadata.class);
 
         try {
-
 //            addEventData(connector);
 //            addTagData(connector);
 //            addFlowData(connector);
@@ -59,6 +57,7 @@ public class HbaseStorageExample {
                 System.out.println("OperatorBuffer: " + row);
             }
 
+            System.out.println("storage test finsish");
             lifecycle.join();
 
         } catch (Exception e) {
@@ -72,23 +71,23 @@ public class HbaseStorageExample {
 
         List<ColumnDomain<String>> dimQueryList = new ArrayList<>();
         RangeSet<String> appColumnRange = TreeRangeSet.create();
-        appColumnRange.add(Range.singleton("tenxun"));appColumnRange.add(Range.singleton("wechat"));
+        appColumnRange.add(Range.singleton("qq"));appColumnRange.add(Range.singleton("wechat"));
         dimQueryList.add(new ColumnDomain<String>(appColumnRange, "app" ));
 
         RangeSet<String> eventColumnRange = TreeRangeSet.create();
         eventColumnRange.add(Range.singleton("install"));
         dimQueryList.add(new ColumnDomain<String>(eventColumnRange, "event"));
 
-        RangeSet<String> versionColumnRange = TreeRangeSet.create();
-        versionColumnRange.add(Range.singleton("5.4"));versionColumnRange.add(Range.singleton("5.2"));
-        dimQueryList.add(new ColumnDomain<String>(versionColumnRange, "version"));
+//        RangeSet<String> versionColumnRange = TreeRangeSet.create();
+//        versionColumnRange.add(Range.singleton("5.4"));versionColumnRange.add(Range.singleton("5.2"));
+//        dimQueryList.add(new ColumnDomain<String>(versionColumnRange, "version"));
 
         RangeSet<LocalDateTime> sliceRange = TreeRangeSet.create();
         sliceRange.add(Range.lessThan(LocalDateTime.now()));
         ColumnDomain<LocalDateTime> sliceQuery = new ColumnDomain<LocalDateTime>(sliceRange,"daynum");
 
         List<String> dims = new ArrayList<String>(){{add("app");add("event");add("version");add("daynum");}};
-      //  List<String> dims = null;
+        //  List<String> dims = null;
 
         QueryHandler query = new QueryHandler("default","event_20200210",dims,dimQueryList,sliceQuery,"2139872645714");
 
@@ -124,6 +123,7 @@ public class HbaseStorageExample {
         String tName3 = "event_20200211";
 
         String nameSpace = "tagbase";
+        String d = "\u0001";
 
         connector.deleteTable(nameSpace,tName);
         connector.deleteTable(nameSpace,tName2);
@@ -132,15 +132,15 @@ public class HbaseStorageExample {
         connector.createTable(nameSpace,tName2);
         connector.createTable(nameSpace,tName3);
 
-        connector.createRecord(nameSpace,tName, "1_wechat_install_5.2", bitmap);
-        connector.createRecord(nameSpace,tName, "1_qq_install_5.1", bitmap2);
-        connector.createRecord(nameSpace,tName, "1_wechat_uninstall_5.3", bitmap3);
-        connector.createRecord(nameSpace,tName2, "1_wechat_install_5.4", bitmap);
-        connector.createRecord(nameSpace,tName2, "1_qq_install_5.5", bitmap2);
-        connector.createRecord(nameSpace,tName2, "1_wechat_uninstall_5.6", bitmap3);
-        connector.createRecord(nameSpace,tName3, "1_oppo_install_5.4", bitmap);
-        connector.createRecord(nameSpace,tName3, "1_oppo_login_5.4", bitmap2);
-        connector.createRecord(nameSpace,tName3, "1_oppo_uninstall_5.4", bitmap3);
+        connector.addRecord(nameSpace,tName, "1"+d+"wechat"+d+"install"+d+"5.2", bitmap);
+        connector.addRecord(nameSpace,tName, "1"+d+"qq"+d+"uninstall"+d+"5.4", bitmap2);
+        connector.addRecord(nameSpace,tName, "1"+d+"wechat"+d+"uninstall"+d+"5.4", bitmap3);
+        connector.addRecord(nameSpace,tName2, "1"+d+"oppo"+d+"uninstall"+d+"5.4", bitmap);
+        connector.addRecord(nameSpace,tName2, "1"+d+"qq"+d+"install"+d+"5.1", bitmap2);
+        connector.addRecord(nameSpace,tName2, "1"+d+"oppo"+d+"uninstall"+d+"5.1", bitmap3);
+        connector.addRecord(nameSpace,tName3, "1"+d+"vivo"+d+"uninstall"+d+"5.4", bitmap);
+        connector.addRecord(nameSpace,tName3, "1"+d+"baidu"+d+"install"+d+"5.6", bitmap2);
+        connector.addRecord(nameSpace,tName3, "1"+d+"oppo"+d+"install"+d+"5.4", bitmap3);
     }
 
 
@@ -152,24 +152,23 @@ public class HbaseStorageExample {
         MutableRoaringBitmap bitmap3 = new MutableRoaringBitmap();
         bitmap3.add(7);
 
-
         String tName = "city_20200209";
         String tName2 = "city_20200210";
 
         String nameSpace = "tagbase";
+        String d = "\u0001";
 
         connector.deleteTable(nameSpace,tName);
         connector.deleteTable(nameSpace,tName2);
         connector.createTable(nameSpace,tName);
         connector.createTable(nameSpace,tName2);
 
-
-        connector.createRecord(nameSpace,tName, "1_beijing", bitmap);
-        connector.createRecord(nameSpace,tName, "1_shanghai", bitmap2);
-        connector.createRecord(nameSpace,tName, "1_shenzhen", bitmap3);
-        connector.createRecord(nameSpace,tName2, "1_guangzhou", bitmap);
-        connector.createRecord(nameSpace,tName2, "1_shenzhen", bitmap2);
-        connector.createRecord(nameSpace,tName2, "1_tianjin", bitmap3);
+        connector.addRecord(nameSpace,tName, "1"+d+"beijing", bitmap);
+        connector.addRecord(nameSpace,tName, "1"+d+"shanghai", bitmap2);
+        connector.addRecord(nameSpace,tName, "1"+d+"shenzhen", bitmap3);
+        connector.addRecord(nameSpace,tName2, "1"+d+"guangzhou", bitmap);
+        connector.addRecord(nameSpace,tName2, "1"+d+"shenzhen", bitmap2);
+        connector.addRecord(nameSpace,tName2, "1"+d+"tianjin", bitmap3);
     }
 
     public static void addFlowData(StorageConnector connector) throws IOException, StorageException {
@@ -185,6 +184,7 @@ public class HbaseStorageExample {
         String tName3 = "flow_20200211";
 
         String nameSpace = "tagbase";
+        String d = "\u0001";
 
         connector.deleteTable(nameSpace,tName);
         connector.deleteTable(nameSpace,tName2);
@@ -193,16 +193,15 @@ public class HbaseStorageExample {
         connector.createTable(nameSpace,tName2);
         connector.createTable(nameSpace,tName3);
 
-
-        connector.createRecord(nameSpace,tName, "1_baidu_vivo", bitmap);
-        connector.createRecord(nameSpace,tName, "1_vivo_oppo", bitmap2);
-        connector.createRecord(nameSpace,tName, "1_tenxun_qq", bitmap3);
-        connector.createRecord(nameSpace,tName, "1_baidu_vivo", bitmap);
-        connector.createRecord(nameSpace,tName, "1_baidu_qq", bitmap2);
-        connector.createRecord(nameSpace,tName, "1_baidu_taobao", bitmap3);
-        connector.createRecord(nameSpace,tName3, "1_tenxun_qq", bitmap);
-        connector.createRecord(nameSpace,tName3, "1_tenxun_oppo", bitmap2);
-        connector.createRecord(nameSpace,tName3, "1_vivo_oppo", bitmap3);
+        connector.addRecord(nameSpace,tName, "1"+d+"baidu"+d+"vivo", bitmap);
+        connector.addRecord(nameSpace,tName, "1"+d+"oppo"+d+"vivo", bitmap2);
+        connector.addRecord(nameSpace,tName, "1"+d+"wechat"+d+"vivo", bitmap3);
+        connector.addRecord(nameSpace,tName, "1"+d+"baidu"+d+"vivo", bitmap);
+        connector.addRecord(nameSpace,tName, "1"+d+"qq"+d+"vivo", bitmap2);
+        connector.addRecord(nameSpace,tName, "1"+d+"baidu"+d+"wechat", bitmap3);
+        connector.addRecord(nameSpace,tName3, "1"+d+"qq"+d+"vivo", bitmap);
+        connector.addRecord(nameSpace,tName3, "1"+d+"baidu"+d+"wechat", bitmap2);
+        connector.addRecord(nameSpace,tName3, "1"+d+"baidu"+d+"vivo", bitmap3);
     }
 
 }

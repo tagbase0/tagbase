@@ -35,8 +35,6 @@ public abstract class StorageConnector {
     @Inject
     private StorageConnectorConfig commonConfig;
 
-    public static int FLAG_SLICE_COLUMN_INDEX = -1;
-
     protected Logger log = LoggerFactory.getLogger(StorageConnector.class);
 
     /**
@@ -97,12 +95,12 @@ public abstract class StorageConnector {
     /**
      * insert one record into storage
      */
-    public abstract void createRecord(String dbName, String tableName, String key, ImmutableRoaringBitmap value) throws StorageException;
+    public abstract void addRecord(String dbName, String tableName, String key, ImmutableRoaringBitmap value) throws StorageException;
 
     /**
      * insert multiple records into storage
      */
-    public abstract void createBatchRecords(String dbName, String tableName, String dataPath) throws StorageException;
+    public abstract String addSlice(String dataPath) throws StorageException;
 
     /**
      * query interface

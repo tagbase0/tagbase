@@ -71,7 +71,7 @@ object BitmapBuildingTaskExample {
       .foreach(dimColumnBuilder.append("b.").append(_).append(","))
     val dimColumn = dimColumnBuilder.deleteCharAt(dimColumnBuilder.size-1).toString()
 
-    val rowkeyDelimiter = "_" //rowkey分隔符
+    val rowkeyDelimiter = "\u0001" //rowkey分隔符
     val familyName = "f1" //hbase的列簇
     val qualifierName = "q1" //hbase的列名
     val appName = "bitmap_task" //appName

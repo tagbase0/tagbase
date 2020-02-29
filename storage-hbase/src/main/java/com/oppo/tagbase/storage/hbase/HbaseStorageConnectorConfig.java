@@ -24,13 +24,16 @@ public class HbaseStorageConnectorConfig {
     private String nameSpace = "tagbase";
 
     @JsonProperty
+    private String tablePrefix = "tagbase_";
+
+    @JsonProperty
     private String family = "f1";
 
     @JsonProperty
     private String qualifier = "q1";
 
     @JsonIgnore
-    private String rowkeyDelimiter = "_";
+    private String rowkeyDelimiter = "\u0001";
 
     @JsonProperty
     private int scanCacheSize = 100;
@@ -38,6 +41,13 @@ public class HbaseStorageConnectorConfig {
     @JsonProperty
     private int scanMaxResultSize = 5 * 1024 * 1024;
 
+    public String getTablePrefix() {
+        return tablePrefix;
+    }
+
+    public void setTablePrefix(String tablePrefix) {
+        this.tablePrefix = tablePrefix;
+    }
 
     public String getZkPort() {
         return zkPort;
@@ -118,6 +128,7 @@ public class HbaseStorageConnectorConfig {
                 ", zkQuorum='" + zkQuorum + '\'' +
                 ", rootDir='" + rootDir + '\'' +
                 ", nameSpace='" + nameSpace + '\'' +
+                ", tablePrefix='" + tablePrefix + '\'' +
                 ", family='" + family + '\'' +
                 ", qualifier='" + qualifier + '\'' +
                 ", rowkeyDelimiter='" + rowkeyDelimiter + '\'' +
