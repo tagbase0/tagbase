@@ -132,7 +132,7 @@ public class PhysicalPlanner {
             QueryHandler queryHandler = new QueryHandler(dbName, table.getName(), dims, dimColumnList, sliceColumn,query.getId());
             int maxGroupSize = scope.getGroupMaxSize();
 
-            planBuilder.addOperator(parentId, new SingleQueryOperator(incrementId++, queryHandler, outputBuffer, scope.getOutputType(),connector, maxGroupSize, scope.getOutRelations().get(0).getID()));
+            planBuilder.addOperator(parentId, new SingleQueryOperator(nextId(), queryHandler, outputBuffer, scope.getOutputType(),connector, maxGroupSize, scope.getOutRelations().get(0).getID()));
 
             return null;
 
@@ -143,7 +143,7 @@ public class PhysicalPlanner {
             OperatorBuffer outputBuffer = getContextParentInputBuffer();
             int parentId = getContextParentId();
 
-            int currentId = incrementId++;
+            int currentId = nextId();
             List<Query> subQueries = query.getSubQueries();
 
             Query leftQuery = subQueries.get(0);
@@ -159,11 +159,13 @@ public class PhysicalPlanner {
                 subQueries.get(n).accept(this);
             }
 
-            planBuilder.addOperator(parentId, new CollectionOperator(parentId, left, others, outputBuffer, query.getOperation(), query.getOutputType()));
+            planBuilder.addOperator(parentId, new CollectionOperator(currentId, left, others, outputBuffer, query.getOperation(), query.getOutputType()));
 
             return null;
         }
-
+        private int nextId(){
+            return incrementId++;
+        }
 
     }
 

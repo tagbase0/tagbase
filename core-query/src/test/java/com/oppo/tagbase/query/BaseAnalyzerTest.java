@@ -33,7 +33,7 @@ public class BaseAnalyzerTest {
 
 
     @Test
-    public void testSingleQuery() throws IOException {
+    public void testAnalyzeSingleQueryForProvince() throws IOException {
 
         Query query =  buildQueryFromFile("province.query");
         Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
@@ -42,7 +42,7 @@ public class BaseAnalyzerTest {
     }
 
     @Test
-    public void testAnalyzeSinQueryForBehavor() throws IOException {
+    public void testAnalyzeSinQueryForBehavior() throws IOException {
         Query query = buildQueryFromFile("behavior.query");
         Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
 
@@ -50,7 +50,18 @@ public class BaseAnalyzerTest {
     }
 
 
+    @Test
+    public void testAnalyzeComplexQuery() throws IOException {
+        Query query = buildQueryFromFile("people_analysis.query");
+        Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
 
+        assertComplexQueryAnalysis(analysis,query,"[{id='1,2', columns=[province], fields=[STRING]}]");
+    }
+
+    private void assertComplexQueryAnalysis(Analysis analysis, Query query, String info) {
+        assertEquals(analysis.getScope(query).getOutputMeta().values().toString(),info);
+
+    }
 
 
     protected Query buildQueryFromFile(String filePath) throws IOException {

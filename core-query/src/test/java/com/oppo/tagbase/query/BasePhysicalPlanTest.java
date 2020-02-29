@@ -23,18 +23,28 @@ public class BasePhysicalPlanTest extends BaseAnalyzerTest {
 
 
     @Test
-    public void test() throws IOException {
+    public void testPlanSingleQueryForProvince() throws IOException {
 
         Query query =  buildQueryFromFile("province.query");
         Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
 
         PhysicalPlan physicalPlan = PHYSICAL_PLANNER.plan(query, analysis);
 
-//        assertEqualPlan(physicalPlan);
-
-
-
+        System.out.println(physicalPlan.toString());
     }
+
+
+    @Test
+    public void testPlanComplexQuery() throws IOException {
+
+        Query query =  buildQueryFromFile("people_analysis.query");
+        Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
+        PhysicalPlan physicalPlan = PHYSICAL_PLANNER.plan(query, analysis);
+
+        System.out.println(physicalPlan.toString());
+    }
+
+
 
     private void assertEqualPlan(PhysicalPlan physicalPlan) {
         assertEquals("",physicalPlan.toString());

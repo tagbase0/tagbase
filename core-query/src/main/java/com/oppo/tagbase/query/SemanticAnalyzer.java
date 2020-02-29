@@ -13,6 +13,8 @@ import com.oppo.tagbase.meta.type.DataType;
 import com.oppo.tagbase.query.exception.SemanticException;
 import com.oppo.tagbase.query.node.*;
 import com.oppo.tagbase.query.row.RowMeta;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -28,6 +30,7 @@ import static com.oppo.tagbase.query.exception.SemanticErrorCode.*;
  * @date 2020/2/9
  */
 public class SemanticAnalyzer {
+    private static Logger LOG = LoggerFactory.getLogger(QueryResource.class);
 
     private Metadata meta;
     private static final LocalDate LOW_BOUND = LocalDate.parse("2007-12-03");
@@ -84,6 +87,12 @@ public class SemanticAnalyzer {
             RowMeta rowMeta = new RowMeta(nextSingleQueryId(), groupByColumns, groupByColumnTypes);
             Scope scope = Scope.builder().withOutputType(query.getOutput()).addRowMeta(rowMeta).withOutputSize(outputMaxSize).withGroupMaxSize(groupMaxSize).build();
             analysis.addScope(query, scope);
+
+            LOG.debug("singleQuery rowMeta: {}",rowMeta);
+            LOG.debug("singleQuery queryDb: {},queryTable: {}",dbName,table.getName());
+            LOG.debug("singleQuery filter analysis: {}",columnDomains);
+            LOG.debug("single query dim analysis: name {} ; type {}",groupByColumns,groupByColumnTypes);
+            LOG.debug("single query outputMaxSize: {},groupMaxSize:{}",outputMaxSize,groupMaxSize);
             return scope;
         }
 
@@ -127,9 +136,10 @@ public class SemanticAnalyzer {
                 }
             }
 
-            scopeBuilder.withOutputSize(count);
+           scopeBuilder.withOutputSize(count);
             Scope scope = scopeBuilder.build();
             analysis.addScope(query, scope);
+            LOG.debug("complexQuery operator {}: ,rowMeta: {}",query.getOperation(),scope.getOutputMeta().values());
             return scope;
 
         }
@@ -161,6 +171,8 @@ public class SemanticAnalyzer {
                     groupMaxSize = Integer.MAX_VALUE;
                 }
             }
+
+
             return groupMaxSize;
         }
 
@@ -180,6 +192,7 @@ public class SemanticAnalyzer {
                 outputFields.add(table.getColumn(dim).getDataType());
             }
             analysis.addGroupByColumns(query, groupByColumns);
+
             return outputFields;
         }
 
@@ -197,6 +210,7 @@ public class SemanticAnalyzer {
                     outputMaxSize *= cardinality;
                 }
             }
+
             return outputMaxSize;
         }
 
@@ -257,6 +271,7 @@ public class SemanticAnalyzer {
                 }
             }
             analysis.addFilterAnalysis(query, filterAnalysisMap);
+
             return filterAnalysisMap;
 
         }

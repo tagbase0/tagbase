@@ -54,8 +54,8 @@ public class CollectionOperator extends  AbstractOperator {
                     outputBuffer.postData(AggregateRow.combineAndTransitToResult(buildRows.get(n), c, operator));
                 }
 
-                c.combineAndTransitToResult(buildRows.get(buildRows.size() - 1), operator);
-                outputBuffer.postData(c);
+
+                outputBuffer.postData( c.combineAndTransitToResult(buildRows.get(buildRows.size() - 1), operator));
 
             }
 

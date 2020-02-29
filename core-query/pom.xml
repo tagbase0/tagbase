@@ -73,31 +73,8 @@
             <artifactId>guava</artifactId>
             <version>28.1-jre</version>
             <scope>compile</scope>
-
         </dependency>
 
-        <!--        <dependency>-->
-<!--            <groupId>org.apache.hadoop</groupId>-->
-<!--            <artifactId>hadoop-client</artifactId>-->
-<!--            <version>${hadoop.version}</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <artifactId>guava</artifactId>-->
-<!--                    <groupId>com.google.guava</groupId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.hadoop</groupId>-->
-<!--            <artifactId>hadoop-common</artifactId>-->
-<!--            <version>${hadoop.version}</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <artifactId>guava</artifactId>-->
-<!--                    <groupId>com.google.guava</groupId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
 
         <dependency>
             <groupId>org.easymock</groupId>
@@ -105,7 +82,12 @@
             <version>3.1</version>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>com.oppo</groupId>
+            <artifactId>extension-spi</artifactId>
+            <version>1.0</version>
+            <scope>compile</scope>
+        </dependency>
 
 
     </dependencies>

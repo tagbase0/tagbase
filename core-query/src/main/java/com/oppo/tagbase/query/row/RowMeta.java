@@ -52,4 +52,13 @@ public class RowMeta {
     public DataType getType(int n) {
         return fields.get(n);
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "id='" + id + '\'' +
+                ", columns=" + columns +
+                ", fields=" + fields +
+                '}';
+    }
 }

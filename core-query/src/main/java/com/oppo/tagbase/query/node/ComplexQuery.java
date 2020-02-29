@@ -34,7 +34,7 @@ public final class ComplexQuery extends BaseQuery{
 
         this.operation = operator;
         this.outputType = outputType;
-
+        this.subQueries = subQueries;
     }
 
 
@@ -53,7 +53,7 @@ public final class ComplexQuery extends BaseQuery{
 
     @Override
     public OutputType getOutput() {
-        return null;
+        return outputType;
     }
 
     @Override

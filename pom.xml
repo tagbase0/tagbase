@@ -20,6 +20,8 @@
         <module>engine-spark</module>
         <module>job-spark</module>
         <module>server</module>
+        <module>extension-spi</module>
+        <module>extension-hdfs</module>
     </modules>
 
     <properties>

@@ -93,7 +93,7 @@ public class PhysicalPlan {
 
         }
 
-        builder.append("\n}");
+        builder.append("}");
 
         return  builder.toString();
     }

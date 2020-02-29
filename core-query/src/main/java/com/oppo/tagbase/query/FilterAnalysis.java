@@ -38,4 +38,12 @@ public class FilterAnalysis<T extends  Comparable> {
     public Column getColumn() {
         return column;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "range=" + columnRange +
+                ", cardinality=" + cardinality +
+                '}';
+    }
 }

@@ -127,12 +127,12 @@ public class AggregateRow extends RawRow {
                 break;
         }
         id = joinKey(b.id, id);
-        return new ResultRow(dims, cardinality);
+        return new ResultRow(id,dims, cardinality);
     }
 
 
     private static String joinKey(String id, String id1) {
-        return id + id1;
+        return id + ","+id1;
     }
 
 

@@ -88,7 +88,7 @@ public class SingleQueryOperator extends AbstractOperator {
 
     @Override
     public String toString() {
-        return String.format("SingleQueryOperator{scanTable=%s,outputType=%s}",queryHandler.getTableName(),outputType);
+        return String.format("SingleQueryOperator{scanTable=%s,outputType=%s,output=%s}",queryHandler.getTableName(),outputType,queryHandler.getDimensions());
     }
 }
 

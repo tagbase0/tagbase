@@ -1,11 +1,9 @@
 package com.oppo.tagbase.query.mock;
 
+import com.google.common.collect.ImmutableList;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import com.oppo.tagbase.storage.core.exception.StorageException;
-import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
-import com.oppo.tagbase.storage.core.obj.QueryHandler;
-import com.oppo.tagbase.storage.core.obj.RawRow;
-import com.oppo.tagbase.storage.core.obj.StorageQueryContext;
+import com.oppo.tagbase.storage.core.obj.*;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
 
 import java.util.List;
@@ -15,16 +13,33 @@ import java.util.List;
  * @date 2020/2/25 21:27
  */
 public class StorageConnectorMock extends StorageConnector {
-
-    OperatorBuffer outputBuffer;
+    int index=0;
+    List<OperatorBuffer> outputBuffer;
     public StorageConnectorMock(List<RawRow> dataset ){
-        outputBuffer = new OperatorBuffer(1);
-        dataset.forEach(row -> outputBuffer.postData(row));
-        outputBuffer.postEnd();
+        ImmutableList.Builder<OperatorBuffer> outputBufferBuilder = ImmutableList.builder();
+
+        Dimensions preDim = dataset.get(0).getDim();
+
+        OperatorBuffer operatorBuffer = new OperatorBuffer();
+        for(int n=0;n<dataset.size();n++){
+
+            if(dataset.get(n).getDim().length() != preDim.length()){
+                operatorBuffer.postEnd();
+                outputBufferBuilder.add(operatorBuffer);
+                operatorBuffer = new OperatorBuffer();
+                preDim = dataset.get(n).getDim();
+            }
+
+            operatorBuffer.postData(dataset.get(n));
+        }
+//        dataset.forEach(row -> outputBuffer.postData(row));
+        operatorBuffer.postEnd();
+        outputBufferBuilder.add(operatorBuffer);
+        outputBuffer=  outputBufferBuilder.build();
     }
 
     public OperatorBuffer createQuery(QueryHandler queryHandler) {
-        return outputBuffer;
+        return outputBuffer.get(index++);
     }
 
     @Override

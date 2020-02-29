@@ -56,6 +56,8 @@ public class OutputOperator extends AbstractOperator {
 
     @Override
     public String toString() {
-        return "OutputOperator{" + '}';
+        return "OutputOperator{" +
+                outputMeta.values()+
+                '}';
     }
 }

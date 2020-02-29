@@ -23,6 +23,7 @@ public class ResultRow<T> extends AbstractRow {
 
     public String id() {
         return id;
+
     }
 
     public T getMetric() {

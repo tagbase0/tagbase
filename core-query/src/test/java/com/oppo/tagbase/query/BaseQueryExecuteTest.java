@@ -28,7 +28,7 @@ public class BaseQueryExecuteTest extends BasePhysicalPlanTest {
 
     @BeforeClass
     public static void prepareForExecute() {
-        QUERY_ENGINE = new QueryEngine(Executors.newFixedThreadPool(3));
+        QUERY_ENGINE = new QueryEngine(Executors.newFixedThreadPool(1));
     }
 
 
@@ -70,6 +70,23 @@ public class BaseQueryExecuteTest extends BasePhysicalPlanTest {
 
         System.out.println(physicalPlan.getResult());
 
+
+    }
+
+    @Test
+    public void testExecuteComplexQuery() throws IOException {
+        Query query =  buildQueryFromFile("people_analysis.query");
+        Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
+
+
+        List<RawRow> rows = readDataFrom("people_analysis.data");
+        PHYSICAL_PLANNER.setStorageConnector(new StorageConnectorMock(rows));
+
+        PhysicalPlan physicalPlan = PHYSICAL_PLANNER.plan(query, analysis);
+
+        System.out.println(physicalPlan);
+        QUERY_ENGINE.execute(physicalPlan);
+        System.out.println(physicalPlan.getResult());
 
     }
 
