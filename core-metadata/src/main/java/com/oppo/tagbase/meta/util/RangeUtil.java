@@ -1,13 +1,19 @@
 package com.oppo.tagbase.meta.util;
 
-import com.google.common.collect.RangeSet;
+import com.google.common.collect.Range;
+
+import java.time.LocalDateTime;
 
 /**
  * Created by wujianchao on 2020/2/17.
  */
 public class RangeUtil {
 
-    public static <T extends Comparable> String translateToSqlFilter(RangeSet<T> rangeSet, String column) {
-        return null;
+    public static LocalDateTime lowerEndpoint(Range<LocalDateTime> r) {
+        return r.hasLowerBound()? r.lowerEndpoint() : LocalDateTime.MIN;
+    }
+
+    public static LocalDateTime upperEndpoint(Range<LocalDateTime> r) {
+        return r.hasUpperBound() ? r.upperEndpoint() : LocalDateTime.MAX;
     }
 }

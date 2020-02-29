@@ -2,12 +2,13 @@ package com.oppo.tagbase.jobv2;
 
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
-import com.google.common.collect.Sets;
 import com.google.common.collect.TreeRangeSet;
+import com.oppo.tagbase.meta.util.RangeUtil;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Set;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.stream.Collectors;
 
 /**
  * Created by wujianchao on 2020/2/26.
@@ -15,35 +16,48 @@ import java.util.Set;
 public final class Timeline {
 
     private RangeSet<LocalDateTime> rangeSet = TreeRangeSet.create();
+    private SortedSet<Range<LocalDateTime>> originRangeSet;
 
+    public static Timeline of(SortedSet originRangeSet) {
+        return new Timeline(originRangeSet);
+    }
 
-    private Timeline(Set<Range<LocalDateTime>> ranges) {
-        for (Range<LocalDateTime> range : ranges) {
+    private Timeline(SortedSet<Range<LocalDateTime>> originRangeSet) {
+        for (Range<LocalDateTime> range : originRangeSet) {
             rangeSet.add(range);
         }
+        this.originRangeSet = originRangeSet;
     }
 
+    public boolean intersects(Range<LocalDateTime> range) {
+        return rangeSet.intersects(range);
+    }
 
     public boolean overlap(Range<LocalDateTime> range) {
-//        range.
-        return true;
-    }
-
-
-    class Builder {
-        private Set<Range<LocalDateTime>> ranges = Sets.newHashSet();
-
-        public Builder add(Collection<Range<LocalDateTime>> ranges) {
-            this.ranges.addAll(ranges);
-            return this;
+        if (originRangeSet == null || originRangeSet.isEmpty()) {
+            return false;
         }
 
-        public Timeline build() {
-            return new Timeline(ranges);
-        }
+        List<LocalDateTime> endpoints = originRangeSet.stream()
+                .map(RangeUtil::lowerEndpoint)
+                .collect(Collectors.toList());
+
+        endpoints.add(RangeUtil.upperEndpoint(originRangeSet.last()));
+
+        return endpoints.contains(RangeUtil.lowerEndpoint(range))
+                && endpoints.contains(RangeUtil.upperEndpoint(range));
     }
 
+    public boolean hasHole() {
+        return rangeSet.asRanges().size() == 1;
+    }
 
+    public boolean encloses(Range<LocalDateTime> range) {
+        return rangeSet.encloses(range);
+    }
 
+    public boolean isConnected(Range<LocalDateTime> range) {
+        return rangeSet.span().isConnected(range);
+    }
 
 }

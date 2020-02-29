@@ -13,7 +13,7 @@ public class Slice {
     private LocalDateTime endTime;
     private long tableId;
     private String sink;
-    private SliceStatus status = SliceStatus.BUILDING;
+    private SliceStatus status = SliceStatus.READY;
     private int shardNum = 1;
     private long srcSizeMb;
     private long srcCount;

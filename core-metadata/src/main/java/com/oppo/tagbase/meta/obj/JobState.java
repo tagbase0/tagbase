@@ -12,7 +12,7 @@ public enum JobState {
     SUCCESS
     ;
 
-    boolean isCompleted() {
+    public boolean isCompleted() {
         return this == DISCARD || this == SUCCESS;
     }
 }

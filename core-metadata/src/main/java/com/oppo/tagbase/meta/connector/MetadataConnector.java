@@ -247,8 +247,8 @@ public abstract class MetadataConnector {
     public void addSlice(Slice slice) {
         submit(handle -> {
 
-            if (slice.getStatus() != SliceStatus.BUILDING) {
-                throw new MetadataException(MetadataErrorCode.METADATA_ERROR, "Newly added slice must be BUILDING status.");
+            if (slice.getStatus() != SliceStatus.READY) {
+                throw new MetadataException(MetadataErrorCode.METADATA_ERROR, "Newly added slice must be READY status.");
             }
 
             TableType tableType = handle.createQuery("select `type` from `TBL` where `id`=:tableId")

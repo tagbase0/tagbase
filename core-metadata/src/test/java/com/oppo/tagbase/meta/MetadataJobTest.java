@@ -9,8 +9,6 @@ import com.oppo.tagbase.meta.connector.MetaStoreConnectorConfig;
 import com.oppo.tagbase.meta.obj.*;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
-
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

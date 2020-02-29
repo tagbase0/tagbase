@@ -22,11 +22,13 @@ public class JobModule extends AbstractModule {
 
 
         binder.bind(JobManager.class);
+        binder.bind(BatchBuildingJobMaker.class);
 
         PolyBind.bind(binder, Scheduler.class);
         PolyBind.registerImpl(binder, Scheduler.class, "singleton", SingletonScheduler.class);
 
         // TODO Adding registering interfaces support
         Lifecycle.registerInstance(binder, SingletonScheduler.class);
+
     }
 }

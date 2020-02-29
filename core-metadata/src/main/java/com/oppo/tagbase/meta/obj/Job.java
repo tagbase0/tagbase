@@ -1,5 +1,7 @@
 package com.oppo.tagbase.meta.obj;
 
+import com.google.common.collect.Range;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -7,7 +9,7 @@ import java.util.Objects;
 /**
  * Created by wujianchao on 2020/2/17.
  */
-public class Job {
+public class Job implements Comparable<Job>{
 
     /**
      * uuid
@@ -16,6 +18,8 @@ public class Job {
     private String name;
     private String dbName;
     private String tableName;
+    //TODO add create time;
+    private LocalDateTime createTime = LocalDateTime.now();
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private LocalDateTime dataLowerTime; // include
@@ -56,6 +60,14 @@ public class Job {
 
     public void setTableName(String tableName) {
         this.tableName = tableName;
+    }
+
+    public LocalDateTime getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     public LocalDateTime getStartTime() {
@@ -137,5 +149,24 @@ public class Job {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public int compareTo(Job another) {
+        if(type == JobType.DICTIONARY) {
+            if(another.getType() == JobType.DICTIONARY) {
+                return createTime.compareTo(another.getCreateTime());
+            }
+            return -1;
+        } else {
+            if(another.getType() == JobType.DICTIONARY) {
+                return 1;
+            }
+            return createTime.compareTo(another.getCreateTime());
+        }
+    }
+
+    public Range<LocalDateTime> toRange() {
+        return Range.closedOpen(dataLowerTime, dataUpperTime);
     }
 }

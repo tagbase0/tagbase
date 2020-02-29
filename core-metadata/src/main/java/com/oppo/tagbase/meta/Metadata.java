@@ -1,7 +1,6 @@
 package com.oppo.tagbase.meta;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.RangeSet;
+import com.google.common.collect.*;
 import com.oppo.tagbase.meta.connector.MetadataConnector;
 import com.oppo.tagbase.meta.obj.Column;
 import com.oppo.tagbase.meta.obj.DB;
@@ -89,8 +88,12 @@ public class Metadata {
      * get slices with filter
      */
     //TODO replace RangeSet and Range with self defined implementations for it is too important.
-    public List<Slice> getSlices(String dbName, String tableName, RangeSet<LocalDateTime> range) throws MetadataException {
-        return metadataConnector.getSlices(dbName, tableName, range);
+    public List<Slice> getSlices(String dbName, String tableName, RangeSet<LocalDateTime> ranges) throws MetadataException {
+        return metadataConnector.getSlices(dbName, tableName, ranges);
+    }
+
+    public List<Slice> getSlices(String dbName, String tableName, Range<LocalDateTime> range) throws MetadataException {
+        return metadataConnector.getSlices(dbName, tableName, TreeRangeSet.create(Lists.newArrayList(range)));
     }
 
     /**

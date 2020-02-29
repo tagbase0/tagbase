@@ -12,9 +12,6 @@ public class JobConfig {
     @JsonProperty("work.dir")
     private String workDir;
 
-    @JsonProperty("running.max")
-    private int maxRunning;
-
     public String getWorkDir() {
         return workDir;
     }

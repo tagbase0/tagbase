@@ -41,6 +41,11 @@ public class MetadataJob {
         return metadataConnector.getJob(jobId);
     }
 
+    public Job getRunningDictJob() {
+        //TODO
+        return null;
+    }
+
     public void addTask(Task task) {
         metadataConnector.addTask(task);
     }
@@ -72,5 +77,29 @@ public class MetadataJob {
 
     public Task getTask(String taskId) {
         return metadataConnector.getTask(taskId);
+    }
+
+    public Task getTask(String jobId, byte step) {
+        // TODO
+        return null;
+    }
+
+    public List<Job> listPendingJobs() {
+        // TODO
+        return null;
+    }
+
+    public void updateJobStartTime(String id, LocalDateTime startTime) {
+        //TODO
+    }
+
+    public void updateJobEndTime(String id, LocalDateTime endTime) {
+        //TODO
+    }
+
+
+    public List<Job> listSuccessDictJobs(LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
+        //TODO
+        return null;
     }
 }

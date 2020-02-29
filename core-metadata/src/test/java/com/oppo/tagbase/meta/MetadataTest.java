@@ -181,7 +181,7 @@ public class MetadataTest {
         sliceCity.setSrcCount(500);
         sliceCity.setSinkSizeMb(50);
         sliceCity.setSinkCount(500);
-        sliceCity.setStatus(SliceStatus.BUILDING);
+        sliceCity.setStatus(SliceStatus.READY);
         metadata.addSlice(sliceCity);
 
         Slice sliceCity1 = new Slice();
@@ -194,7 +194,7 @@ public class MetadataTest {
         sliceCity1.setSrcCount(500);
         sliceCity1.setSinkSizeMb(50);
         sliceCity1.setSinkCount(500);
-        sliceCity1.setStatus(SliceStatus.BUILDING);
+        sliceCity1.setStatus(SliceStatus.READY);
         metadata.addSlice(sliceCity1);
 
         Slice sliceAction = new Slice();
@@ -207,7 +207,7 @@ public class MetadataTest {
         sliceAction.setSrcCount(600);
         sliceAction.setSinkSizeMb(60);
         sliceAction.setSinkCount(600);
-        sliceAction.setStatus(SliceStatus.BUILDING);
+        sliceAction.setStatus(SliceStatus.READY);
 
         metadata.addSlice(sliceAction);
 
@@ -221,7 +221,7 @@ public class MetadataTest {
         sliceAction1.setSrcCount(600);
         sliceAction1.setSinkSizeMb(60);
         sliceAction1.setSinkCount(600);
-        sliceAction1.setStatus(SliceStatus.BUILDING);
+        sliceAction1.setStatus(SliceStatus.READY);
 
         metadata.addSlice(sliceAction1);
 

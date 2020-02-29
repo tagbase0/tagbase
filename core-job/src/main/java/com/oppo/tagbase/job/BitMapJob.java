@@ -3,12 +3,7 @@ package com.oppo.tagbase.job;
 import com.oppo.tagbase.job.util.DateFormat;
 import com.oppo.tagbase.job.util.IdGenerator;
 import com.oppo.tagbase.meta.MetadataJob;
-import com.oppo.tagbase.meta.obj.Job;
-import com.oppo.tagbase.meta.obj.JobState;
-import com.oppo.tagbase.meta.obj.JobType;
-import com.oppo.tagbase.meta.obj.Slice;
-import com.oppo.tagbase.meta.obj.Task;
-import com.oppo.tagbase.meta.obj.TaskState;
+import com.oppo.tagbase.meta.obj.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

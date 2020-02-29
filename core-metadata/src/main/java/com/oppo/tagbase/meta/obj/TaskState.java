@@ -7,6 +7,12 @@ public enum TaskState {
     PENDING,
     RUNNING,
     FAILED,
-    SUCCESS,
-    KILLED
+    SUSPEND,
+    DISCARD,
+    SUCCESS
+    ;
+
+    public boolean isCompleted() {
+        return this == DISCARD || this == SUCCESS;
+    }
 }
