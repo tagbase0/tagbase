@@ -3,7 +3,7 @@ package com.oppo.tagbase.job.engine;
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.oppo.tagbase.common.guice.ConfBind;
-import com.oppo.tagbase.common.guice.PolyBind;
+import com.oppo.tagbase.common.guice.ExtensionBind;
 
 /**
  * Created by liangjingya on 2020/2/8.
@@ -26,14 +26,14 @@ public class SparkTaskEngineModule extends AbstractModule {
                 "invertedDictTaskConfig"
         );
 
-        PolyBind.bind(
+        ExtensionBind.bind(
                 binder,
                 TaskEngine.class,
                 "tagbase.job.type",
                 "spark"
         );
 
-        PolyBind.registerImpl(
+        ExtensionBind.registerImpl(
                 binder,
                 TaskEngine.class,
                 "spark",

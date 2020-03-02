@@ -13,7 +13,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 @Target({ElementType.TYPE})
 @Retention(RUNTIME)
-public @interface Poly {
+public @interface Extension {
 
     /**
      * configuration key which identifying the implementation name.

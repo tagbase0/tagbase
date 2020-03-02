@@ -1,9 +1,9 @@
-package com.oppo.tagbase.jobv2;
+package com.oppo.tagbase.common.util;
 
 /**
  * Created by wujianchao on 2020/2/26.
  */
-public class JobIdGenerator {
+public class Uuid {
 
     public static String nextId() {
         return java.util.UUID.randomUUID().toString();

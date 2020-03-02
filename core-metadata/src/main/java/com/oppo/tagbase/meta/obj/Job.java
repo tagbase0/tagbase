@@ -18,8 +18,6 @@ public class Job implements Comparable<Job>{
     private String name;
     private String dbName;
     private String tableName;
-    //TODO add create time;
-    private LocalDateTime createTime = LocalDateTime.now();
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private LocalDateTime dataLowerTime; // include
@@ -27,6 +25,9 @@ public class Job implements Comparable<Job>{
     private String latestTask;
     private JobState state;
     private JobType type;
+    //TODO add create time;
+    private LocalDateTime createTime = LocalDateTime.now();
+    private float progress;
 
     private List<Task> tasks;
 
@@ -132,6 +133,14 @@ public class Job implements Comparable<Job>{
 
     public void setTasks(List<Task> tasks) {
         this.tasks = tasks;
+    }
+
+    public float getProgress() {
+        return progress;
+    }
+
+    public void setProgress(float progress) {
+        this.progress = progress;
     }
 
     @Override

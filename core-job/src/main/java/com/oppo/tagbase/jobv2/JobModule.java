@@ -4,7 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.oppo.tagbase.common.guice.ConfBind;
 import com.oppo.tagbase.common.guice.Lifecycle;
-import com.oppo.tagbase.common.guice.PolyBind;
+import com.oppo.tagbase.common.guice.ExtensionBind;
 
 /**
  * Created by wujianchao on 2020/2/26.
@@ -24,8 +24,8 @@ public class JobModule extends AbstractModule {
         binder.bind(JobManager.class);
         binder.bind(BatchBuildingJobMaker.class);
 
-        PolyBind.bind(binder, Scheduler.class);
-        PolyBind.registerImpl(binder, Scheduler.class, "singleton", SingletonScheduler.class);
+        ExtensionBind.bind(binder, Scheduler.class);
+        ExtensionBind.registerImpl(binder, Scheduler.class, SingletonScheduler.class);
 
         // TODO Adding registering interfaces support
         Lifecycle.registerInstance(binder, SingletonScheduler.class);

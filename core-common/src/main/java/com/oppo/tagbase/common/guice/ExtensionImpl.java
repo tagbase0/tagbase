@@ -7,12 +7,13 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Naming for poly implementation
+ * Naming for extension implementation
  *
  * Created by wujianchao on 2020/2/29.
  */
 @Target({ElementType.TYPE})
 @Retention(RUNTIME)
-public @interface PolyName {
+public @interface ExtensionImpl {
     String name();
+    Class extensionPoint();
 }

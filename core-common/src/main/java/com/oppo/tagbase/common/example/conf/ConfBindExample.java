@@ -3,7 +3,7 @@ package com.oppo.tagbase.common.example.conf;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
 import com.google.inject.ProvisionException;
-import com.oppo.tagbase.common.example.poly.*;
+import com.oppo.tagbase.common.example.extension.*;
 import com.oppo.tagbase.common.guice.ExampleGuiceInjectors;
 import com.oppo.tagbase.common.guice.JacksonModule;
 import com.oppo.tagbase.common.guice.PropsModule;

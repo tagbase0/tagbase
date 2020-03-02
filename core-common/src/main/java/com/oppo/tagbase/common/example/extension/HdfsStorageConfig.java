@@ -1,4 +1,4 @@
-package com.oppo.tagbase.common.example.poly;
+package com.oppo.tagbase.common.example.extension;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

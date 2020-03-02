@@ -3,6 +3,7 @@ package com.oppo.tagbase.jobv2;
 import com.google.common.util.concurrent.*;
 import com.google.inject.Inject;
 import com.oppo.tagbase.common.guice.LifecycleStart;
+import com.oppo.tagbase.common.guice.ExtensionImpl;
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.Job;
 import com.oppo.tagbase.meta.obj.JobType;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 /**
  * Created by wujianchao on 2020/2/27.
  */
+@ExtensionImpl(name = "singleton", extensionPoint = Scheduler.class)
 public class SingletonScheduler implements Scheduler {
 
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -55,7 +57,7 @@ public class SingletonScheduler implements Scheduler {
         jobScheduler.scheduleAtFixedRate(() -> {
             // get pending jobs
             List<Job> jobList = metadataJob.listPendingJobs();
-            log.debug("taking {} jobs from metadata", jobList.size());
+            log.debug("taking {} pending jobs from metadata", jobList.size());
 
             List<JobExecutable> jobExecutableList = jobList.stream()
                     //dict building job prior to data job

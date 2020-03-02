@@ -15,6 +15,7 @@ import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -64,13 +65,9 @@ public class DataJobExecutableMaker {
 
 
     private Executable makeBuildingBitmapStep(Task task) {
-        return () -> {
+        return new TaskExecutable(task, metadataJob,() -> {
 
-            TaskFSM taskFSM = TaskFSM.of(task, metadataJob);
             try {
-
-                taskFSM.toRunning();
-
                 // TODO init HiveMeta
                 HiveMeta hiveMeta = null;
                 String appId = engine.submitTask(hiveMeta, JobType.DATA);
@@ -96,54 +93,41 @@ public class DataJobExecutableMaker {
                 log.info("Bitmap data location {}", task.getOutput());
                 task.setOutput(null);
 
+                return null;
 
-                metadataJob.updateTask(task);
-                taskFSM.toSuccess();
-
-            } catch (Exception e) {
-                taskFSM.toFailed();
-                throw new JobException(e, "Task %s failed", task.getName());
+            } catch (IOException | InterruptedException e) {
+                throw new JobException("error when get external task %s status", task.getAppId());
             }
-        };
+        });
+
     }
 
     private Executable makeLoadDataToStorageStep(Job job, Task task) {
-        return () -> {
+        return new TaskExecutable(task, metadataJob,() -> {
 
-            TaskFSM taskFSM = TaskFSM.of(task, metadataJob);
-            try {
+            // 1. add slice to storage
 
-                taskFSM.toRunning();
+            //Bitmap data location
+            String previousTask = JobUtil.previousTask(job, task).getId();
+            String dataLocation = metadataJob.getTask(previousTask).getOutput();
 
-                // 1. add slice to storage
+            String sliceSink = storage.addSlice(dataLocation);
 
-                //Bitmap data location
-                String previousTask = JobUtil.previousTask(job, task).getId();
-                String dataLocation = metadataJob.getTask(previousTask).getOutput();
+            // 2. add slice to metadata
 
-                String sliceSink = storage.addSlice(dataLocation);
+            Slice slice = new Slice();
+            long tableId = metadata.getTable(job.getDbName(), job.getTableName()).getId();
+            slice.setTableId(tableId);
+            slice.setStartTime(job.getDataLowerTime());
+            slice.setEndTime(job.getDataUpperTime());
+            slice.setShardNum(1);
+            slice.setSink(sliceSink);
+            //TODO set value
+            slice.setSinkCount(0);
+            slice.setSinkCount(0);
 
-                // 2. add slice to metadata
-
-                Slice slice = new Slice();
-                long tableId = metadata.getTable(job.getDbName(), job.getTableName()).getId();
-                slice.setTableId(tableId);
-                slice.setStartTime(job.getDataLowerTime());
-                slice.setEndTime(job.getDataUpperTime());
-                slice.setShardNum(1);
-                slice.setSink(sliceSink);
-                //TODO set value
-                slice.setSinkCount(0);
-                slice.setSinkCount(0);
-
-                metadata.addSlice(slice);
-
-                taskFSM.toSuccess();
-
-            } catch (Exception e) {
-                taskFSM.toFailed();
-                throw new JobException(e, "Task %s failed", task.getName());
-            }
-        };
+            metadata.addSlice(slice);
+            return null;
+        });
     }
 }

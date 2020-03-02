@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -71,99 +72,84 @@ public class DictJobExecutableMaker {
     }
 
     private Executable makeBuildingInvertedDictStep(Job job, Task task) {
-        return () -> {
+        return new TaskExecutable(task, metadataJob,() -> {
 
-            TaskFSM taskFSM = TaskFSM.of(task, metadataJob);
             try {
-
-                taskFSM.toRunning();
-
-                metadataJob.updateTaskStartTime(task.getId(), LocalDateTime.now());
 
                 // TODO init HiveMeta
                 HiveMeta hiveMeta = null;
-                String appId = engine.submitTask(hiveMeta, JobType.DICTIONARY);
+                String appId = engine.submitTask(hiveMeta, JobType.DATA);
 
                 task.setAppId(appId);
                 metadataJob.updateTaskAppId(task.getId(), task.getAppId());
 
                 TaskStatus status = null;
 
-                while (!(status = engine.getTaskStatus(appId, JobType.DICTIONARY)).isDone()) {
+                while (!(status = engine.getTaskStatus(appId, JobType.DATA)).isDone()) {
                     TimeUnit.SECONDS.sleep(60);
                     log.debug("{} still running", appId);
-                    status = engine.getTaskStatus(appId, JobType.DICTIONARY);
+                    status = engine.getTaskStatus(appId, JobType.DATA);
                 }
 
 
                 if (!status.isSuccess()) {
-                    throw new JobException("external job %s failed, reason: %s", appId, status.getErrorMessage());
+                    throw new JobException("external task %s failed, reason: %s", appId, status.getErrorMessage());
                 }
 
-                // TODO output = inverted dict location
-                metadataJob.updateTaskOutput(task.getId(), null);
+                task.setEndTime(LocalDateTime.now());
+                // TODO output = HFile location
+                log.info("Bitmap data location {}", task.getOutput());
+                task.setOutput(null);
 
-                taskFSM.toSuccess();
+                return null;
 
-            } catch (Exception e) {
-                taskFSM.toFailed();
-                throw new JobException(e, "Task %s failed", task.getName());
-            } finally {
-                metadataJob.updateTaskEndTime(task.getId(), LocalDateTime.now());
+            } catch (IOException | InterruptedException e) {
+                throw new JobException("error when get external task %s status", task.getAppId());
             }
-        };
+        });
     }
 
     private Executable makeBuildingForwardDictStep(Job job, Task task) {
-        return () -> {
+        return new TaskExecutable(task, metadataJob,() -> {
 
-            TaskFSM taskFSM = TaskFSM.of(task, metadataJob);
-            try {
+            Dict currentForwardDict = metadataDict.getDict();
 
-                taskFSM.toRunning();
-
-                Dict currentForwardDict = metadataDict.getDict();
-
-                ForwardDictionaryWriter writer = null;
-                String currentForwardDictPath = null;
+            ForwardDictionaryWriter writer = null;
+            String currentForwardDictPath = null;
 
 
-                //TODO
-                Task previousTask = metadataJob.getTask(task.getId());
+            //TODO
+            Task previousTask = metadataJob.getTask(task.getId());
 
-                String invertedDictLocation = previousTask.getOutput();
-                TreeMap<Long, String> incEntries = null;
-                // TODO read increasing entries
-                // incEntries = loadIncEntry(invertedDictLocation)
+            String invertedDictLocation = previousTask.getOutput();
+            TreeMap<Long, String> incEntries = null;
+            // TODO read increasing entries
+            // incEntries = loadIncEntry(invertedDictLocation)
 
-                if (currentForwardDict == null) {
-                    // first building
-                    // TODO local path
-                    currentForwardDictPath = makeForwardDictName();
-                    writer = ForwardDictionaryWriter.createWriter(new File(currentForwardDictPath));
-                } else {
-                    //daily building
+            if (currentForwardDict == null) {
+                // first building
+                // TODO local path
+                currentForwardDictPath = makeForwardDictName();
+                writer = ForwardDictionaryWriter.createWriter(new File(currentForwardDictPath));
+            } else {
+                //daily building
 
-                    //TODO  load currentForwardDict from HDFS to local disk.
-                    currentForwardDictPath = null;
-                    writer = ForwardDictionaryWriter.createWriterForExistedDict(new File(currentForwardDictPath));
-                }
-
-                for (Map.Entry<Long, String> e : incEntries.entrySet()) {
-                    //check dict consistency
-                    Preconditions.checkArgument(
-                            writer.add(BytesUtil.toUTF8Bytes(e.getValue())) == e.getKey(),
-                            "inconsistent index between Inverted and Forward dictionaries."
-                    );
-                }
-
-                writer.complete();
-                taskFSM.toSuccess();
-
-            } catch (Exception e) {
-                taskFSM.toFailed();
-                throw new JobException(e, "Task %s failed", task.getName());
+                //TODO  load currentForwardDict from HDFS to local disk.
+                currentForwardDictPath = null;
+                writer = ForwardDictionaryWriter.createWriterForExistedDict(new File(currentForwardDictPath));
             }
-        };
+
+            for (Map.Entry<Long, String> e : incEntries.entrySet()) {
+                //check dict consistency
+                Preconditions.checkArgument(
+                        writer.add(BytesUtil.toUTF8Bytes(e.getValue())) == e.getKey(),
+                        "inconsistent index between Inverted and Forward dictionaries."
+                );
+            }
+
+            writer.complete();
+            return null;
+
+        });
     }
 }

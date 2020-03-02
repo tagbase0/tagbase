@@ -5,7 +5,10 @@ import com.google.common.collect.Range;
 import com.oppo.tagbase.common.util.LocalDateTimeUtil;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataJob;
-import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.obj.Job;
+import com.oppo.tagbase.meta.obj.JobState;
+import com.oppo.tagbase.meta.obj.Slice;
+import com.oppo.tagbase.meta.obj.Task;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
@@ -13,7 +16,8 @@ import java.util.List;
 
 import static com.oppo.tagbase.jobv2.JobErrorCode.JOB_OVERLAP;
 import static com.oppo.tagbase.jobv2.JobErrorCode.SLICE_OVERLAP;
-import static com.oppo.tagbase.jobv2.JobUtil.*;
+import static com.oppo.tagbase.jobv2.JobUtil.makeJobTimeline;
+import static com.oppo.tagbase.jobv2.JobUtil.makeSliceTimeline;
 
 /**
  * Created by wujianchao on 2020/2/26.
@@ -35,18 +39,7 @@ public class JobManager {
         checkNewDataJob(dbName, tableName, dataLowerTime, dataUpperTime);
 
         // create job
-        Job job = new Job();
-        job.setId(JobIdGenerator.nextId());
-        job.setName(JobUtil.makeDataJobName(dbName, tableName, dataLowerTime, dataUpperTime));
-        job.setDbName(dbName);
-        job.setTableName(tableName);
-        job.setDataLowerTime(dataLowerTime);
-        job.setDataUpperTime(dataUpperTime);
-        job.setState(JobState.PENDING);
-        job.setStartTime(LocalDateTime.now());
-        job.setType(JobType.DATA);
-
-        addTasksToJob(job);
+        Job job = JobUtil.newDataJob(dbName, tableName, dataLowerTime, dataUpperTime);
 
         // add to metadata
         metadataJob.addJob(job);
@@ -64,7 +57,7 @@ public class JobManager {
 
         // check dataUpperTime - dataLowerTime = n Days
         long diff = LocalDateTimeUtil.minus(dataLowerTime, dataLowerTime);
-        Preconditions.checkArgument((diff % MILLS_OF_DAY == 0), "build time range must be n Days");
+        Preconditions.checkArgument(diff != MILLS_OF_DAY, "build time range must be 1 Days");
 
         // check job overlap
         List<Job> jobList = metadataJob.listNotCompletedJob(dbName, tableName, dataLowerTime, dataUpperTime);
@@ -89,16 +82,7 @@ public class JobManager {
     public Job buildDict(LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
 
         // create job
-        Job job = new Job();
-        job.setName(JobUtil.makeDictJobName(dataLowerTime, dataUpperTime));
-        job.setId(JobIdGenerator.nextId());
-        job.setState(JobState.PENDING);
-        job.setCreateTime(LocalDateTime.now());
-        job.setDataLowerTime(dataLowerTime);
-        job.setDataUpperTime(dataUpperTime);
-        job.setType(JobType.DATA);
-
-        addTasksToJob(job);
+        Job job = JobUtil.newDictJob(dataLowerTime, dataUpperTime);
 
         // add to metadata
         metadataJob.addJob(job);

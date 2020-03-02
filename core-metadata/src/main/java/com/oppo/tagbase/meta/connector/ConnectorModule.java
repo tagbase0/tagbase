@@ -5,7 +5,7 @@ import com.google.inject.Binder;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.oppo.tagbase.common.guice.ConfBind;
-import com.oppo.tagbase.common.guice.PolyBind;
+import com.oppo.tagbase.common.guice.ExtensionBind;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.guava.GuavaPlugin;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
@@ -21,14 +21,14 @@ public class ConnectorModule extends AbstractModule {
         Binder binder = binder();
         ConfBind.bind(binder, MetaStoreConnectorConfig.class);
 
-        PolyBind.bind(
+        ExtensionBind.bind(
                 binder,
                 MetadataConnector.class,
                 "tagbase.metadata.storage.type",
                 "mysql"
         );
 
-        PolyBind.registerImpl(
+        ExtensionBind.registerImpl(
                 binder,
                 MetadataConnector.class,
                 "mysql",

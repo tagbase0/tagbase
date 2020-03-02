@@ -3,7 +3,7 @@ package com.oppo.tagbase.storage.hbase;
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.oppo.tagbase.common.guice.ConfBind;
-import com.oppo.tagbase.common.guice.PolyBind;
+import com.oppo.tagbase.common.guice.ExtensionBind;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import com.oppo.tagbase.storage.core.connector.StorageConnectorConfig;
 
@@ -26,14 +26,14 @@ public class HbaseStorageModule extends AbstractModule {
                 StorageConnectorConfig.class
         );
 
-        PolyBind.bind(
+        ExtensionBind.bind(
                 binder,
                 StorageConnector.class,
                 "tagbase.bitmap.storage.type",
                 "hbase"
         );
 
-        PolyBind.registerImpl(
+        ExtensionBind.registerImpl(
                 binder,
                 StorageConnector.class,
                 "hbase",

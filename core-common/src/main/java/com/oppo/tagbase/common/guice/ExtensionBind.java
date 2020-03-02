@@ -17,7 +17,7 @@ import java.util.Properties;
 /**
  * Created by wujianchao on 2020/1/20.
  */
-public final class PolyBind {
+public final class ExtensionBind {
 
     @Deprecated
     public static <T> void bind(Binder binder, Class<T> i, String propKey, String defaultImpl) {
@@ -28,7 +28,7 @@ public final class PolyBind {
      * 1. bind named implementation to interface by prop key
      */
     public static <T> void bind(Binder binder, Class<T> i) {
-        Poly poly = AnnotationUtil.getAnnotation(i, Poly.class);
+        Extension poly = AnnotationUtil.getAnnotation(i, Extension.class);
         binder.bind(i).toProvider(new PolyProvider<T>(i, poly.key(), poly.defaultImpl())).in(Scopes.SINGLETON);
     }
 
@@ -45,11 +45,10 @@ public final class PolyBind {
      * 2. register an implementation
      */
     public static <T> void registerImpl(Binder binder,
-                                        Class<T> i,
                                         Class<? extends T> implClazz) {
-        PolyName implName = AnnotationUtil.getAnnotation(i, PolyName.class);
-        MapBinder.newMapBinder(binder, String.class, i)
-                .addBinding(implName.name()).to(implClazz).in(Scopes.SINGLETON);
+        ExtensionImpl impl = AnnotationUtil.getAnnotation(implClazz, ExtensionImpl.class);
+        MapBinder.newMapBinder(binder, String.class, impl.extensionPoint())
+                .addBinding(impl.name()).to(implClazz).in(Scopes.SINGLETON);
     }
 
 
