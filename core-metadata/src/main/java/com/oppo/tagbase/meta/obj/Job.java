@@ -28,7 +28,7 @@ public class Job implements Comparable<Job>{
     private JobType type;
     //TODO add create time;
     private LocalDateTime createTime = LocalDateTime.now();
-    private float progress;
+    private float progress = 0f;
 
     private List<Task> tasks;
 
@@ -163,17 +163,7 @@ public class Job implements Comparable<Job>{
 
     @Override
     public int compareTo(Job another) {
-        if(type == JobType.DICTIONARY) {
-            if(another.getType() == JobType.DICTIONARY) {
-                return createTime.compareTo(another.getCreateTime());
-            }
-            return -1;
-        } else {
-            if(another.getType() == JobType.DICTIONARY) {
-                return 1;
-            }
-            return createTime.compareTo(another.getCreateTime());
-        }
+        return createTime.compareTo(another.getCreateTime());
     }
 
     public Range<LocalDateTime> toRange() {

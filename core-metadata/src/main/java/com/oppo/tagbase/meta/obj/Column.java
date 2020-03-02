@@ -17,6 +17,12 @@ public class Column {
     private DataType dataType = DataType.STRING;
     private ColumnType type;
     private String desc;
+    private String srcDataType;
+    /**
+     * If column is Hive partition column and hive data type is string,
+     * we must know the date format.
+     */
+    private String srcPartColDateFormat;
 
     public long getId() {
         return id;
@@ -80,6 +86,22 @@ public class Column {
 
     public void setDesc(String desc) {
         this.desc = desc;
+    }
+
+    public String getSrcDataType() {
+        return srcDataType;
+    }
+
+    public void setSrcDataType(String srcDataType) {
+        this.srcDataType = srcDataType;
+    }
+
+    public String getSrcPartColDateFormat() {
+        return srcPartColDateFormat;
+    }
+
+    public void setSrcPartColDateFormat(String srcPartColDateFormat) {
+        this.srcPartColDateFormat = srcPartColDateFormat;
     }
 
     @Override

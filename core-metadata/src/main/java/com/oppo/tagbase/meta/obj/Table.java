@@ -18,6 +18,7 @@ public class Table {
     private String latestSlice;
     private TableType type;
     private String desc;
+    private TableResourceType srcType;
 
     private List<Column> columns;
 
@@ -86,6 +87,14 @@ public class Table {
         this.desc = desc;
     }
 
+    public TableResourceType getSrcType() {
+        return srcType;
+    }
+
+    public void setSrcType(TableResourceType srcType) {
+        this.srcType = srcType;
+    }
+
     public List<Column> getColumns() {
         return columns;
     }
@@ -135,6 +144,7 @@ public class Table {
                 ", latestSlice='" + latestSlice + '\'' +
                 ", type=" + type +
                 ", desc='" + desc + '\'' +
+                ", srcType='" + srcType + '\'' +
                 ", columns=" + columns +
                 '}';
     }

@@ -15,4 +15,8 @@ public enum JobState {
     public boolean isCompleted() {
         return this == DISCARD || this == SUCCESS;
     }
+
+    public static JobState[] a() {
+        return null;
+    }
 }
