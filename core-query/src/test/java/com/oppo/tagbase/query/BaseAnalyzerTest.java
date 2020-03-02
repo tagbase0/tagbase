@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.oppo.tagbase.meta.Metadata;
-import com.oppo.tagbase.query.mock.MockMetadata;
+import com.oppo.tagbase.query.mock.MetadataMock;
 import com.oppo.tagbase.query.node.Query;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -26,7 +26,7 @@ public class BaseAnalyzerTest {
 
     @BeforeClass
     public static void setUp() {
-        Metadata metadata = MockMetadata.mockMetadata();
+        Metadata metadata = MetadataMock.mockMetadata();
         SEMANTIC_ANALYZER = new SemanticAnalyzer(metadata);
         JSON_MAPPER = new ObjectMapper();
     }
@@ -34,33 +34,27 @@ public class BaseAnalyzerTest {
 
     @Test
     public void testAnalyzeSingleQueryForProvince() throws IOException {
-
         Query query =  buildQueryFromFile("province.query");
-        Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
-
-        assertSingleQueryAnalysis(analysis,query,"tagbase","province",ImmutableList.<String>of(), ImmutableMap.of("province",1));
+        assertSingleQueryAnalysis(SEMANTIC_ANALYZER.analyze(query),query,"tagbase","province",ImmutableList.<String>of(), ImmutableMap.of("province",1));
     }
 
     @Test
     public void testAnalyzeSinQueryForBehavior() throws IOException {
         Query query = buildQueryFromFile("behavior.query");
-        Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
-
-        assertSingleQueryAnalysis(analysis,query,"tagbase","behavior",ImmutableList.of("app"),  ImmutableMap.of("app",2,"dayno",3,"behavior",1));
+        assertSingleQueryAnalysis( SEMANTIC_ANALYZER.analyze(query),query,"tagbase","behavior",ImmutableList.of("app"),  ImmutableMap.of("app",2,"dayno",3,"behavior",1));
     }
 
 
     @Test
     public void testAnalyzeComplexQuery() throws IOException {
         Query query = buildQueryFromFile("people_analysis.query");
-        Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
-
-        assertComplexQueryAnalysis(analysis,query,"[{id='1,2', columns=[province], fields=[STRING]}]");
+        assertComplexQueryAnalysis(SEMANTIC_ANALYZER.analyze(query),query,"[{id='1,2', columns=[province], fields=[STRING]}]");
     }
+
+
 
     private void assertComplexQueryAnalysis(Analysis analysis, Query query, String info) {
         assertEquals(analysis.getScope(query).getOutputMeta().values().toString(),info);
-
     }
 
 

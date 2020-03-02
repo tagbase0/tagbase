@@ -17,7 +17,7 @@ public class BasePhysicalPlanTest extends BaseAnalyzerTest {
     protected static PhysicalPlanner PHYSICAL_PLANNER;
 
     @BeforeClass
-    public static  void prepare(){
+    public static void prepare() {
         PHYSICAL_PLANNER = new PhysicalPlanner();
     }
 
@@ -25,32 +25,26 @@ public class BasePhysicalPlanTest extends BaseAnalyzerTest {
     @Test
     public void testPlanSingleQueryForProvince() throws IOException {
 
-        Query query =  buildQueryFromFile("province.query");
-        Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
-
-        PhysicalPlan physicalPlan = PHYSICAL_PLANNER.plan(query, analysis);
-
+        PhysicalPlan physicalPlan = generatePhysicalPlan("province.query");
         System.out.println(physicalPlan.toString());
     }
-
-
     @Test
     public void testPlanComplexQuery() throws IOException {
-
-        Query query =  buildQueryFromFile("people_analysis.query");
-        Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
-        PhysicalPlan physicalPlan = PHYSICAL_PLANNER.plan(query, analysis);
-
+        PhysicalPlan physicalPlan = generatePhysicalPlan("people_analysis.query");
         System.out.println(physicalPlan.toString());
     }
 
+
+    protected PhysicalPlan generatePhysicalPlan(String queryPath) throws IOException {
+        Query query = buildQueryFromFile(queryPath);
+        Analysis analysis = SEMANTIC_ANALYZER.analyze(query);
+        return PHYSICAL_PLANNER.plan(query, analysis);
+    }
 
 
     private void assertEqualPlan(PhysicalPlan physicalPlan) {
-        assertEquals("",physicalPlan.toString());
+        assertEquals("", physicalPlan.toString());
     }
-
-
 
 
 }

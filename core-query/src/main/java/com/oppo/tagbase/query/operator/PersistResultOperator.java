@@ -2,7 +2,7 @@ package com.oppo.tagbase.query.operator;
 
 import com.google.inject.Inject;
 import com.oppo.tagbase.dict.ForwardDictionary;
-import com.oppo.tagbase.extension.spi.ResultWriter;
+import com.oppo.tagbase.extension.spi.Writer;
 import com.oppo.tagbase.query.row.AggregateRow;
 import com.oppo.tagbase.storage.core.obj.OperatorBuffer;
 import org.roaringbitmap.buffer.ImmutableRoaringBitmap;
@@ -51,7 +51,7 @@ public class PersistResultOperator extends AbstractOperator {
         outputBuffer.postEnd();
     }
 
-    ResultWriter writer = null;
+    Writer writer = null;
 
     private void writeRow(AggregateRow row) throws IOException {
 

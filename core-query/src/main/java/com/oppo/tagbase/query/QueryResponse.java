@@ -2,7 +2,7 @@ package com.oppo.tagbase.query;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.oppo.tagbase.query.exception.ErrorCodeException;
+import com.oppo.tagbase.common.TagbaseException;
 
 import java.util.List;
 import java.util.Map;
@@ -27,8 +27,8 @@ public final class QueryResponse {
     }
 
     public static QueryResponse error(Exception e) {
-        if(e instanceof ErrorCodeException){
-            return new QueryResponse(((ErrorCodeException) e).getErrorCode(),e.getMessage());
+        if(e instanceof TagbaseException){
+            return new QueryResponse(((TagbaseException) e).getErrorCode().getCode(),e.getMessage());
         }
 
         return new QueryResponse(500, e.getMessage());

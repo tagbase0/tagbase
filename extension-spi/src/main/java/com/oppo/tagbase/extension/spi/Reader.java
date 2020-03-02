@@ -5,9 +5,8 @@ import java.io.IOException;
 
 /**
  * @author huangfeng
- * @date 2020/2/28 14:14
+ * @date 2020/3/2 14:30
  */
-public interface ResultWriter extends Closeable {
-
-    void write(String content) throws IOException;
+public interface Reader extends Closeable {
+    byte[] readFully() throws IOException;
 }

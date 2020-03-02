@@ -1,6 +1,6 @@
 package com.oppo.tagbase.extension.hdfs;
 
-import com.oppo.tagbase.extension.spi.ResultWriter;
+import com.oppo.tagbase.extension.spi.Writer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -14,11 +14,10 @@ import java.io.OutputStreamWriter;
  * @author huangfeng
  * @date 2020/2/28 14:42
  */
-public class HDFSWriter implements ResultWriter {
+public class HDFSWriter implements Writer {
 
     FileSystem fs;
     FSDataOutputStream fsd;
-
     BufferedWriter bw;
 
     public HDFSWriter(String path) throws IOException {

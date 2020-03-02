@@ -12,9 +12,9 @@ import java.util.*;
 public class PluginManager {
     private static final List<String> SPI_PACKAGES = Arrays.asList("com.oppo.tagbase.extension.spi");
 
-    Map<String, ResultWriterFactory> resultWriterFactories = new HashMap<>();
+    Map<String, FileSystem> resultWriterFactories = new HashMap<>();
 
-    public void register(String name, ResultWriterFactory factory) {
+    public void register(String name, FileSystem factory) {
         resultWriterFactories.put(name, factory);
     }
 
@@ -22,8 +22,8 @@ public class PluginManager {
 
         URLClassLoader classLoader = buildExtensionLoader(dirPath);
 
-        ServiceLoader<ResultWriterFactory> writerFactories = ServiceLoader.load(ResultWriterFactory.class, classLoader);
-        for (ResultWriterFactory writerFactory : writerFactories) {
+        ServiceLoader<FileSystem> writerFactories = ServiceLoader.load(FileSystem.class, classLoader);
+        for (FileSystem writerFactory : writerFactories) {
             register(writerFactory.getName(), writerFactory);
         }
     }

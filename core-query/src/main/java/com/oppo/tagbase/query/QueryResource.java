@@ -116,7 +116,7 @@ public class QueryResource {
     @Produces(MediaType.APPLICATION_JSON)
     public QueryResponse showQueries() {
 
-        return null;
+        return QueryResponse.fillContent(queryManager.getQueries());
     }
 
     private static QueryResponse tryAndReturn(Callable task) {

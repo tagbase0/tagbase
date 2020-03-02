@@ -2,7 +2,9 @@ package com.oppo.tagbase.query;
 
 import com.oppo.tagbase.query.exception.QueryException;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static com.oppo.tagbase.query.exception.QueryErrorCode.QUERY_NOT_EXIST;
 
@@ -56,5 +58,9 @@ public class QueryManager {
         if (execution != null && execution.getState() == QueryExecution.QueryState.NEW) {
             queries.remove(queryId);
         }
+    }
+
+    public List getQueries() {
+        return queries.values().stream().filter(query -> query.getState() == QueryExecution.QueryState.RUNNING).collect(Collectors.toList());
     }
 }

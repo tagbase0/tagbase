@@ -15,20 +15,20 @@ import java.util.Map;
  * @date 2020/2/25 19:25
  */
 
-public class MockMetadata extends Metadata {
+public class MetadataMock extends Metadata {
 
     Map<String, DB> dbs;
 
     Map<String, Map<String, Table>> dbTables;
 
-    public MockMetadata() {
+    public MetadataMock() {
         dbs = new HashMap<>();
         dbTables = new HashMap<>();
     }
 
     public static Metadata mockMetadata() {
         String dbName = "tagbase";
-        MockMetadata mockMetadata = new MockMetadata();
+        MetadataMock mockMetadata = new MetadataMock();
         mockMetadata.addDb(dbName, "tagbase");
 
         // table1  province
