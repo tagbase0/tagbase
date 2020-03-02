@@ -1,14 +1,13 @@
 package com.oppo.tagbase.jobv2;
 
 import com.google.inject.Inject;
-import com.oppo.tagbase.jobv2.spi.HiveMeta;
+import com.oppo.tagbase.jobv2.spi.DataTaskContext;
 import com.oppo.tagbase.jobv2.spi.TaskEngine;
 import com.oppo.tagbase.jobv2.spi.TaskStatus;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataDict;
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.Job;
-import com.oppo.tagbase.meta.obj.JobType;
 import com.oppo.tagbase.meta.obj.Slice;
 import com.oppo.tagbase.meta.obj.Task;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
@@ -38,6 +37,8 @@ public class DataJobExecutableMaker {
     private Metadata metadata;
     @Inject
     private MetadataDict metadataDict;
+    @Inject
+    private JobConfig jobConfig;
 
     public JobExecutable make(Job job) {
 
@@ -55,7 +56,7 @@ public class DataJobExecutableMaker {
 
         switch (task.getStep()) {
             case 0:
-                return makeBuildingBitmapStep(task);
+                return makeBuildingBitmapStep(job, task);
             case 1:
                 return makeLoadDataToStorageStep(job, task);
             default:
@@ -64,23 +65,29 @@ public class DataJobExecutableMaker {
     }
 
 
-    private Executable makeBuildingBitmapStep(Task task) {
-        return new TaskExecutable(task, metadataJob,() -> {
+    private Executable makeBuildingBitmapStep(Job job, Task task) {
+        return new TaskExecutable(task, metadataJob, () -> {
 
             try {
-                // TODO init HiveMeta
-                HiveMeta hiveMeta = null;
-                String appId = engine.submitTask(hiveMeta, JobType.DATA);
+                // init context
+                DataTaskContext context = new DataTaskContext(task.getJobId(),
+                        task.getId(),
+                        metadata.getTable(job.getDbName(), job.getTableName()),
+                        jobConfig,
+                        job.getDataLowerTime(),
+                        job.getDataUpperTime()
+                );
+                String appId = engine.buildData(context);
 
                 task.setAppId(appId);
                 metadataJob.updateTaskAppId(task.getId(), task.getAppId());
 
                 TaskStatus status = null;
 
-                while (!(status = engine.getTaskStatus(appId, JobType.DATA)).isDone()) {
+                while (!(status = engine.status(appId)).isDone()) {
                     TimeUnit.SECONDS.sleep(60);
                     log.debug("{} still running", appId);
-                    status = engine.getTaskStatus(appId, JobType.DATA);
+                    status = engine.status(appId);
                 }
 
 
@@ -88,10 +95,10 @@ public class DataJobExecutableMaker {
                     throw new JobException("external task %s failed, reason: %s", appId, status.getErrorMessage());
                 }
 
-                task.setEndTime(LocalDateTime.now());
-                // TODO output = HFile location
-                log.info("Bitmap data location {}", task.getOutput());
-                task.setOutput(null);
+                metadataJob.updateTaskEndTime(task.getId(), LocalDateTime.now());
+                metadataJob.updateTaskOutput(task.getId(), context.getOutputLocation());
+
+                log.info("Bitmap data location {}", context.getOutputLocation());
 
                 return null;
 

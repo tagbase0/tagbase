@@ -9,14 +9,21 @@ import com.oppo.tagbase.common.guice.Config;
 @Config("tagbase.job")
 public class JobConfig {
 
-    @JsonProperty("work.dir")
+    @JsonProperty("base.work.dir")
     private String workDir;
+
+    @JsonProperty("inverted.dict.path")
+    private String invertedDictPath;
 
     @JsonProperty("pending.limit")
     private int pendingLimit;
 
   public String getWorkDir() {
         return workDir;
+    }
+
+    public String getInvertedDictPath() {
+        return invertedDictPath;
     }
 
     public int getPendingLimit() {

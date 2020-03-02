@@ -24,8 +24,17 @@ public class DictHiveInputConfig {
     @JsonProperty("column")
     private String column;
 
+    @JsonProperty("column.type")
+    private String columnType;
+
     @JsonProperty("part_column")
     private String partitionColumn;
+
+    @JsonProperty("part_column.type")
+    private String partitionColumnType;
+
+    @JsonProperty("part_column.format")
+    private String partitionColumnFormat;
 
     public String getDbName() {
         return dbName;
@@ -39,10 +48,21 @@ public class DictHiveInputConfig {
         return column;
     }
 
+    public String getColumnType() {
+        return columnType;
+    }
+
     public String getPartitionColumn() {
         return partitionColumn;
     }
 
+    public String getPartitionColumnType() {
+        return partitionColumnType;
+    }
+
+    public String getPartitionColumnFormat() {
+        return partitionColumnFormat;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -56,11 +76,20 @@ public class DictHiveInputConfig {
         return Objects.equals(dbName, that.dbName) &&
                 Objects.equals(tableName, that.tableName) &&
                 Objects.equals(column, that.column) &&
-                Objects.equals(partitionColumn, that.partitionColumn);
+                Objects.equals(columnType, that.columnType) &&
+                Objects.equals(partitionColumn, that.partitionColumn) &&
+                Objects.equals(partitionColumnType, that.partitionColumnType) &&
+                Objects.equals(partitionColumnFormat, that.partitionColumnFormat);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(dbName, tableName, column, partitionColumn);
+        return Objects.hash(dbName,
+                tableName,
+                column,
+                columnType,
+                partitionColumn,
+                partitionColumnType,
+                partitionColumnFormat);
     }
 }

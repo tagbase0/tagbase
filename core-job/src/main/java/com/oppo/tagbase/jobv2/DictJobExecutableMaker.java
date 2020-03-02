@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.oppo.tagbase.common.util.BytesUtil;
 import com.oppo.tagbase.dict.ForwardDictionaryWriter;
-import com.oppo.tagbase.jobv2.spi.HiveMeta;
+import com.oppo.tagbase.jobv2.spi.DictTaskContext;
 import com.oppo.tagbase.jobv2.spi.TaskEngine;
 import com.oppo.tagbase.jobv2.spi.TaskStatus;
 import com.oppo.tagbase.meta.Metadata;
@@ -12,7 +12,6 @@ import com.oppo.tagbase.meta.MetadataDict;
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.Dict;
 import com.oppo.tagbase.meta.obj.Job;
-import com.oppo.tagbase.meta.obj.JobType;
 import com.oppo.tagbase.meta.obj.Task;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import org.slf4j.Logger;
@@ -46,6 +45,10 @@ public class DictJobExecutableMaker {
     private Metadata metadata;
     @Inject
     private MetadataDict metadataDict;
+    @Inject private
+    DictHiveInputConfig dictHiveInputConfig;
+    @Inject
+    private JobConfig jobConfig;
 
     public JobExecutable make(Job job) {
 
@@ -76,30 +79,36 @@ public class DictJobExecutableMaker {
 
             try {
 
-                // TODO init HiveMeta
-                HiveMeta hiveMeta = null;
-                String appId = engine.submitTask(hiveMeta, JobType.DATA);
+                // init context
+                DictTaskContext context = new DictTaskContext(job.getId(),
+                        task.getId(),
+                        dictHiveInputConfig,
+                        jobConfig,
+                        metadataDict.getDictElementCount(),
+                        job.getDataLowerTime(),
+                        job.getDataUpperTime()
+                );
+                String appId = engine.buildDict(context);
 
                 task.setAppId(appId);
                 metadataJob.updateTaskAppId(task.getId(), task.getAppId());
 
                 TaskStatus status = null;
 
-                while (!(status = engine.getTaskStatus(appId, JobType.DATA)).isDone()) {
+                while (!(status = engine.status(appId)).isDone()) {
                     TimeUnit.SECONDS.sleep(60);
                     log.debug("{} still running", appId);
-                    status = engine.getTaskStatus(appId, JobType.DATA);
+                    status = engine.status(appId);
                 }
-
 
                 if (!status.isSuccess()) {
                     throw new JobException("external task %s failed, reason: %s", appId, status.getErrorMessage());
                 }
 
-                task.setEndTime(LocalDateTime.now());
-                // TODO output = HFile location
-                log.info("Bitmap data location {}", task.getOutput());
-                task.setOutput(null);
+                metadataJob.updateTaskEndTime(task.getId(), LocalDateTime.now());
+                metadataJob.updateTaskOutput(task.getId(), context.getOutputLocation());
+
+                log.info("Dict output location {}", context.getOutputLocation());
 
                 return null;
 

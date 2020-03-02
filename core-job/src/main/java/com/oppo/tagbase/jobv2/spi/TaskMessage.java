@@ -5,6 +5,7 @@ import com.oppo.tagbase.meta.obj.TaskState;
 /**
  * Created by liangjingya on 2020/2/20.
  */
+@Deprecated
 public class TaskMessage {
 
     private String finalStatus;

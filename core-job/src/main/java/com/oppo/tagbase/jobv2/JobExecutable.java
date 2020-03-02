@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.oppo.tagbase.jobv2.JobErrorCode.DICT_NOT_CONSISTENT;
+import static com.oppo.tagbase.jobv2.JobErrorCode.DICT_NOT_CONTINUOUS;
 import static com.oppo.tagbase.jobv2.JobErrorCode.TIME_BOUND_OVERFLOW;
 
 /**
@@ -76,7 +76,7 @@ public class JobExecutable implements Executable {
             if(latestSuccessJob != null) {
                 if (!latestSuccessJob.getDataUpperTime().equals(job.getDataLowerTime())){
                     // fatal error Dictionary has hole
-                    throw new JobException(DICT_NOT_CONSISTENT, "Dictionary has hole, pls first fix the holes.");
+                    throw new JobException(DICT_NOT_CONTINUOUS, "Dictionary has hole, pls first fix the holes.");
                 }
             }
         }

@@ -14,7 +14,6 @@ import com.oppo.tagbase.meta.obj.Slice;
 import com.oppo.tagbase.meta.obj.Task;
 import com.oppo.tagbase.meta.obj.TaskState;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
-import com.oppo.tagbase.storage.core.exception.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

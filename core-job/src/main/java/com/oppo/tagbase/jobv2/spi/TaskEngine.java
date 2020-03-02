@@ -1,17 +1,18 @@
 package com.oppo.tagbase.jobv2.spi;
 
+import com.oppo.tagbase.common.guice.Extension;
 import com.oppo.tagbase.jobv2.JobException;
-import com.oppo.tagbase.meta.obj.JobType;
 
 import java.io.IOException;
 
 /**
- * Created by liangjingya on 2020/2/20.
+ * Created by wujianchao on 2020/3/2.
  */
-public abstract class TaskEngine {
+@Extension(key = "tagbase.job.external.engine.type", defaultImpl = "spark")
+public interface TaskEngine {
 
-    public abstract String submitTask(HiveMeta hiveMeta, JobType type) throws JobException;
+    String buildDict(DictTaskContext context) throws JobException;
+    String buildData(DataTaskContext context) throws JobException;
 
-    public abstract TaskStatus getTaskStatus(String appId, JobType type) throws IOException, JobException;
-
+    TaskStatus status(String appId) throws IOException, JobException;
 }

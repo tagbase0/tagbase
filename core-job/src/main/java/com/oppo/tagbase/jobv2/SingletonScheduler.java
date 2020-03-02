@@ -66,13 +66,25 @@ public class SingletonScheduler implements Scheduler {
 
             List<JobExecutable> jobExecutableList = jobList.stream()
                     //dict building job prior to data job
-                    .sorted()
+                    .sorted((l, r) -> {
+                        if(l.getType() == JobType.DICTIONARY) {
+                            if(r.getType() == JobType.DICTIONARY) {
+                                return l.getDataLowerTime().compareTo(r.getDataLowerTime());
+                            }
+                            return 1;
+                        } else {
+                            if(r.getType() == JobType.DICTIONARY) {
+                                return -1;
+                            }
+                            return l.getCreateTime().compareTo(r.getCreateTime());
+                        }
+                    })
                     // keep only one running dictionary job.
                     .filter(job -> {
                         boolean skip = JobType.DICTIONARY == job.getType()
                                 && metadataJob.getRunningDictJob() != null;
                         if(skip) {
-                            log.debug("There is already on dict job running, skip the scheduling of {}", job.getName());
+                            log.debug("There is already a dict job running, skip the scheduling of {}", job.getName());
                         }
                         return skip;
                     })
@@ -90,19 +102,16 @@ public class SingletonScheduler implements Scheduler {
                 ListenableFuture ret = jobExecutor.submit(jobExecutable::perform);
 
                 Futures.addCallback(ret, new FutureCallback() {
-
                     @Override
                     public void onSuccess(@Nullable Object result) {
                         running.decrementAndGet();
                     }
-
                     @Override
                     public void onFailure(Throwable t) {
                         running.decrementAndGet();
                     }
                 }, Runnable::run);
             }
-
 
         }, config.getInterval(), config.getInterval(), TimeUnit.SECONDS);
 

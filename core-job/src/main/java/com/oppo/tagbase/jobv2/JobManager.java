@@ -1,7 +1,6 @@
 package com.oppo.tagbase.jobv2;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.oppo.tagbase.common.util.LocalDateTimeUtil;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataJob;
@@ -15,7 +14,7 @@ import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.oppo.tagbase.jobv2.JobErrorCode.DICT_NOT_CONSISTENT;
+import static com.oppo.tagbase.jobv2.JobErrorCode.DICT_NOT_CONTINUOUS;
 import static com.oppo.tagbase.jobv2.JobErrorCode.JOB_OVERLAP;
 import static com.oppo.tagbase.jobv2.JobErrorCode.SLICE_OVERLAP;
 import static com.oppo.tagbase.jobv2.JobUtil.makeJobTimeline;
@@ -75,6 +74,7 @@ public class JobManager {
     private void checkTimeline(String dbName, String tableName, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
 
         // check job overlap
+
         List<Job> jobList = metadataJob.listNotCompletedJob(dbName, tableName, dataLowerTime, dataUpperTime);
         Timeline jobTimeline = makeJobTimeline(jobList);
 
@@ -101,7 +101,7 @@ public class JobManager {
 
         checkPendingLimit();
 
-        checkDictJobConsistency(dataLowerTime);
+        checkDictJobContinuous(dataLowerTime);
 
         // create job
         Job job = JobUtil.newDictJob(dataLowerTime, dataUpperTime);
@@ -115,11 +115,19 @@ public class JobManager {
         return job;
     }
 
-    private void checkDictJobConsistency(LocalDateTime dataLowerTime) {
-        Job job = metadataJob.getLatestDictJob(Lists.newArrayList(PENDING, RUNNING, SUCCESS));
+    /**
+     * To avoid missing elements, there must be a successful or potential successful dict job
+     * which on time bound is connected with the new one.
+     *
+     * For example: if the latest successful or potential successful dict job is [2020-02-01, 2020-02-02)
+     * you can not create dict job [2020-02-03, 2020-02-04).
+     */
+    private void checkDictJobContinuous(LocalDateTime dataLowerTime) {
+
+        Job job = metadataJob.getLatestDictJob(PENDING, RUNNING, SUCCESS);
         if(job != null && !job.getDataUpperTime().equals(dataLowerTime)) {
-            throw new JobException(DICT_NOT_CONSISTENT, "dict not consistent at %s, " +
-                    "pls make sure the previous DICT job is successful or adjust the DICT job time bound.", dataLowerTime);
+            throw new JobException(DICT_NOT_CONTINUOUS, "dict not continuous at %s, " +
+                    "pls make sure the previous dict job is successful or adjust the dict job time bound.", dataLowerTime);
         }
 
     }
