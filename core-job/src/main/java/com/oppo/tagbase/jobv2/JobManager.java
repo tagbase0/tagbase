@@ -4,24 +4,17 @@ import com.google.common.base.Preconditions;
 import com.oppo.tagbase.common.util.LocalDateTimeUtil;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataJob;
-import com.oppo.tagbase.meta.obj.Job;
-import com.oppo.tagbase.meta.obj.JobState;
-import com.oppo.tagbase.meta.obj.Slice;
-import com.oppo.tagbase.meta.obj.Task;
+import com.oppo.tagbase.meta.obj.*;
 import com.oppo.tagbase.meta.util.RangeUtil;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.oppo.tagbase.jobv2.JobErrorCode.DICT_NOT_CONTINUOUS;
-import static com.oppo.tagbase.jobv2.JobErrorCode.JOB_OVERLAP;
-import static com.oppo.tagbase.jobv2.JobErrorCode.SLICE_OVERLAP;
+import static com.oppo.tagbase.jobv2.JobErrorCode.*;
 import static com.oppo.tagbase.jobv2.JobUtil.makeJobTimeline;
 import static com.oppo.tagbase.jobv2.JobUtil.makeSliceTimeline;
-import static com.oppo.tagbase.meta.obj.JobState.PENDING;
-import static com.oppo.tagbase.meta.obj.JobState.RUNNING;
-import static com.oppo.tagbase.meta.obj.JobState.SUCCESS;
+import static com.oppo.tagbase.meta.obj.JobState.*;
 
 /**
  * Created by wujianchao on 2020/2/26.
@@ -75,7 +68,9 @@ public class JobManager {
 
         // check job overlap
 
-        List<Job> jobList = metadataJob.listNotCompletedJob(dbName, tableName, dataLowerTime, dataUpperTime);
+        TableType tableType = metadata.getTableType(dbName, tableName);
+        List<Job> jobList = metadataJob.listNotCompletedJob(dbName, tableName, tableType, dataLowerTime, dataUpperTime);
+
         Timeline jobTimeline = makeJobTimeline(jobList);
 
         if(jobTimeline.intersects(RangeUtil.of(dataLowerTime, dataUpperTime))) {

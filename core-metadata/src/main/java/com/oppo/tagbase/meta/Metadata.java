@@ -61,6 +61,10 @@ public class Metadata {
         return metadataConnector.getTable(dbName, tableName);
     }
 
+    public TableType getTableType(String dbName, String tableName) throws MetadataException {
+        return metadataConnector.getTableType(dbName, tableName);
+    }
+
     public void addSlice(Slice slice) {
         metadataConnector.addSlice(slice);
     }

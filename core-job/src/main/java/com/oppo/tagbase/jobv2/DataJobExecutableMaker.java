@@ -7,9 +7,7 @@ import com.oppo.tagbase.jobv2.spi.TaskStatus;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataDict;
 import com.oppo.tagbase.meta.MetadataJob;
-import com.oppo.tagbase.meta.obj.Job;
-import com.oppo.tagbase.meta.obj.Slice;
-import com.oppo.tagbase.meta.obj.Task;
+import com.oppo.tagbase.meta.obj.*;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,10 +121,15 @@ public class DataJobExecutableMaker {
             // 2. add slice to metadata
 
             Slice slice = new Slice();
-            long tableId = metadata.getTable(job.getDbName(), job.getTableName()).getId();
-            slice.setTableId(tableId);
-            slice.setStartTime(job.getDataLowerTime());
-            slice.setEndTime(job.getDataUpperTime());
+            Table table = metadata.getTable(job.getDbName(), job.getTableName());
+            slice.setTableId(table.getId());
+            if(TableType.TAG == table.getType()) {
+                slice.setStartTime(LocalDateTime.MIN);
+                slice.setStartTime(LocalDateTime.MAX);
+            } else if(TableType.ACTION == table.getType()) {
+                slice.setStartTime(job.getDataLowerTime());
+                slice.setEndTime(job.getDataUpperTime());
+            }
             slice.setShardNum(1);
             slice.setSink(sliceSink);
             //TODO set value

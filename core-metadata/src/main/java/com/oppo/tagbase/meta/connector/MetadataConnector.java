@@ -251,6 +251,16 @@ public abstract class MetadataConnector {
         });
     }
 
+    public TableType getTableType(String dbName, String tableName) {
+        return submit(handle ->
+                handle.createQuery("Select `TBL`.type from `TBL` where `DB`.`name`=:dbName And `TBL`.`name`=:tableName")
+                        .bind("dbName", dbName)
+                        .bind("tableName", tableName)
+                        .mapToBean(TableType.class)
+                        .one()
+        );
+    }
+
 
     //TODO transaction
     public void addSlice(Slice slice) {
@@ -375,6 +385,7 @@ public abstract class MetadataConnector {
         return ret;
     }
 
+    //TODO add filter to sql
     public List<Slice> getIntersectionSlices(String dbName, String tableName, RangeSet<LocalDateTime> range) {
         List<Slice> sliceList = getSlices(dbName, tableName);
         List<Slice> ret = sliceList.stream()
@@ -485,16 +496,16 @@ public abstract class MetadataConnector {
     }
 
     public ImmutableList<DB> listDBs() {
-        List<DB> dbsList= submit(handle -> handle.createQuery("Select * from `DB`")
-                        .mapToBean(DB.class)
-                        .list());
+        List<DB> dbsList = submit(handle -> handle.createQuery("Select * from `DB`")
+                .mapToBean(DB.class)
+                .list());
 
         ImmutableList<DB> dbs = ImmutableList.copyOf(dbsList);
 
         return dbs;
     }
 
-    public ImmutableList<Table> listTable(String dbName){
+    public ImmutableList<Table> listTable(String dbName) {
 
         List<Table> tables = submit(handle -> {
 
@@ -646,7 +657,7 @@ public abstract class MetadataConnector {
     public Job getLatestDictJob(JobState... stateList) {
 
         List<JobState> states = new ArrayList<>();
-        for(JobState state :stateList){
+        for (JobState state : stateList) {
             states.add(state);
         }
 
@@ -678,22 +689,33 @@ public abstract class MetadataConnector {
 
         return submit(handle -> {
             int count = handle.createQuery("Select count(*) from `JOB` where `JOB`.`state`=:state")
-                    .bind("state" , JobState.PENDING)
+                    .bind("state", JobState.PENDING)
                     .mapTo(Integer.class)
                     .one();
             return count;
         });
     }
 
-    public List<Job> listNotCompletedJob(String dbName, String tableName, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
+
+    /**
+     * List jobs who are not PENDING, RUNNING or FAILED.
+     * <p>
+     * Let's assume the job timeline is like [2020-01-01,2020-01-03) [2020-01-03,2020-01-05) [2020-01-05,2020-01-07)
+     * 1. query with dataLowerTime=2020-01-02 dataUpperTime=2020-01-05
+     * will return [2020-01-01,2020-01-03) [2020-01-03,2020-01-05)
+     * 2. query with dataLowerTime=2020-01-04 dataUpperTime=2020-01-06
+     * will return [2020-01-03,2020-01-05) [2020-01-05,2020-01-07)
+     */
+    public List<Job> listNotCompletedJob(String dbName, String tableName, TableType type, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
         //TODO TEST
         return submit(handle -> {
 
-            List<Job> jobs = handle.createQuery("Select * from `JOB` where `JOB`.`dbName`=:dbName and `JOB`.`tableName`=:tableName " +
-                    "and  `JOB`.`dataLowerTime`>=:dataLowerTime and  `JOB`.`dataUpperTime`<:dataUpperTime " +
-                    "and (`JOB`.`state` !=:stateSuccess or `JOB`.`state` !=:stateDiscard )" )
+            List<Job> jobs = handle.createQuery("Select * from `JOB` where `JOB`.`dbName`=:dbName and `JOB`.`tableName`=:tableName and `JOB`.`type`=:type and"
+                    + RangeUtil.intersectionToSqlFilter("dataLowerTime", "dataUpperTime", "dataLowerTime", "dataUpperTime")
+                    + "and (`JOB`.`state` !=:stateSuccess or `JOB`.`state` !=:stateDiscard )")
                     .bind("dbName", dbName)
                     .bind("tableName", tableName)
+                    .bind("type", type)
                     .bind("dataLowerTime", dataLowerTime)
                     .bind("dataUpperTime", dataUpperTime)
                     .bind("stateSuccess", JobState.SUCCESS)
@@ -704,11 +726,22 @@ public abstract class MetadataConnector {
         });
     }
 
+    /**
+     * List successful jobs
+     * <p>
+     * Let's assume the job timeline is like [2020-01-01,2020-01-03) [2020-01-03,2020-01-05) [2020-01-05,2020-01-07)
+     * 1. query with dataLowerTime=2020-01-02 dataUpperTime=2020-01-05
+     * will return [2020-01-01,2020-01-03) [2020-01-03,2020-01-05)
+     * 2. query with dataLowerTime=2020-01-04 dataUpperTime=2020-01-06
+     * will return [2020-01-03,2020-01-05) [2020-01-05,2020-01-07)
+     */
     public List<Job> listSuccessDictJobs(LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
 
         return submit(handle -> {
-            List<Job> jobs= handle.createQuery("Select * from `JOB` where `JOB`.`dataLowerTime`>=:dataLowerTime " +
-                    "and  `JOB`.`dataUpperTime`<:dataUpperTime ")
+            List<Job> jobs = handle.createQuery("Select * from `JOB` where `JOB`.`type`=:type and `JOB`.`state`=:state and"
+                    + RangeUtil.intersectionToSqlFilter("dataLowerTime", "dataUpperTime", "dataLowerTime", "dataUpperTime"))
+                    .bind("type", JobType.DICTIONARY)
+                    .bind("state", JobState.SUCCESS)
                     .bind("dataLowerTime", dataLowerTime)
                     .bind("dataUpperTime", dataUpperTime)
                     .mapToBean(Job.class)
@@ -757,6 +790,7 @@ public abstract class MetadataConnector {
             return task;
         }));
     }
+
     public void updateTaskStatus(String id, TaskState state) {
         submit(handle -> {
             String sql = "Update `TASK` set `state`=? where `id`=?";

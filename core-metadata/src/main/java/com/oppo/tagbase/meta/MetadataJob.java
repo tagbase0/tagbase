@@ -1,10 +1,7 @@
 package com.oppo.tagbase.meta;
 
 import com.oppo.tagbase.meta.connector.MetadataConnector;
-import com.oppo.tagbase.meta.obj.Job;
-import com.oppo.tagbase.meta.obj.JobState;
-import com.oppo.tagbase.meta.obj.Task;
-import com.oppo.tagbase.meta.obj.TaskState;
+import com.oppo.tagbase.meta.obj.*;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
@@ -29,9 +26,9 @@ public class MetadataJob {
         metadataConnector.deleteJob(jobId);
     }
 
-    public List<Job> listNotCompletedJob(String dbName, String tableName, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
+    public List<Job> listNotCompletedJob(String dbName, String tableName, TableType type, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
         // not completed job : jobs in JobState.PENDING RUNNING FAILED SUSPEND state.
-        return metadataConnector.listNotCompletedJob(dbName, tableName, dataLowerTime, dataUpperTime);
+        return metadataConnector.listNotCompletedJob(dbName, tableName, type, dataLowerTime, dataUpperTime);
     }
 
     public void completeJob(String jobId, JobState state, LocalDateTime endTime) {
