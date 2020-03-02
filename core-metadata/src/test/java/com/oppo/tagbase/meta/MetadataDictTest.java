@@ -61,6 +61,7 @@ public class MetadataDictTest {
                 metadataDict.getDict().getLocation());
     }
 
+
     public void getDictElementCount() {
         Assert.assertEquals(500000000, metadataDict.getDictElementCount());
     }

@@ -13,6 +13,7 @@ import org.jdbi.v3.core.statement.Batch;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,6 +65,7 @@ public abstract class MetadataConnector {
                             "\t`srcTable` VARCHAR(128),\n" +
                             "\t`desc` VARCHAR(128),\n" +
                             "\t`latestSlice`  VARCHAR(128),\n" +
+                            "\t`srcType` VARCHAR(128),\n" +
                             "\t`type` VARCHAR(128)\n" +
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
 
@@ -79,6 +81,7 @@ public abstract class MetadataConnector {
                             "\t`index` TINYINT,\n" +
                             "\t`dataType` VARCHAR(128),\n" +
                             "\t`type` VARCHAR(128),\n" +
+                            "\t`srcPartColDateFormat` VARCHAR(128),\n" +
                             "\t`desc` VARCHAR(256)\n" +
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
 
@@ -117,6 +120,8 @@ public abstract class MetadataConnector {
                             "\t`dataUpperTime` DATETIME,\n" +
                             "\t`latestTask` VARCHAR(128),\n" +
                             "\t`state` VARCHAR(128),\n" +
+                            "\t`createTime` DATETIME,\n" +
+                            "\t`progress` float,\n" +
                             "\t`type`  VARCHAR(128)\n" +
                             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1",
 
@@ -170,6 +175,7 @@ public abstract class MetadataConnector {
                          String srcTable,
                          String desc,
                          TableType type,
+                         String srcType,
                          List<Column> columnList) {
         submit(handle -> {
 
@@ -182,14 +188,15 @@ public abstract class MetadataConnector {
 
             // 2. create table
             handle.createUpdate("INSERT INTO " +
-                    "`TBL`(`name`, `dbId`, `srcDb`, `srcTable`, `desc`, `type`) " +
-                    "VALUES (:tableName, :dbId, :srcDb, :srcTable, :desc, :type)")
+                    "`TBL`(`name`, `dbId`, `srcDb`, `srcTable`, `desc`, `type`, `srcType`) " +
+                    "VALUES (:tableName, :dbId, :srcDb, :srcTable, :desc, :type, :srcType)")
                     .bind("tableName", tableName)
                     .bind("dbId", dbId)
                     .bind("srcDb", srcDb)
                     .bind("srcTable", srcTable)
                     .bind("desc", desc)
                     .bind("type", type)
+                    .bind("srcType", srcType)
                     .execute();
 
             // 3. get tableId
@@ -202,8 +209,8 @@ public abstract class MetadataConnector {
             // 4. add columns
             for (Column column : columnList) {
                 handle.createUpdate("INSERT INTO " +
-                        "`COLUMN`(`tableId`, `name`, `srcName`, `index`, `dataType`, `type`, `desc`) " +
-                        "values(:tableId, :columnName, :srcName, :index, :dataType, :type, :desc)")
+                        "`COLUMN`(`tableId`, `name`, `srcName`, `index`, `dataType`, `type`, `desc`, `srcPartColDateFormat`) " +
+                        "values(:tableId, :columnName, :srcName, :index, :dataType, :type, :desc, :srcPartColDateFormat)")
                         .bind("tableId", tableId)
                         .bind("columnName", column.getName())
                         .bind("srcName", column.getSrcName())
@@ -211,6 +218,7 @@ public abstract class MetadataConnector {
                         .bind("dataType", column.getDataType())
                         .bind("type", column.getType())
                         .bind("desc", column.getDesc())
+                        .bind("srcPartColDateFormat", column.getSrcPartColDateFormat())
                         .execute();
             }
 
@@ -511,8 +519,9 @@ public abstract class MetadataConnector {
 
     public void addJob(Job job) {
         submit(handle -> {
-            String sql = "INSERT INTO `JOB`(`id`, `name`, `dbName`, `tableName`, `startTime`, `endTime`, `dataLowerTime`, `dataUpperTime`, `latestTask`, `state`, `type`) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO `JOB`(`id`, `name`, `dbName`, `tableName`, `startTime`, `endTime`, `dataLowerTime`, " +
+                    "`dataUpperTime`, `latestTask`, `state`, `type`, `createTime`, `progress`) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             return handle.execute(sql,
                     job.getId(),
                     job.getName(),
@@ -524,7 +533,9 @@ public abstract class MetadataConnector {
                     job.getDataUpperTime(),
                     job.getLatestTask(),
                     job.getState(),
-                    job.getType());
+                    job.getType(),
+                    job.getCreateTime(),
+                    job.getProgress());
         });
     }
 
@@ -551,7 +562,8 @@ public abstract class MetadataConnector {
     public void updateJob(Job job) {
         submit(handle -> {
             String sql = "Update `JOB` set  `name`=?, `dbName`=?, `tableName`=?, `startTime`=?, `endTime`=?, " +
-                    "`dataLowerTime`=?, `dataUpperTime`=?, `latestTask`=?, `state`=?, `type`=? where `id`=?";
+                    "`dataLowerTime`=?, `dataUpperTime`=?, `latestTask`=?, `state`=?, `type`=?, `createTime`=?, " +
+                    "`progress`=?  where `id`=?";
 
             return handle.execute(sql,
                     job.getName(),
@@ -564,6 +576,8 @@ public abstract class MetadataConnector {
                     job.getLatestTask(),
                     job.getState(),
                     job.getType(),
+                    job.getCreateTime(),
+                    job.getProgress(),
                     job.getId());
         });
     }
@@ -629,6 +643,25 @@ public abstract class MetadataConnector {
         }));
     }
 
+    public Job getLatestDictJob(JobState... stateList) {
+
+        List<JobState> states = new ArrayList<>();
+        for(JobState state :stateList){
+            states.add(state);
+        }
+
+        return submit((handle -> {
+
+            Job job = handle.createQuery("Select `JOB`.* from `JOB` where `JOB`.`state` in (<states>)  " +
+                    " and `type`=:type  order by startTime desc limit 1 ")
+                    .bindList("states", states)
+                    .bind("type", JobType.DICTIONARY)
+                    .mapToBean(Job.class)
+                    .one();
+            return job;
+        }));
+    }
+
     public List<Job> listPendingJobs() {
 
         return submit((handle -> {
@@ -641,13 +674,24 @@ public abstract class MetadataConnector {
         }));
     }
 
+    public int getPendingJobCount() {
+
+        return submit(handle -> {
+            int count = handle.createQuery("Select count(*) from `JOB` where `JOB`.`state`=:state")
+                    .bind("state" , JobState.PENDING)
+                    .mapTo(Integer.class)
+                    .one();
+            return count;
+        });
+    }
+
     public List<Job> listNotCompletedJob(String dbName, String tableName, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
         //TODO TEST
         return submit(handle -> {
 
             List<Job> jobs = handle.createQuery("Select * from `JOB` where `JOB`.`dbName`=:dbName and `JOB`.`tableName`=:tableName " +
-                    "and  `JOB`.`dataLowerTime`>=:dataLowerTime and  `JOB`.`dataUpperTime`<=:dataUpperTime " +
-                    "and (`JOB`.`stateSuccess` != :state or `JOB`.`state` != :stateDiscard" )
+                    "and  `JOB`.`dataLowerTime`>=:dataLowerTime and  `JOB`.`dataUpperTime`<:dataUpperTime " +
+                    "and (`JOB`.`state` !=:stateSuccess or `JOB`.`state` !=:stateDiscard )" )
                     .bind("dbName", dbName)
                     .bind("tableName", tableName)
                     .bind("dataLowerTime", dataLowerTime)
@@ -664,7 +708,7 @@ public abstract class MetadataConnector {
 
         return submit(handle -> {
             List<Job> jobs= handle.createQuery("Select * from `JOB` where `JOB`.`dataLowerTime`>=:dataLowerTime " +
-                    "and  `JOB`.`dataUpperTime`<=:dataUpperTime ")
+                    "and  `JOB`.`dataUpperTime`<:dataUpperTime ")
                     .bind("dataLowerTime", dataLowerTime)
                     .bind("dataUpperTime", dataUpperTime)
                     .mapToBean(Job.class)
@@ -822,7 +866,5 @@ public abstract class MetadataConnector {
                 .mapTo(Long.class)
                 .one());
     }
-
-
 
 }

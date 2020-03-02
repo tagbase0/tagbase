@@ -66,6 +66,7 @@ public class MetadataResource {
                                 @FormParam("srcTable") @NotNull(message = "srcTable is null") String srcTable,
                                 @FormParam("desc") String desc,
                                 @FormParam("type") @NotNull(message = "type is null") TableType type,
+                                @FormParam("srcType") @NotNull(message = "type is null") String srcType,
                                 @FormParam("columnList") @NotNull(message = "columnList is null") List<Column> columnList) {
         metadata.addTable(dbName,
                 tableName,
@@ -73,6 +74,7 @@ public class MetadataResource {
                 srcTable,
                 desc,
                 type,
+                srcType,
                 columnList);
         return metadata.getTable(dbName, tableName);
     }

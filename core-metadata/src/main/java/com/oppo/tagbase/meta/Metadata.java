@@ -43,6 +43,7 @@ public class Metadata {
                             String srcTable,
                             String desc,
                             TableType type,
+                            String srcType,
                             List<Column> columnList) throws MetadataException {
         metadataConnector.addTable(dbName,
                 tableName,
@@ -50,6 +51,7 @@ public class Metadata {
                 srcTable,
                 desc,
                 type,
+                srcType,
                 columnList);
     }
 

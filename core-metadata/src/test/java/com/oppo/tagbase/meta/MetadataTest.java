@@ -18,6 +18,7 @@ import com.oppo.tagbase.meta.obj.TableType;
 import com.oppo.tagbase.meta.type.DataType;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 
 
 import java.time.LocalDateTime;
@@ -59,7 +60,7 @@ public class MetadataTest {
         Assert.assertEquals("test_db", metadata.getDb("test_db").getName());
     }
 
-
+    @Test
     public void addTable() {
 
         // tag - city test
@@ -68,6 +69,7 @@ public class MetadataTest {
         String srcDb = "test_db_hive_srcDb_tag";
         String srcTable= "test_table_hive_srcTable_tag";
         String desc = "For test table tag";
+        String srcType = "hive";
         TableType type = TableType.TAG;
 
         List<Column> columnList = new ArrayList<>();
@@ -85,6 +87,7 @@ public class MetadataTest {
         columnSlice.setType(ColumnType.SLICE_COLUMN);
         columnSlice.setDesc("For test column dayno");
         columnSlice.setDataType(DataType.STRING);
+        columnSlice.setSrcPartColDateFormat("yyyy-MM-dd");
 
         Column columnDim0 = new Column();
         columnDim0.setSrcName("city");
@@ -97,7 +100,7 @@ public class MetadataTest {
         columnList.add(columnSlice);
         columnList.add(columnDim0);
 
-        metadata.addTable(dbName, tableName, srcDb, srcTable, desc, type, columnList);
+        metadata.addTable(dbName, tableName, srcDb, srcTable, desc, type, srcType, columnList);
 
         // action - app_action_version  test
         String dbName1 = "test_db";
@@ -150,7 +153,7 @@ public class MetadataTest {
         columnList1.add(columnDim01);
         columnList1.add(columnDim02);
 
-        metadata.addTable(dbName1, tableName1, srcDb1, srcTable1, desc1, type1, columnList1);
+        metadata.addTable(dbName1, tableName1, srcDb1, srcTable1, desc1, type1, srcType, columnList1);
 
     }
 

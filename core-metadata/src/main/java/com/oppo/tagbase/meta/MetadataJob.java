@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Metadata service for job
- *
+ * <p>
  * Created by wujianchao on 2020/2/17.
  */
 public class MetadataJob {
@@ -54,24 +54,24 @@ public class MetadataJob {
         metadataConnector.completeTask(taskId, state, endTime, output);
     }
 
-    public void updateJob(Job job){
+    public void updateJob(Job job) {
         metadataConnector.updateJob(job);
     }
 
 
-    public void updateTask(Task task){
+    public void updateTask(Task task) {
         metadataConnector.updateTask(task);
     }
 
-    public void updateJobStatus(String jobId, JobState state){
+    public void updateJobStatus(String jobId, JobState state) {
         metadataConnector.updateJobStatus(jobId, state);
     }
 
-    public void updateTaskStatus(String id, TaskState state){
+    public void updateTaskStatus(String id, TaskState state) {
         metadataConnector.updateTaskStatus(id, state);
     }
 
-    public void updateTaskAppId(String id, String appId){
+    public void updateTaskAppId(String id, String appId) {
         metadataConnector.updateTaskAppId(id, appId);
     }
 
@@ -113,12 +113,10 @@ public class MetadataJob {
     }
 
     public int getPendingJobCount() {
-        //TODO
-        return 0;
+        return metadataConnector.getPendingJobCount();
     }
 
     public Job getLatestDictJob(JobState... stateList) {
-        //TODO
-        return null;
+        return metadataConnector.getLatestDictJob(stateList);
     }
 }

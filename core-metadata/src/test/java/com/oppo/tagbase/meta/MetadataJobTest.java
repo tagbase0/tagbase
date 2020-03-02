@@ -11,8 +11,10 @@ import org.junit.Assert;
 import org.junit.Before;
 
 
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
 import java.util.List;
 
 import static java.time.LocalDateTime.now;
@@ -50,6 +52,8 @@ public class MetadataJobTest {
         job.setDataLowerTime(LocalDateTime.parse("2020-02-27 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         job.setDataUpperTime(LocalDateTime.parse("2020-02-27 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         job.setType(JobType.DICTIONARY);
+        job.setCreateTime(LocalDateTime.parse("2020-02-27 09:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        job.setProgress(0f);
 
         metadataJob.addJob(job);
 
@@ -60,7 +64,6 @@ public class MetadataJobTest {
     public void getJob() {
         Assert.assertEquals("DictBuild20200227", metadataJob.getJob("DictBuild20200227").getId());
     }
-
 
     public void addTask() {
         Task task = new Task();
@@ -88,6 +91,25 @@ public class MetadataJobTest {
         Assert.assertEquals(task1, metadataJob.getTask(task1.getId()));
     }
 
+
+    public void getPendingJobCount() {
+        Assert.assertEquals(1, metadataJob.getPendingJobCount());
+    }
+
+
+    public void listPendingJobs() {
+        List <Job> jobs = metadataJob.listPendingJobs();
+        Assert.assertEquals(JobState.PENDING, jobs.get(0).getState());
+    }
+
+    public void getLatestDictJob() {
+
+        Job job = metadataJob.getLatestDictJob(JobState.PENDING, JobState.RUNNING);
+        JobState state = job.getState();
+
+        Assert.assertEquals(true, (state == JobState.PENDING)||(state == JobState.RUNNING));
+
+    }
 
     public void updateJob() {
         Job job = metadataJob.getJob("DictBuild20200227");
@@ -164,12 +186,6 @@ public class MetadataJobTest {
     }
 
 
-    public void listPendingJobs() {
-        List <Job> jobs = metadataJob.listPendingJobs();
-        Assert.assertEquals(JobState.PENDING, jobs.get(0).getState());
-    }
-
-
     public void updateJobStartTime() {
 
         LocalDateTime startTime = LocalDateTime.parse("2020-02-27 11:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -179,8 +195,6 @@ public class MetadataJobTest {
     }
 
 
-
-    
     public void updateTaskStartTime() {
 
         LocalDateTime startTime = LocalDateTime.parse("2020-02-27 11:15:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -188,7 +202,7 @@ public class MetadataJobTest {
         Assert.assertEquals(startTime, metadataJob.getTask("TaskDictInvertedBuild20200227").getStartTime());
     }
 
-    
+
     public void updateTaskOutput() {
         String out = "/user/hive/tagbase/dict/inverted/20200227_new";
         metadataJob.updateTaskOutput("TaskDictInvertedBuild20200227", out);
@@ -238,6 +252,8 @@ public class MetadataJobTest {
 
     }
 
+
+
     public void deleteJob() {
         Assert.assertEquals("DictBuild20200227",
                 metadataJob.getJob("DictBuild20200227").getId());
@@ -245,6 +261,7 @@ public class MetadataJobTest {
         metadataJob.deleteJob("DictBuild20200227");
 
     }
+
 
 
 }

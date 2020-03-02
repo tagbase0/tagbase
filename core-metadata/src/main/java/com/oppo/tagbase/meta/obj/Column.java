@@ -22,6 +22,7 @@ public class Column {
      * If column is Hive partition column and hive data type is string,
      * we must know the date format.
      */
+    //TODO yyyy-MM-dd
     private String srcPartColDateFormat;
 
     public long getId() {
@@ -120,5 +121,21 @@ public class Column {
     @Override
     public int hashCode() {
         return Objects.hash(tableId, name);
+    }
+
+    @Override
+    public String toString() {
+        return "Column{" +
+                "id=" + id +
+                ", tableId=" + tableId +
+                ", name='" + name + '\'' +
+                ", srcName='" + srcName + '\'' +
+                ", index=" + index +
+                ", dataType=" + dataType +
+                ", type=" + type +
+                ", desc='" + desc + '\'' +
+                ", srcDataType='" + srcDataType + '\'' +
+                ", srcPartColDateFormat='" + srcPartColDateFormat + '\'' +
+                '}';
     }
 }

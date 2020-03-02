@@ -18,6 +18,8 @@ public class Table {
     private String latestSlice;
     private TableType type;
     private String desc;
+
+    //TODO 数据源 ，目前都是hive
     private TableResourceType srcType;
 
     private List<Column> columns;
@@ -144,7 +146,7 @@ public class Table {
                 ", latestSlice='" + latestSlice + '\'' +
                 ", type=" + type +
                 ", desc='" + desc + '\'' +
-                ", srcType='" + srcType + '\'' +
+                ", srcType=" + srcType +
                 ", columns=" + columns +
                 '}';
     }

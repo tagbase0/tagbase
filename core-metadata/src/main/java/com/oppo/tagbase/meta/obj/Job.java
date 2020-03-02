@@ -26,7 +26,7 @@ public class Job implements Comparable<Job>{
     private String latestTask;
     private JobState state;
     private JobType type;
-    //TODO add create time;
+    //TODO add create time and progress;
     private LocalDateTime createTime = LocalDateTime.now();
     private float progress = 0f;
 
@@ -168,5 +168,25 @@ public class Job implements Comparable<Job>{
 
     public Range<LocalDateTime> toRange() {
         return RangeUtil.of(dataLowerTime, dataUpperTime);
+    }
+
+    @Override
+    public String toString() {
+        return "Job{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", dbName='" + dbName + '\'' +
+                ", tableName='" + tableName + '\'' +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", dataLowerTime=" + dataLowerTime +
+                ", dataUpperTime=" + dataUpperTime +
+                ", latestTask='" + latestTask + '\'' +
+                ", state=" + state +
+                ", type=" + type +
+                ", createTime=" + createTime +
+                ", progress=" + progress +
+                ", tasks=" + tasks +
+                '}';
     }
 }
