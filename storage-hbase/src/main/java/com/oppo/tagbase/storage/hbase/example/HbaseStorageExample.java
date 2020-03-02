@@ -45,6 +45,8 @@ public class HbaseStorageExample {
 //            addTagData(connector);
 //            addFlowData(connector);
 
+//            connector.addSlice("hdfs://10.13.32.139:9000/tmp/city_20200211_task/");
+
             metadata.setType(TestMetadata.MetaDataType.EVENT);
             QueryHandler query = queryEventData(connector);
 

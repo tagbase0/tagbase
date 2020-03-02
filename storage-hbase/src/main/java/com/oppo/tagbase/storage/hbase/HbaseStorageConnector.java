@@ -96,6 +96,7 @@ public class HbaseStorageConnector extends StorageConnector {
 
         String tableName = hbaseConfig.getTablePrefix() + UUID.randomUUID().toString();
         String nameSpace = hbaseConfig.getNameSpace();
+        log.info("try to addSlice dataPath {}, tableName {}", dataPath, nameSpace + ":" + tableName);
         createTable(nameSpace, tableName);
         try {
             bulkLoad(nameSpace, tableName, dataPath);
@@ -158,6 +159,7 @@ public class HbaseStorageConnector extends StorageConnector {
     private void initHbaseConnection() throws StorageException {
         try {
             Configuration conf = HBaseConfiguration.create();
+            conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
             conf.set("hbase.zookeeper.property.clientPort", hbaseConfig.getZkPort());
             conf.set("hbase.zookeeper.quorum", hbaseConfig.getZkQuorum());
             conf.set("hbase.rootdir", hbaseConfig.getRootDir());
