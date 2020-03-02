@@ -2,6 +2,7 @@ package com.oppo.tagbase.jobv2;
 
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.Job;
+import com.oppo.tagbase.meta.obj.JobState;
 import com.oppo.tagbase.meta.obj.JobType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.oppo.tagbase.jobv2.JobErrorCode.DICT_HAS_HOLE;
-import static com.oppo.tagbase.jobv2.JobErrorCode.TIME_OVER_FLOW;
+import static com.oppo.tagbase.jobv2.JobErrorCode.DICT_NOT_CONSISTENT;
+import static com.oppo.tagbase.jobv2.JobErrorCode.TIME_BOUND_OVERFLOW;
 
 /**
  * Created by wujianchao on 2020/2/26.
@@ -39,24 +40,22 @@ public class JobExecutable implements Executable {
 
         try {
 
-            log.info("Job start");
+            log.info("Job {} starting", job.getName());
 
             checkDictJobPreConditions();
             checkDataJobPreConditions();
 
             jobFSM.toRunning();
-
             metadataJob.updateJobStartTime(job.getId(), LocalDateTime.now());
 
             for (Executable task : taskChain) {
                 task.perform();
             }
 
-            metadataJob.updateJobEndTime(job.getId(), LocalDateTime.now());
-
             jobFSM.toSuccess();
-            log.info("Job success");
+            log.info("Job {} success", job.getName());
 
+            metadataJob.updateJobEndTime(job.getId(), LocalDateTime.now());
         } catch (Exception e) {
             log.error("Job failed.", e);
             jobFSM.toFailed();
@@ -73,26 +72,25 @@ public class JobExecutable implements Executable {
     // TODO Identifying the dict hole by jobs the fashion is a little trick.
     private void checkDictJobPreConditions() {
         if(JobType.DICTIONARY == job.getType()) {
-            List<Job> jobList = metadataJob.listSuccessDictJobs(LocalDateTime.MIN, job.getDataLowerTime());
-            Timeline timeline = JobUtil.makeJobTimeline(jobList);
-            if(timeline.isConnected(job.toRange())) {
-                // fatal error Dictionary has hole
-                throw new JobException(DICT_HAS_HOLE, "Dictionary has hole, pls first fix the holes.");
+            Job latestSuccessJob = metadataJob.getLatestDictJob(JobState.SUCCESS);
+            if(latestSuccessJob != null) {
+                if (!latestSuccessJob.getDataUpperTime().equals(job.getDataLowerTime())){
+                    // fatal error Dictionary has hole
+                    throw new JobException(DICT_NOT_CONSISTENT, "Dictionary has hole, pls first fix the holes.");
+                }
             }
         }
     }
 
-    /**
-     * keep dictionary is continuous.
-     */
     // TODO Identifying the dict hole by jobs the fashion is a little trick.
     private void checkDataJobPreConditions() {
         if(JobType.DATA == job.getType()) {
             // check whether the dictionary meet the job time bound.
+            // listSuccessDictJobs must get more
             List<Job> jobList = metadataJob.listSuccessDictJobs(job.getDataLowerTime(), job.getDataUpperTime());
             Timeline timeline = JobUtil.makeJobTimeline(jobList);
             if(timeline.encloses(job.toRange())) {
-                throw new JobException(TIME_OVER_FLOW, "The global dictionary can not meet the time bound, skip the building.");
+                throw new JobException(TIME_BOUND_OVERFLOW, "The global dictionary can not meet the time bound, skip the building.");
             }
         }
     }

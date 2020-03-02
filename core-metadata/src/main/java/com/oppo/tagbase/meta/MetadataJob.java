@@ -8,6 +8,7 @@ import com.oppo.tagbase.meta.obj.TaskState;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -109,5 +110,15 @@ public class MetadataJob {
 
     public List<Job> listSuccessDictJobs(LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
         return metadataConnector.listSuccessDictJobs(dataLowerTime, dataUpperTime);
+    }
+
+    public int getPendingJobCount() {
+        //TODO
+        return 0;
+    }
+
+    public Job getLatestDictJob(JobState... stateList) {
+        //TODO
+        return null;
     }
 }

@@ -3,6 +3,7 @@ package com.oppo.tagbase.jobv2;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
+import com.oppo.tagbase.meta.util.RangeUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,8 +22,8 @@ public class RangeSetTest {
     public void rangeSizeTest(){
         RangeSet<LocalDateTime> rangeSet = TreeRangeSet.create();
 
-        rangeSet.add(Range.closedOpen(_0101, _0105));
-        rangeSet.add(Range.closedOpen(_0105, _0110));
+        rangeSet.add(RangeUtil.of(_0101, _0105));
+        rangeSet.add(RangeUtil.of(_0105, _0110));
 
         Assert.assertEquals(1, rangeSet.asRanges().size());
 
@@ -32,23 +33,23 @@ public class RangeSetTest {
     public void rangeContainingTest() {
         RangeSet<LocalDateTime> rangeSet = TreeRangeSet.create();
 
-        rangeSet.add(Range.closedOpen(_0101, _0105));
-        rangeSet.add(Range.closedOpen(_0105, _0110));
+        rangeSet.add(RangeUtil.of(_0101, _0105));
+        rangeSet.add(RangeUtil.of(_0105, _0110));
 
         Range<LocalDateTime> r = rangeSet.rangeContaining(_0101);
-        Assert.assertEquals(Range.closedOpen(_0101, _0110), r);
+        Assert.assertEquals(RangeUtil.of(_0101, _0110), r);
     }
 
     @Test
     public void intersectionTest() {
         RangeSet<LocalDateTime> rangeSet = TreeRangeSet.create();
 
-        rangeSet.add(Range.closedOpen(_0101, _0105));
-        rangeSet.add(Range.closedOpen(_0105, _0110));
+        rangeSet.add(RangeUtil.of(_0101, _0105));
+        rangeSet.add(RangeUtil.of(_0105, _0110));
 
 
         LocalDateTime _0120 = LocalDateTime.of(2020, 01, 20, 0, 0);;
-        boolean intersects = rangeSet.intersects(Range.closedOpen(_0110, _0120));
+        boolean intersects = rangeSet.intersects(RangeUtil.of(_0110, _0120));
         Assert.assertTrue(!intersects);
     }
 
@@ -56,7 +57,7 @@ public class RangeSetTest {
     public void singleValueTest() {
         LocalDateTime _0102 = LocalDateTime.of(2020, 01, 02, 0, 0);;
         Range<LocalDateTime> r1 = Range.singleton(_0101);
-        Range<LocalDateTime> r2 = Range.closedOpen(_0101, _0102);
+        Range<LocalDateTime> r2 = RangeUtil.of(_0101, _0102);
 
         Assert.assertNotEquals(r1, r2);
 

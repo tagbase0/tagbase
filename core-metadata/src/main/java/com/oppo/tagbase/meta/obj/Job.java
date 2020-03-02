@@ -1,6 +1,7 @@
 package com.oppo.tagbase.meta.obj;
 
 import com.google.common.collect.Range;
+import com.oppo.tagbase.meta.util.RangeUtil;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -176,6 +177,6 @@ public class Job implements Comparable<Job>{
     }
 
     public Range<LocalDateTime> toRange() {
-        return Range.closedOpen(dataLowerTime, dataUpperTime);
+        return RangeUtil.of(dataLowerTime, dataUpperTime);
     }
 }

@@ -85,7 +85,7 @@ public class Metadata {
     }
 
     /**
-     * get slices with filter
+     * get slices for queries
      */
     //TODO replace RangeSet and Range with self defined implementations for it is too important.
     public List<Slice> getSlices(String dbName, String tableName, RangeSet<LocalDateTime> ranges) throws MetadataException {
@@ -94,6 +94,13 @@ public class Metadata {
 
     public List<Slice> getSlices(String dbName, String tableName, Range<LocalDateTime> range) throws MetadataException {
         return metadataConnector.getSlices(dbName, tableName, TreeRangeSet.create(Lists.newArrayList(range)));
+    }
+
+    /**
+     * get slices for timeline
+     */
+    public List<Slice> getIntersectionSlices(String dbName, String tableName, Range<LocalDateTime> range) throws MetadataException {
+        return metadataConnector.getIntersectionSlices(dbName, tableName, TreeRangeSet.create(Lists.newArrayList(range)));
     }
 
     /**

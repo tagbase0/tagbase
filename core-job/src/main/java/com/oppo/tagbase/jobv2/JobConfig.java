@@ -12,9 +12,14 @@ public class JobConfig {
     @JsonProperty("work.dir")
     private String workDir;
 
-    public String getWorkDir() {
+    @JsonProperty("pending.limit")
+    private int pendingLimit;
+
+  public String getWorkDir() {
         return workDir;
     }
 
-    //TODO add getters
+    public int getPendingLimit() {
+        return pendingLimit;
+    }
 }

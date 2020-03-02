@@ -2,7 +2,11 @@ package com.oppo.tagbase.job;
 
 import com.oppo.tagbase.meta.obj.Job;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by daikai on 2020/2/17.

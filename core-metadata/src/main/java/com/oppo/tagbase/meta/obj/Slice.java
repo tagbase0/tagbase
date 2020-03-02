@@ -6,7 +6,7 @@ import java.util.Objects;
 /**
  * Created by wujianchao on 2020/2/5.
  */
-public class Slice {
+public class Slice implements Comparable<Slice> {
 
     private long id;
     private LocalDateTime startTime;
@@ -142,5 +142,13 @@ public class Slice {
                 ", sinkSizeMb=" + sinkSizeMb +
                 ", sinkCount=" + sinkCount +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Slice another) {
+        if(another == null) {
+            return -1;
+        }
+        return startTime.compareTo(another.getStartTime());
     }
 }

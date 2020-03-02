@@ -6,7 +6,14 @@ import com.oppo.tagbase.job.engine.obj.HiveSrcTable;
 import com.oppo.tagbase.job.engine.obj.SliceColumn;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataDict;
-import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.obj.Column;
+import com.oppo.tagbase.meta.obj.ColumnType;
+import com.oppo.tagbase.meta.obj.Job;
+import com.oppo.tagbase.meta.obj.JobType;
+import com.oppo.tagbase.meta.obj.Slice;
+import com.oppo.tagbase.meta.obj.Table;
+import com.oppo.tagbase.meta.obj.TableType;
+import com.oppo.tagbase.meta.obj.Task;
 
 import java.sql.Date;
 import java.util.ArrayList;

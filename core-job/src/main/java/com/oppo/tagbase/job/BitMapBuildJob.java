@@ -7,7 +7,12 @@ import com.oppo.tagbase.job.util.TableHelper;
 import com.oppo.tagbase.job.util.TaskHelper;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataJob;
-import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.obj.Job;
+import com.oppo.tagbase.meta.obj.JobState;
+import com.oppo.tagbase.meta.obj.JobType;
+import com.oppo.tagbase.meta.obj.Slice;
+import com.oppo.tagbase.meta.obj.Task;
+import com.oppo.tagbase.meta.obj.TaskState;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import com.oppo.tagbase.storage.core.exception.StorageException;
 import org.slf4j.Logger;
@@ -102,12 +107,12 @@ public class BitMapBuildJob extends Task implements Callable<Slice> {
             sink = new Metadata().getSlices(dbName, tableName).get(0).getSink();
         }
 
-        try {
-            storageConnector.createBatchRecords("", sink, srcPath);
-        } catch (StorageException e) {
-            log.error("{}, Error bulk load to HBase!", task.getId());
-            state = TaskState.FAILED;
-        }
+//        try {
+//            storageConnector.createBatchRecords("", sink, srcPath);
+//        } catch (StorageException e) {
+//            log.error("{}, Error bulk load to HBase!", task.getId());
+//            state = TaskState.FAILED;
+//        }
 
         Slice slice = new TaskHelper().constructSlice(hiveMeta, sink);
 

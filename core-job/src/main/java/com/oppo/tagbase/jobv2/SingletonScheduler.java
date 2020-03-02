@@ -1,9 +1,14 @@
 package com.oppo.tagbase.jobv2;
 
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
-import com.oppo.tagbase.common.guice.LifecycleStart;
 import com.oppo.tagbase.common.guice.ExtensionImpl;
+import com.oppo.tagbase.common.guice.LifecycleStart;
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.Job;
 import com.oppo.tagbase.meta.obj.JobType;
@@ -62,14 +67,22 @@ public class SingletonScheduler implements Scheduler {
             List<JobExecutable> jobExecutableList = jobList.stream()
                     //dict building job prior to data job
                     .sorted()
-                    // keep only one dictionary jon running.
-                    .filter(job -> JobType.DICTIONARY == job.getType() && metadataJob.getRunningDictJob() != null)
+                    // keep only one running dictionary job.
+                    .filter(job -> {
+                        boolean skip = JobType.DICTIONARY == job.getType()
+                                && metadataJob.getRunningDictJob() != null;
+                        if(skip) {
+                            log.debug("There is already on dict job running, skip the scheduling of {}", job.getName());
+                        }
+                        return skip;
+                    })
                     .map(job -> batchBuildingJobMaker.make(job))
                     .collect(Collectors.toList());
 
             for (JobExecutable jobExecutable : jobExecutableList) {
 
                 if (running.get() > config.getParallelism()) {
+                    log.debug("Tagbase has reached the running limit, jobs will waiting resource.");
                     break;
                 }
 

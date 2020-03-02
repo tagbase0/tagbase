@@ -2,7 +2,6 @@ package com.oppo.tagbase.jobv2;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Range;
 import com.oppo.tagbase.common.util.Uuid;
 import com.oppo.tagbase.meta.obj.Job;
 import com.oppo.tagbase.meta.obj.JobState;
@@ -10,6 +9,7 @@ import com.oppo.tagbase.meta.obj.JobType;
 import com.oppo.tagbase.meta.obj.Slice;
 import com.oppo.tagbase.meta.obj.Task;
 import com.oppo.tagbase.meta.obj.TaskState;
+import com.oppo.tagbase.meta.util.RangeUtil;
 
 import java.io.File;
 import java.time.LocalDate;
@@ -146,14 +146,14 @@ public class JobUtil {
     public static Timeline makeJobTimeline(List<Job> jobList) {
         return Timeline.of(jobList.stream()
                 .sorted()
-                .map(job -> Range.closedOpen(job.getDataLowerTime(), job.getDataUpperTime()))
+                .map(job -> RangeUtil.of(job.getDataLowerTime(), job.getDataUpperTime()))
                 .collect(Collectors.toCollection(TreeSet::new)));
     }
 
     public static Timeline makeSliceTimeline(List<Slice> sliceList) {
         return Timeline.of(sliceList.stream()
                 .sorted()
-                .map(job -> Range.closedOpen(job.getStartTime(), job.getEndTime()))
+                .map(job -> RangeUtil.of(job.getStartTime(), job.getEndTime()))
                 .collect(Collectors.toCollection(TreeSet::new)));
     }
 

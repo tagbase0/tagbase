@@ -6,6 +6,7 @@ import com.google.common.collect.RangeSet;
 import com.oppo.tagbase.meta.MetadataErrorCode;
 import com.oppo.tagbase.meta.MetadataException;
 import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.util.RangeUtil;
 import org.jdbi.v3.core.HandleCallback;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.Batch;
@@ -361,7 +362,15 @@ public abstract class MetadataConnector {
     public List<Slice> getSlices(String dbName, String tableName, RangeSet<LocalDateTime> range) {
         List<Slice> sliceList = getSlices(dbName, tableName);
         List<Slice> ret = sliceList.stream()
-                .filter(slice -> range.encloses(Range.closedOpen(slice.getStartTime(), slice.getEndTime())))
+                .filter(slice -> range.encloses(RangeUtil.of(slice.getStartTime(), slice.getEndTime())))
+                .collect(Collectors.toList());
+        return ret;
+    }
+
+    public List<Slice> getIntersectionSlices(String dbName, String tableName, RangeSet<LocalDateTime> range) {
+        List<Slice> sliceList = getSlices(dbName, tableName);
+        List<Slice> ret = sliceList.stream()
+                .filter(slice -> range.intersects(RangeUtil.of(slice.getStartTime(), slice.getEndTime())))
                 .collect(Collectors.toList());
         return ret;
     }

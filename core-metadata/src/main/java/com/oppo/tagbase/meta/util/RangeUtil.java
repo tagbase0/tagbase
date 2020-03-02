@@ -9,6 +9,10 @@ import java.time.LocalDateTime;
  */
 public class RangeUtil {
 
+    public static Range<LocalDateTime> of(LocalDateTime lower, LocalDateTime upper) {
+        return Range.closedOpen(lower, upper);
+    }
+
     public static LocalDateTime lowerEndpoint(Range<LocalDateTime> r) {
         return r.hasLowerBound()? r.lowerEndpoint() : LocalDateTime.MIN;
     }

@@ -8,8 +8,8 @@ import com.oppo.tagbase.common.ErrorCode;
 public enum JobErrorCode implements ErrorCode {
 
 
-    DICT_HAS_HOLE(501),
-    TIME_OVER_FLOW(502),
+    DICT_NOT_CONSISTENT(501),
+    TIME_BOUND_OVERFLOW(502),
     JOB_OVERLAP(503),
     SLICE_OVERLAP(504),
     JOB_ERROR(500)
