@@ -28,9 +28,9 @@ public class MetadataJob {
         metadataConnector.deleteJob(jobId);
     }
 
-    public List<Job> listNotCompletedJob(String dbName, String tableName, LocalDateTime startTime, LocalDateTime endTime) {
+    public List<Job> listNotCompletedJob(String dbName, String tableName, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
         // not completed job : jobs in JobState.PENDING RUNNING FAILED SUSPEND state.
-        return metadataConnector.listNotCompletedJob(dbName, tableName, startTime, endTime);
+        return metadataConnector.listNotCompletedJob(dbName, tableName, dataLowerTime, dataUpperTime);
     }
 
     public void completeJob(String jobId, JobState state, LocalDateTime endTime) {
@@ -42,8 +42,7 @@ public class MetadataJob {
     }
 
     public Job getRunningDictJob() {
-        //TODO
-        return null;
+        return metadataConnector.getRunningDictJob();
     }
 
     public void addTask(Task task) {
@@ -80,37 +79,35 @@ public class MetadataJob {
     }
 
     public Task getTask(String jobId, byte step) {
-        // TODO
-        return null;
+        return metadataConnector.getTask(jobId, step);
     }
 
     public List<Job> listPendingJobs() {
-        // TODO
-        return null;
+        return metadataConnector.listPendingJobs();
     }
 
     public void updateJobStartTime(String id, LocalDateTime startTime) {
-        //TODO
+        metadataConnector.updateJobStartTime(id, startTime);
     }
 
     public void updateJobEndTime(String id, LocalDateTime endTime) {
-        //TODO
+        metadataConnector.updateJobEndTime(id, endTime);
     }
 
     public void updateTaskStartTime(String id, LocalDateTime startTime) {
-        //TODO
+        metadataConnector.updateTaskStartTime(id, startTime);
     }
 
     public void updateTaskEndTime(String id, LocalDateTime endTime) {
-        //TODO
+        metadataConnector.updateTaskEndTime(id, endTime);
     }
+
     public void updateTaskOutput(String id, String output) {
-        //TODO
+        metadataConnector.updateTaskOutput(id, output);
     }
 
 
     public List<Job> listSuccessDictJobs(LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
-        //TODO
-        return null;
+        return metadataConnector.listSuccessDictJobs(dataLowerTime, dataUpperTime);
     }
 }

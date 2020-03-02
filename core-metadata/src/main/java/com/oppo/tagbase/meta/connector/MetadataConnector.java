@@ -567,6 +567,24 @@ public abstract class MetadataConnector {
         });
     }
 
+    public void updateJobStartTime(String id, LocalDateTime startTime) {
+
+        submit(handle -> {
+            String sql = "Update `JOB` set `startTime`=? where `id` =?";
+
+            return handle.execute(sql, startTime, id);
+        });
+    }
+
+    public void updateJobEndTime(String id, LocalDateTime endTime) {
+
+        submit(handle -> {
+            String sql = "Update `JOB` set `endTime`=? where `id` =?";
+
+            return handle.execute(sql, endTime, id);
+        });
+    }
+
     public Job getJob(String jobId) {
         return submit(handle -> {
 //            try{
@@ -590,18 +608,59 @@ public abstract class MetadataConnector {
 
     }
 
-    public List<Job> listNotCompletedJob(String dbName, String tableName, LocalDateTime startTime, LocalDateTime endTime) {
+    public Job getRunningDictJob() {
+
+        return submit((handle -> {
+            Job job = handle.createQuery("Select `JOB`.* from `JOB` where `JOB`.`state`=:state and `type`=:type")
+                    .bind("state", JobState.RUNNING)
+                    .bind("type", JobType.DICTIONARY)
+                    .mapToBean(Job.class)
+                    .one();
+            return job;
+        }));
+    }
+
+    public List<Job> listPendingJobs() {
+
+        return submit((handle -> {
+            List<Job> jobs = handle.createQuery("Select `JOB`.* from `JOB` where `JOB`.`state`=:state")
+                    .bind("state", JobState.PENDING)
+                    .mapToBean(Job.class)
+                    .list();
+
+            return jobs;
+        }));
+    }
+
+    public List<Job> listNotCompletedJob(String dbName, String tableName, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
+        //TODO TEST
         return submit(handle -> {
 
             List<Job> jobs = handle.createQuery("Select * from `JOB` where `JOB`.`dbName`=:dbName and `JOB`.`tableName`=:tableName " +
-                    "and  `JOB`.`startTime`>=:startTime and (`JOB`.`endTime` is null or `JOB`.`endTime`>=:endTime) and `JOB`.`state` != :state" )
+                    "and  `JOB`.`dataLowerTime`>=:dataLowerTime and  `JOB`.`dataUpperTime`<=:dataUpperTime " +
+                    "and (`JOB`.`stateSuccess` != :state or `JOB`.`state` != :stateDiscard" )
                     .bind("dbName", dbName)
                     .bind("tableName", tableName)
-                    .bind("startTime", startTime)
-                    .bind("endTime", endTime)
-                    .bind("state", JobState.SUCCESS)
+                    .bind("dataLowerTime", dataLowerTime)
+                    .bind("dataUpperTime", dataUpperTime)
+                    .bind("stateSuccess", JobState.SUCCESS)
+                    .bind("stateDiscard", JobState.DISCARD)
                     .mapToBean(Job.class)
                     .list();
+            return jobs;
+        });
+    }
+
+    public List<Job> listSuccessDictJobs(LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
+
+        return submit(handle -> {
+            List<Job> jobs= handle.createQuery("Select * from `JOB` where `JOB`.`dataLowerTime`>=:dataLowerTime " +
+                    "and  `JOB`.`dataUpperTime`<=:dataUpperTime ")
+                    .bind("dataLowerTime", dataLowerTime)
+                    .bind("dataUpperTime", dataUpperTime)
+                    .mapToBean(Job.class)
+                    .list();
+
             return jobs;
         });
     }
@@ -634,6 +693,17 @@ public abstract class MetadataConnector {
         }));
     }
 
+    public Task getTask(String jobId, byte step) {
+
+        return (submit(handle -> {
+            Task task = handle.createQuery("Select `TASK`.* from `TASK` where `TASK`.`jobId`=:jobId and `step`=:step")
+                    .bind("jobId", jobId)
+                    .bind("step", step)
+                    .mapToBean(Task.class)
+                    .one();
+            return task;
+        }));
+    }
     public void updateTaskStatus(String id, TaskState state) {
         submit(handle -> {
             String sql = "Update `TASK` set `state`=? where `id`=?";
@@ -647,6 +717,33 @@ public abstract class MetadataConnector {
             String sql = "Update `TASK` set `appId`=? where `id`=?";
 
             return handle.execute(sql, appId, id);
+        });
+    }
+
+    public void updateTaskStartTime(String id, LocalDateTime startTime) {
+
+        submit(handle -> {
+            String sql = "Update `TASK` set `startTime`=? where `id`=?";
+
+            return handle.execute(sql, startTime, id);
+        });
+    }
+
+    public void updateTaskEndTime(String id, LocalDateTime endTime) {
+
+        submit(handle -> {
+            String sql = "Update `TASK` set `endTime`=? where `id`=?";
+
+            return handle.execute(sql, endTime, id);
+        });
+    }
+
+    public void updateTaskOutput(String id, String output) {
+
+        submit(handle -> {
+            String sql = "Update `TASK` set `output`=? where `id`=?";
+
+            return handle.execute(sql, output, id);
         });
     }
 
@@ -716,6 +813,7 @@ public abstract class MetadataConnector {
                 .mapTo(Long.class)
                 .one());
     }
+
 
 
 }
