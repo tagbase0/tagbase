@@ -1,6 +1,8 @@
 package com.oppo.tagbase.jobv2;
 
 import com.google.inject.Inject;
+import com.oppo.tagbase.extension.spi.FileSystem;
+import com.oppo.tagbase.extension.spi.Reader;
 import com.oppo.tagbase.jobv2.spi.DataTaskContext;
 import com.oppo.tagbase.jobv2.spi.TaskEngine;
 import com.oppo.tagbase.jobv2.spi.TaskStatus;
@@ -37,6 +39,8 @@ public class DataJobExecutableMaker {
     private MetadataDict metadataDict;
     @Inject
     private JobConfig jobConfig;
+    @Inject
+    private FileSystem fileSystem;
 
     public JobExecutable make(Job job) {
 
@@ -134,7 +138,9 @@ public class DataJobExecutableMaker {
             slice.setSink(sliceSink);
             //TODO set value
             slice.setSinkCount(0);
-            slice.setSinkCount(0);
+            Reader reader = fileSystem.createReader(dataLocation);
+            //TODO set value
+            slice.setSinkSizeMb(0);
 
             metadata.addSlice(slice);
             return null;

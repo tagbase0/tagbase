@@ -1,11 +1,13 @@
 package com.oppo.tagbase.meta;
 
 import com.oppo.tagbase.meta.connector.MetadataConnector;
-import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.obj.Job;
+import com.oppo.tagbase.meta.obj.JobState;
+import com.oppo.tagbase.meta.obj.Task;
+import com.oppo.tagbase.meta.obj.TaskState;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

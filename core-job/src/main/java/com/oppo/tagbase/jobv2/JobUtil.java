@@ -2,6 +2,7 @@ package com.oppo.tagbase.jobv2;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.oppo.tagbase.common.util.LocalDateTimeUtil;
 import com.oppo.tagbase.common.util.Uuid;
 import com.oppo.tagbase.meta.obj.*;
 import com.oppo.tagbase.meta.util.RangeUtil;
@@ -125,9 +126,15 @@ public class JobUtil {
                 + "dict"
                 + File.separator
                 + "dict-forward-"
-                + LocalDate.now()
+                + System.currentTimeMillis()
+                + "-"
                 + ThreadLocalRandom.current().nextInt(100)
                 ;
+    }
+
+    public static String getFileName(String path) {
+        String[] parts = path.split(File.separator);
+        return parts[parts.length - 1 ];
     }
 
     public static String makeDictJobName(LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
@@ -150,6 +157,18 @@ public class JobUtil {
                 .sorted()
                 .map(job -> RangeUtil.of(job.getStartTime(), job.getEndTime()))
                 .collect(Collectors.toCollection(TreeSet::new)));
+    }
+
+    public static void deleteLocalFile(String path) {
+        if (path != null) {
+            File f = new File(path);
+            if (f.exists()) {
+                try {
+                    f.delete();
+                } catch (Exception e) {
+                }
+            }
+        }
     }
 
 }

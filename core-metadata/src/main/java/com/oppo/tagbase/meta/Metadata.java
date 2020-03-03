@@ -1,6 +1,10 @@
 package com.oppo.tagbase.meta;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.TreeRangeSet;
 import com.oppo.tagbase.meta.connector.MetadataConnector;
 import com.oppo.tagbase.meta.obj.Column;
 import com.oppo.tagbase.meta.obj.DB;

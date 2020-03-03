@@ -1,11 +1,22 @@
 package com.oppo.tagbase.meta.connector;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.oppo.tagbase.meta.MetadataErrorCode;
 import com.oppo.tagbase.meta.MetadataException;
-import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.obj.Column;
+import com.oppo.tagbase.meta.obj.DB;
+import com.oppo.tagbase.meta.obj.Dict;
+import com.oppo.tagbase.meta.obj.DictStatus;
+import com.oppo.tagbase.meta.obj.Job;
+import com.oppo.tagbase.meta.obj.JobState;
+import com.oppo.tagbase.meta.obj.JobType;
+import com.oppo.tagbase.meta.obj.Slice;
+import com.oppo.tagbase.meta.obj.SliceStatus;
+import com.oppo.tagbase.meta.obj.Table;
+import com.oppo.tagbase.meta.obj.TableType;
+import com.oppo.tagbase.meta.obj.Task;
+import com.oppo.tagbase.meta.obj.TaskState;
 import com.oppo.tagbase.meta.util.RangeUtil;
 import org.jdbi.v3.core.HandleCallback;
 import org.jdbi.v3.core.Jdbi;
