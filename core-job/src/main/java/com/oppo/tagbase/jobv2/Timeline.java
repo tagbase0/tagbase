@@ -7,7 +7,9 @@ import com.oppo.tagbase.meta.util.RangeUtil;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -31,6 +33,14 @@ public final class Timeline {
 
     public boolean intersects(Range<LocalDateTime> range) {
         return rangeSet.intersects(range);
+    }
+
+    public RangeSet<LocalDateTime> intersection(Range<LocalDateTime> range) {
+        Set<Range<LocalDateTime>> ret = rangeSet.asRanges().stream()
+                .map(r -> r.intersection(range))
+                .filter(r -> !r.isEmpty())
+                .collect(Collectors.toSet());
+        return TreeRangeSet.create(ret);
     }
 
     /**

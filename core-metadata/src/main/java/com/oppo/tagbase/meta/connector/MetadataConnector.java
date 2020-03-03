@@ -380,7 +380,7 @@ public abstract class MetadataConnector {
     public List<Slice> getSlices(String dbName, String tableName, RangeSet<LocalDateTime> range) {
         List<Slice> sliceList = getSlices(dbName, tableName);
         List<Slice> ret = sliceList.stream()
-                .filter(slice -> range.encloses(RangeUtil.of(slice.getStartTime(), slice.getEndTime())))
+                .filter(slice -> range.intersects(RangeUtil.of(slice.getStartTime(), slice.getEndTime())))
                 .collect(Collectors.toList());
         return ret;
     }
@@ -706,7 +706,7 @@ public abstract class MetadataConnector {
      * 2. query with dataLowerTime=2020-01-04 dataUpperTime=2020-01-06
      * will return [2020-01-03,2020-01-05) [2020-01-05,2020-01-07)
      */
-    public List<Job> listNotCompletedJob(String dbName, String tableName, TableType type, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
+    public List<Job> listNotCompletedJob(String dbName, String tableName, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
         //TODO TEST
         return submit(handle -> {
 
@@ -715,7 +715,6 @@ public abstract class MetadataConnector {
                     + "and (`JOB`.`state` !=:stateSuccess or `JOB`.`state` !=:stateDiscard )")
                     .bind("dbName", dbName)
                     .bind("tableName", tableName)
-                    .bind("type", type)
                     .bind("dataLowerTime", dataLowerTime)
                     .bind("dataUpperTime", dataUpperTime)
                     .bind("stateSuccess", JobState.SUCCESS)
