@@ -42,13 +42,13 @@ public class Metadata {
     }
 
     public void addTable(String dbName,
-                            String tableName,
-                            String srcDb,
-                            String srcTable,
-                            String desc,
-                            TableType type,
-                            String srcType,
-                            List<Column> columnList) throws MetadataException {
+                         String tableName,
+                         String srcDb,
+                         String srcTable,
+                         String desc,
+                         TableType type,
+                         String srcType,
+                         List<Column> columnList) throws MetadataException {
         metadataConnector.addTable(dbName,
                 tableName,
                 srcDb,
@@ -73,7 +73,7 @@ public class Metadata {
         metadataConnector.addSlice(slice);
     }
 
-    public Slice getSlice(String sink){
+    public Slice getSlice(String sink) {
         return metadataConnector.getSlices(sink);
     }
 
@@ -170,5 +170,10 @@ public class Metadata {
         return metadataConnector.listTable(dbName);
     }
 
+    /*-------------Metadata API for test --------------*/
+
+    public void doSQL(String sql) throws MetadataException {
+        metadataConnector.doSQL(sql);
+    }
 
 }

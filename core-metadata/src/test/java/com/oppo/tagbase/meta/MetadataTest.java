@@ -18,7 +18,6 @@ import com.oppo.tagbase.meta.obj.TableType;
 import com.oppo.tagbase.meta.type.DataType;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
 
 
 import java.time.LocalDateTime;
@@ -44,7 +43,7 @@ public class MetadataTest {
 
         MetaStoreConnectorConfig c = injector.getInstance(MetaStoreConnectorConfig.class);
 
-        metadata =injector.getInstance(Metadata.class);
+        metadata = injector.getInstance(Metadata.class);
     }
 
     /*-------------Metadata initialization part--------------*/
@@ -60,14 +59,14 @@ public class MetadataTest {
         Assert.assertEquals("test_db", metadata.getDb("test_db").getName());
     }
 
-    @Test
+
     public void addTable() {
 
         // tag - city test
         String dbName = "test_db";
         String tableName = "test_table_tag_city";
         String srcDb = "test_db_hive_srcDb_tag";
-        String srcTable= "test_table_hive_srcTable_tag";
+        String srcTable = "test_table_hive_srcTable_tag";
         String desc = "For test table tag";
         String srcType = "hive";
         TableType type = TableType.TAG;
@@ -106,7 +105,7 @@ public class MetadataTest {
         String dbName1 = "test_db";
         String tableName1 = "test_table_action";
         String srcDb1 = "test_db_hive_srcDb_action";
-        String srcTable1= "test_table_hive_srcTable_action";
+        String srcTable1 = "test_table_hive_srcTable_action";
         String desc1 = "For test table action";
         TableType type1 = TableType.ACTION;
 
@@ -263,32 +262,12 @@ public class MetadataTest {
                 LocalDateTime.parse("2018-06-02 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
 
         System.out.println(range);
-        for(Slice slice : metadata.getSlices("test_db", "test_table_action", range)){
+        for (Slice slice : metadata.getSlices("test_db", "test_table_action", range)) {
             System.out.println(slice);
         }
 
         Assert.assertEquals(1, metadata.getSlices("test_db", "test_table_action", range).size());
 
-    }
-
-    
-    public void getSlicesGT() {
-    }
-
-    
-    public void getSlicesGE() {
-    }
-
-    
-    public void getSlicesLT() {
-    }
-
-    
-    public void getSlicesLE() {
-    }
-
-    
-    public void getSlicesBetween() {
     }
 
 

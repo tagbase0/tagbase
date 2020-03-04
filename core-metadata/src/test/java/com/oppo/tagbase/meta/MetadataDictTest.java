@@ -16,14 +16,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 
-
-
 /**
  * Created by daikai on 2020/2/27.
  */
 public class MetadataDictTest {
 
     MetadataDict metadataDict;
+    Metadata metadata;
+    Dict dict;
+
     @Before
     public void setup() {
         Injector injector = ExampleGuiceInjectors.makeInjector(
@@ -34,11 +35,15 @@ public class MetadataDictTest {
 
         MetaStoreConnectorConfig c = injector.getInstance(MetaStoreConnectorConfig.class);
 
-        metadataDict =injector.getInstance(MetadataDict.class);
+        metadataDict = injector.getInstance(MetadataDict.class);
+        metadata = injector.getInstance(Metadata.class);
+
+        dict = iniDict();
     }
 
 
-    public void addDict() {
+    public Dict iniDict() {
+
         Dict dict = new Dict();
         dict.setVersion("1.0.0");
         dict.setType(DictType.FORWARD);
@@ -48,8 +53,12 @@ public class MetadataDictTest {
         dict.setCreateDate(LocalDateTime.parse("2020-02-10 10:12:05",
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
-        metadataDict.addDict(dict);
+        return dict;
+    }
 
+    public void addDict() {
+
+        metadataDict.addDict(dict);
         Assert.assertEquals(dict.toString(), metadataDict.getDict().toString());
 
     }
@@ -57,12 +66,13 @@ public class MetadataDictTest {
 
     public void getDict() {
 
-        Assert.assertEquals("/hive/osql/dict/forward1",
-                metadataDict.getDict().getLocation());
+        metadataDict.addDict(dict);
+        Assert.assertEquals(dict.getLocation(), metadataDict.getDict().getLocation());
     }
 
-
     public void getDictElementCount() {
-        Assert.assertEquals(500000000, metadataDict.getDictElementCount());
+
+        metadataDict.addDict(dict);
+        Assert.assertEquals(dict.getElementCount(), metadataDict.getDictElementCount());
     }
 }

@@ -7,7 +7,7 @@ import javax.inject.Inject;
 
 /**
  * Metadata service for job
- *
+ * <p>
  * Created by wujianchao on 2020/2/17.
  */
 public class MetadataDict {
@@ -26,4 +26,5 @@ public class MetadataDict {
     public long getDictElementCount() {
         return metadataConnector.getDictElementCount();
     }
+
 }

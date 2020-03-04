@@ -721,9 +721,9 @@ public abstract class MetadataConnector {
         //TODO TEST
         return submit(handle -> {
 
-            List<Job> jobs = handle.createQuery("Select * from `JOB` where `JOB`.`dbName`=:dbName and `JOB`.`tableName`=:tableName and `JOB`.`type`=:type and"
+            List<Job> jobs = handle.createQuery("Select * from `JOB` where `JOB`.`dbName`=:dbName and `JOB`.`tableName`=:tableName  and"
                     + RangeUtil.intersectionToSqlFilter("dataLowerTime", "dataUpperTime", "dataLowerTime", "dataUpperTime")
-                    + "and (`JOB`.`state` !=:stateSuccess or `JOB`.`state` !=:stateDiscard )")
+                    + "and `JOB`.`state` !=:stateSuccess and `JOB`.`state` !=:stateDiscard ")
                     .bind("dbName", dbName)
                     .bind("tableName", tableName)
                     .bind("dataLowerTime", dataLowerTime)
@@ -911,4 +911,11 @@ public abstract class MetadataConnector {
                 .one());
     }
 
+    /*-------------Metadata API for test --------------*/
+
+    public void doSQL(String sql) {
+
+        submit(handle -> handle.execute(sql)
+        );
+    }
 }
