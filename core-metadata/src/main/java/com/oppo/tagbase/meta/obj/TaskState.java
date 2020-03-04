@@ -6,13 +6,13 @@ package com.oppo.tagbase.meta.obj;
 public enum TaskState {
     PENDING,
     RUNNING,
-    FAILED,
     SUSPEND,
-    DISCARD,
-    SUCCESS
+    FAILED,
+    SUCCESS,
+    DISCARD
     ;
 
     public boolean isCompleted() {
-        return this == DISCARD || this == SUCCESS;
+        return this == SUCCESS;
     }
 }

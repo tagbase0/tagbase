@@ -25,6 +25,8 @@ import org.jdbi.v3.core.statement.Batch;
 import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -274,6 +276,7 @@ public abstract class MetadataConnector {
 
 
     //TODO transaction
+    //TODO check timeline overlap
     public void addSlice(Slice slice) {
         submit(handle -> {
 
@@ -630,9 +633,11 @@ public abstract class MetadataConnector {
         });
     }
 
+    /**
+     * Get job with task chain which is ordered by step.
+     */
     public Job getJob(String jobId) {
         return submit(handle -> {
-//            try{
             Job job = handle.createQuery("Select `JOB`.* from `JOB` where `JOB`.`id`=:jobId")
                     .bind("jobId", jobId)
                     .mapToBean(Job.class)
@@ -643,12 +648,11 @@ public abstract class MetadataConnector {
                     .mapToBean(Task.class)
                     .list();
 
+            // sort by task step
+            Collections.sort(tasks, Comparator.comparingInt(Task::getStep));
+
             job.setTasks(tasks);
             return job;
-//            }catch (IllegalStateException e){
-//                return null;
-//            }
-
         });
 
     }

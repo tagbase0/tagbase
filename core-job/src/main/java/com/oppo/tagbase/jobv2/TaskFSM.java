@@ -1,6 +1,5 @@
 package com.oppo.tagbase.jobv2;
 
-import com.google.common.base.Preconditions;
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.Task;
 import com.oppo.tagbase.meta.obj.TaskState;
@@ -22,42 +21,47 @@ public final class TaskFSM {
         return new TaskFSM(task, metadataJob);
     }
 
+    public boolean isRunning() {
+        return task.getState() == TaskState.RUNNING;
+    }
+
     public void toPending() {
-        Preconditions.checkArgument(task.getState() == TaskState.FAILED
-                || task.getState() == TaskState.SUSPEND);
-        task.setState(TaskState.PENDING);
+        JobPreconditions.checkState(task.getState() == TaskState.FAILED);
         metadataJob.updateTaskStatus(task.getId(), task.getState());
+        task.setState(TaskState.PENDING);
     }
 
     public void toRunning() {
-        Preconditions.checkArgument(task.getState() == TaskState.PENDING);
-        task.setState(TaskState.RUNNING);
+        JobPreconditions.checkState(task.getState() == TaskState.PENDING);
         metadataJob.updateTaskStatus(task.getId(), task.getState());
+        task.setState(TaskState.RUNNING);
+    }
+    public void toSuspend() {
+        JobPreconditions.checkState(task.getState() == TaskState.RUNNING);
+        metadataJob.updateTaskStatus(task.getId(), task.getState());
+        task.setState(TaskState.SUSPEND);
     }
 
     public void toFailed() {
-        Preconditions.checkArgument(task.getState() == TaskState.RUNNING);
-        task.setState(TaskState.FAILED);
+        JobPreconditions.checkState(task.getState() == TaskState.RUNNING);
         metadataJob.updateTaskStatus(task.getId(), task.getState());
-    }
-
-    public void toSuspend() {
-        Preconditions.checkArgument(task.getState() == TaskState.RUNNING);
         task.setState(TaskState.FAILED);
-        metadataJob.updateTaskStatus(task.getId(), task.getState());
     }
 
     public void toSuccess() {
-        Preconditions.checkArgument(task.getState() == TaskState.RUNNING);
-        task.setState(TaskState.SUCCESS);
+        JobPreconditions.checkState(task.getState() == TaskState.RUNNING);
         metadataJob.updateTaskStatus(task.getId(), task.getState());
+        task.setState(TaskState.SUCCESS);
     }
 
     public void toDiscard() {
-        Preconditions.checkArgument(task.getState() == TaskState.SUSPEND
-                || task.getState() == TaskState.FAILED);
-        task.setState(TaskState.DISCARD);
+        JobPreconditions.checkState(task.getState() == TaskState.SUSPEND
+                        || task.getState() == TaskState.RUNNING
+                        || task.getState() == TaskState.FAILED
+                        || task.getState() == TaskState.PENDING,
+                "task already completed");
         metadataJob.updateTaskStatus(task.getId(), task.getState());
+        task.setState(TaskState.DISCARD);
     }
 
 }

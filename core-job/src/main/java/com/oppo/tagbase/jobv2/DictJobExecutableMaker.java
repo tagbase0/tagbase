@@ -19,6 +19,7 @@ import com.oppo.tagbase.meta.obj.DictStatus;
 import com.oppo.tagbase.meta.obj.DictType;
 import com.oppo.tagbase.meta.obj.Job;
 import com.oppo.tagbase.meta.obj.Task;
+import com.oppo.tagbase.meta.obj.TaskState;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +67,12 @@ public class DictJobExecutableMaker {
         List<Task> taskList = job.getTasks();
 
         List<Executable> executableList = taskList.stream()
-                .filter(task -> task.getState().isCompleted())
+                .filter(task -> {
+                    if(task.getState() == TaskState.RUNNING) {
+                        log.info("resume task {}", task.getName());
+                    }
+                    return task.getState() == TaskState.RUNNING || task.getState() == TaskState.PENDING;
+                })
                 .map(task -> makeTaskExecutable(job, task))
                 .collect(Collectors.toList());
 
@@ -89,7 +95,6 @@ public class DictJobExecutableMaker {
         return new TaskExecutable(task, metadataJob, () -> {
 
             try {
-
                 // init context
                 DictTaskContext context = new DictTaskContext(job.getId(),
                         task.getId(),
@@ -103,26 +108,32 @@ public class DictJobExecutableMaker {
                 // submit task to remote engine
                 String appId = engine.buildDict(context);
 
-                task.setAppId(appId);
-                metadataJob.updateTaskAppId(task.getId(), task.getAppId());
+                metadataJob.updateTaskAppId(task.getId(), appId);
 
                 TaskStatus status = null;
 
                 while (!(status = engine.status(appId)).isDone()) {
                     TimeUnit.SECONDS.sleep(60);
+                    // check task state
+                    if (metadataJob.getTask(task.getId()).getState() != TaskState.RUNNING) {
+                        log.warn("task {} was canceled by user", task.getId());
+                        engine.kill(appId);
+                        return null;
+                    }
                     log.debug("{} still running", appId);
                     status = engine.status(appId);
                 }
 
                 if (!status.isSuccess()) {
-                    throw new JobException("external task %s failed, reason: %s", appId, status.getErrorMessage());
+                    throw new JobException("external task %s failed, reason: %s", appId, status.getDiagnostics());
                 }
 
                 // update task output
-                metadataJob.updateTaskEndTime(task.getId(), LocalDateTime.now());
                 metadataJob.updateTaskOutput(task.getId(), context.getOutputLocation());
 
                 log.info("Dict output location {}", context.getOutputLocation());
+
+                metadataJob.updateJobProgress(job.getId(), 0.5f);
 
                 return null;
 
@@ -164,7 +175,8 @@ public class DictJobExecutableMaker {
 
                 for (Map.Entry<Long, String> e : incInvertedDictEntries.entrySet()) {
                     //check dict consistency
-                    Preconditions.checkArgument(
+                    Preconditions.checkState(
+                            //TODO - 1?
                             writer.add(BytesUtil.toUTF8Bytes(e.getValue())) == e.getKey(),
                             "inconsistent index between Inverted and Forward dictionaries."
                     );
@@ -188,8 +200,9 @@ public class DictJobExecutableMaker {
                 dict.setElementCount(incInvertedDictEntries.lastKey());
                 dict.setStatus(DictStatus.READY);
                 dict.setCreateDate(LocalDateTime.now());
-                metadataDict.addDict(dict);
 
+                metadataDict.addDict(dict);
+                metadataJob.updateJobProgress(job.getId(), 1.0f);
             } finally {
                 // 6. clean up
                 JobUtil.deleteLocalFile(forwardDictLocalPath);
@@ -211,6 +224,7 @@ public class DictJobExecutableMaker {
     /**
      * inverted dict file schema "id,entry"
      */
+    // TODO multi-file
     private SortedMap<Long, String> loadIncEntry(String invertedDictLocation) {
 
         try (Reader invertedDictReader = fileSystem.createReader(invertedDictLocation);

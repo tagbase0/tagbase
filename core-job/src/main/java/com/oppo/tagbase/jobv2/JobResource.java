@@ -5,7 +5,14 @@ import com.oppo.tagbase.meta.obj.JobState;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.time.LocalDateTime;
 
@@ -57,7 +64,7 @@ public class JobResource {
                        @FormParam("dataLowerTime") @NotNull(message = "lower time is null") LocalDateTime dataLowerTime,
                        @FormParam("dataUpperTime") @NotNull(message = "upper time is null") LocalDateTime dataUpperTime) {
 
-        return manager.rebuild(dbName, tableName, dataLowerTime, dataUpperTime);
+        return manager.build(dbName, tableName, dataLowerTime, dataUpperTime);
     }
 
     @POST
@@ -70,21 +77,29 @@ public class JobResource {
     }
 
     @POST
+    @Path("/suspend/{jobId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Job suspendJob(@PathParam("jobId") @NotNull(message = "job id is null") String jobId) {
+
+        return manager.suspendJob(jobId);
+    }
+
+    @POST
     @Path("/stop/{jobId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Job stopJob(@PathParam("jobId") @NotNull(message = "job id is null") String jobId) {
+    public Job discardJob(@PathParam("jobId") @NotNull(message = "job id is null") String jobId) {
 
-        return manager.stopJob(jobId);
+        return manager.discardJob(jobId);
     }
 
     @DELETE
     @Path("/{jobId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Job deleteJob(@PathParam("jobId") @NotNull(message = "job id is null") String jobId) {
-
-        return manager.deleteJob(jobId);
+    public void deleteJob(@PathParam("jobId") @NotNull(message = "job id is null") String jobId) {
+        manager.deleteJob(jobId);
     }
 
 

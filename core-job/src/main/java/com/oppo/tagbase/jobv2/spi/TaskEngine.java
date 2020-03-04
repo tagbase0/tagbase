@@ -14,5 +14,6 @@ public interface TaskEngine {
     String buildDict(DictTaskContext context) throws JobException;
     String buildData(DataTaskContext context) throws JobException;
 
+    TaskStatus kill(String appId) throws IOException, JobException;
     TaskStatus status(String appId) throws IOException, JobException;
 }

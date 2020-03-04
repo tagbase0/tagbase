@@ -1,6 +1,5 @@
 package com.oppo.tagbase.jobv2;
 
-import com.google.common.base.Preconditions;
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.Job;
 import com.oppo.tagbase.meta.obj.JobState;
@@ -8,6 +7,7 @@ import com.oppo.tagbase.meta.obj.JobState;
 /**
  * Created by wujianchao on 2020/2/29.
  */
+//TODO redefine FSM with diagram
 public final class JobFSM {
 
     private Job job;
@@ -22,42 +22,58 @@ public final class JobFSM {
         return new JobFSM(job, metadataJob);
     }
 
+    public static JobFSM of(String jobId, MetadataJob metadataJob) {
+        return of(metadataJob.getJob(jobId), metadataJob);
+    }
+
+    public boolean isRunning() {
+        return job.getState() == JobState.RUNNING;
+    }
+
     public void toPending() {
-        Preconditions.checkArgument(job.getState() == JobState.FAILED
+        JobPreconditions.checkState(job.getState() == JobState.FAILED
                 || job.getState() == JobState.SUSPEND);
-        job.setState(JobState.PENDING);
         metadataJob.updateJobStatus(job.getId(), job.getState());
+        job.setState(JobState.PENDING);
     }
 
     public void toRunning() {
-        Preconditions.checkArgument(job.getState() == JobState.PENDING);
-        job.setState(JobState.RUNNING);
+        JobPreconditions.checkState(job.getState() == JobState.PENDING);
         metadataJob.updateJobStatus(job.getId(), job.getState());
+        job.setState(JobState.RUNNING);
     }
 
     public void toFailed() {
-        Preconditions.checkArgument(job.getState() == JobState.RUNNING);
-        job.setState(JobState.FAILED);
+        JobPreconditions.checkState(job.getState() == JobState.RUNNING);
         metadataJob.updateJobStatus(job.getId(), job.getState());
+        job.setState(JobState.FAILED);
     }
 
     public void toSuspend() {
-        Preconditions.checkArgument(job.getState() == JobState.RUNNING);
-        job.setState(JobState.FAILED);
+        JobPreconditions.checkState(job.getState() == JobState.RUNNING);
         metadataJob.updateJobStatus(job.getId(), job.getState());
+        job.setState(JobState.FAILED);
     }
 
     public void toSuccess() {
-        Preconditions.checkArgument(job.getState() == JobState.RUNNING);
-        job.setState(JobState.SUCCESS);
+        JobPreconditions.checkState(job.getState() == JobState.RUNNING);
         metadataJob.updateJobStatus(job.getId(), job.getState());
+        job.setState(JobState.SUCCESS);
     }
 
     public void toDiscard() {
-        Preconditions.checkArgument(job.getState() == JobState.SUSPEND
-                || job.getState() == JobState.FAILED);
-        job.setState(JobState.DISCARD);
+        JobPreconditions.checkState(job.getState() == JobState.SUSPEND
+                || job.getState() == JobState.RUNNING
+                || job.getState() == JobState.FAILED
+                || job.getState() == JobState.PENDING,
+                "job already completed");
         metadataJob.updateJobStatus(job.getId(), job.getState());
+        job.setState(JobState.DISCARD);
+    }
+
+    public void delete() {
+        JobPreconditions.checkState(job.getState().isCompleted(), "can not delete an uncompleted job");
+        metadataJob.deleteJob(job.getId());
     }
 
 }

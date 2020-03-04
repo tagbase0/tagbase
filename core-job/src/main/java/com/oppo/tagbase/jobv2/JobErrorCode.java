@@ -12,6 +12,7 @@ public enum JobErrorCode implements ErrorCode {
     TIME_BOUND_OVERFLOW(502),
     JOB_OVERLAP(503),
     SLICE_OVERLAP(504),
+    JOB_STATE_TRANSFER(505),
     JOB_ERROR(500)
     ;
 

@@ -8,8 +8,8 @@ import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.Job;
 import com.oppo.tagbase.meta.obj.JobState;
 import com.oppo.tagbase.meta.obj.Slice;
-import com.oppo.tagbase.meta.obj.TableType;
 import com.oppo.tagbase.meta.obj.Task;
+import com.oppo.tagbase.meta.obj.TaskState;
 import com.oppo.tagbase.meta.util.RangeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +26,7 @@ import static com.oppo.tagbase.jobv2.JobUtil.makeSliceTimeline;
 import static com.oppo.tagbase.meta.obj.JobState.PENDING;
 import static com.oppo.tagbase.meta.obj.JobState.RUNNING;
 import static com.oppo.tagbase.meta.obj.JobState.SUCCESS;
+import static java.lang.String.format;
 
 /**
  * Created by wujianchao on 2020/2/26.
@@ -74,7 +75,7 @@ public class JobManager {
 
         // check dataUpperTime - dataLowerTime = n Days
         long diff = LocalDateTimeUtil.minus(dataLowerTime, dataLowerTime);
-        Preconditions.checkArgument(diff != MILLS_OF_DAY, "build time range must be 1 Day");
+        Preconditions.checkArgument(diff == MILLS_OF_DAY, "build time range must be 1 Day");
     }
 
     private void checkTimeline(String dbName, String tableName, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
@@ -86,21 +87,32 @@ public class JobManager {
         Timeline jobTimeline = makeJobTimeline(jobList);
 
         if (jobTimeline.intersects(RangeUtil.of(dataLowerTime, dataUpperTime))) {
-            throw new JobException(JOB_OVERLAP, "job overlap others, please adjust job time bounds or discard overlapped jobs.");
+            String message = "job overlap others, please adjust job time bounds or discard overlapped jobs.";
+            log.error(message);
+            throw new JobException(JOB_OVERLAP, message );
         }
 
-        // check segment overlap
+        // check slice overlap
 
+
+        // slice timeline : [2020-02-01, 2020-02-03) [2020-02-03, 2020-02-05) [2020-02-05, 2020-02-07)
+        // 1. [2020-02-01, 2020-02-03) ok
+        // 2. [2020-02-01, 2020-02-02) error
+        // 3. [2020-02-01, 2020-02-05) ok
+        // 4. [2020-02-07, 2020-02-09) ok
+        // 5. [2020-02-15, 2020-02-17) ok
         List<Slice> sliceList = metadata.getIntersectionSlices(dbName, tableName, RangeUtil.of(dataLowerTime, dataUpperTime));
         Timeline sliceTimeline = makeSliceTimeline(sliceList);
 
         if (sliceTimeline.overlap(RangeUtil.of(dataLowerTime, dataUpperTime))) {
-            throw new JobException(SLICE_OVERLAP, "job overlap other slices, please adjust job time bounds.");
+            String message = "job overlap other slices, please adjust job time bounds.";
+            log.error(message);
+            throw new JobException(SLICE_OVERLAP, message );
         }
 
         RangeSet<LocalDateTime> intersections = sliceTimeline.intersection(RangeUtil.of(dataLowerTime, dataUpperTime));
 
-        if(!intersections.isEmpty()) {
+        if (!intersections.isEmpty()) {
             log.info("job will override {}.{} slices : {}", dbName, tableName, intersections);
         }
 
@@ -139,15 +151,19 @@ public class JobManager {
 
         Job job = metadataJob.getLatestDictJob(PENDING, RUNNING, SUCCESS);
         if (job != null && !job.getDataUpperTime().equals(dataLowerTime)) {
-            throw new JobException(DICT_NOT_CONTINUOUS, "dict not continuous at %s, " +
+            String message = format("dict not continuous at %s, " +
                     "pls make sure the previous dict job is successful or adjust the dict job time bound.", dataLowerTime);
+            log.error(message);
+            throw new JobException(DICT_NOT_CONTINUOUS, message);
         }
 
     }
 
     private void checkPendingLimit() {
         if (metadataJob.getPendingJobCount() > jobConf.getPendingLimit()) {
-            throw new JobException("Pending job count approaches system limit %d", jobConf.getPendingLimit());
+            String message = format("Pending job count reaches system limit %d", jobConf.getPendingLimit());
+            log.error(message);
+            throw new JobException(message);
         }
     }
 
@@ -155,33 +171,92 @@ public class JobManager {
         return metadataJob.getJob(jobId).getState();
     }
 
-    public Job rebuild(String dbName, String tableName, LocalDateTime dataLowerTime, LocalDateTime dataUpperTime) {
+
+    /**
+     * resume a FAILED or SUSPEND job
+     */
+    public Job resumeJob(String jobId) {
+        Job job = metadataJob.getJob(jobId);
+        JobFSM jobFSM = JobFSM.of(job, metadataJob);
+        jobFSM.toPending();
+
+        job.getTasks().stream()
+                .filter(task -> {
+                    // because some tasks maybe transfer to next state.
+                    log.info("skip resume task {} for it is in {} state", task.getName(), task.getState());
+                    return task.getState() == TaskState.FAILED || task.getState() == TaskState.SUSPEND;
+                })
+                .forEach(task -> {
+                    TaskFSM taskFSM = TaskFSM.of(task, metadataJob);
+                    taskFSM.toPending();
+                });
+
+        return job;
+    }
+
+    public Job suspendJob(String jobId) {
+        Job job = metadataJob.getJob(jobId);
+
+        JobFSM jobFSM = JobFSM.of(job, metadataJob);
+        jobFSM.toSuspend();
+
+        job.getTasks().stream()
+                .filter(task -> {
+                    // because some tasks maybe transfer to next state.
+                    log.info("skip suspend task {} for it is in {} state", task.getName(), task.getState());
+                    return task.getState() == TaskState.RUNNING;
+                })
+                .forEach(task -> {
+                    TaskFSM taskFSM = TaskFSM.of(task, metadataJob);
+                    taskFSM.toSuspend();
+                });
+
+        return job;
+    }
+
+    public Job discardJob(String jobId) {
+        Job job = metadataJob.getJob(jobId);
+
+        JobFSM jobFSM = JobFSM.of(job, metadataJob);
+        jobFSM.toDiscard();
+
+        job.getTasks().stream()
+                .filter(task -> {
+                    // because some tasks maybe transfer to next state.
+                    log.info("skip discard task {} for it is in {} state", task.getName(), task.getState());
+                    return !task.getState().isCompleted();
+                })
+                .forEach(task -> {
+                    TaskFSM taskFSM = TaskFSM.of(task, metadataJob);
+                    taskFSM.toDiscard();
+                });
+
+        return job;
+    }
+
+    public void deleteJob(String jobId) {
+        JobFSM jobFSM = JobFSM.of(jobId, metadataJob);
+        jobFSM.delete();
+    }
+
+    public Job getJob(String jobId) {
         //TODO
         return null;
     }
 
-    //TODO
-    public Job resumeJob(String jobId) {
-        return null;
-    }
-
-    public Job stopJob(String jobId) {
-        return null;
-    }
-
-    public Job deleteJob(String jobId) {
-        return null;
-    }
-
-    public Job getJob(String jobId) {
-        return null;
-    }
-
     public Job listJob(String dbName, String tableName) {
+        //TODO
         return null;
     }
 
-    public Job listJob(String dbName, String tableName, LocalDateTime startTime, LocalDateTime endTime) {
+
+    public Job listDictJob(String dbName, String tableName) {
+        //TODO
+        return null;
+    }
+
+    public Job listJob(String dbName, String tableName, LocalDateTime lowerCreateTime, LocalDateTime upperCreateTime) {
+        //TODO
         return null;
     }
 }

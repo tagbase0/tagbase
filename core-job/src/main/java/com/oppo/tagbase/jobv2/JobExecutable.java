@@ -45,7 +45,9 @@ public class JobExecutable implements Executable {
             checkDictJobPreConditions();
             checkDataJobPreConditions();
 
-            jobFSM.toRunning();
+            if(!jobFSM.isRunning()) {
+                jobFSM.toRunning();
+            }
             metadataJob.updateJobStartTime(job.getId(), LocalDateTime.now());
 
             for (Executable task : taskChain) {
@@ -56,9 +58,21 @@ public class JobExecutable implements Executable {
             log.info("Job {} success", job.getName());
 
             metadataJob.updateJobEndTime(job.getId(), LocalDateTime.now());
-        } catch (Exception e) {
+        } catch (JobException e) {
+
+            if(e instanceof JobStateException) {
+                log.warn("Job fails because of user changing job state, ignore it.");
+                throw e;
+            }
+
             log.error("Job failed.", e);
-            jobFSM.toFailed();
+
+            try {
+                jobFSM.toFailed();
+            }catch (JobStateException jse) {
+                log.warn("Job failed to transfer to FAILED state because of user changing job state, ignore it.");
+            }
+            throw e;
 
         } finally {
             Thread.currentThread().setName(previousThreadName);
@@ -68,8 +82,8 @@ public class JobExecutable implements Executable {
 
     /**
      * keep dictionary is continuous.
+     * Identifying the dict hole by jobs the fashion is a little trick.
      */
-    // TODO Identifying the dict hole by jobs the fashion is a little trick.
     private void checkDictJobPreConditions() {
         if(JobType.DICTIONARY == job.getType()) {
             Job latestSuccessJob = metadataJob.getLatestDictJob(JobState.SUCCESS);
@@ -82,14 +96,16 @@ public class JobExecutable implements Executable {
         }
     }
 
-    // TODO Identifying the dict hole by jobs the fashion is a little trick.
+    /**
+     * check weather dict can
+     */
     private void checkDataJobPreConditions() {
         if(JobType.DATA == job.getType()) {
             // check whether the dictionary meet the job time bound.
             // listSuccessDictJobs must get more
             List<Job> jobList = metadataJob.listSuccessDictJobs(job.getDataLowerTime(), job.getDataUpperTime());
             Timeline timeline = JobUtil.makeJobTimeline(jobList);
-            if(timeline.encloses(job.toRange())) {
+            if(!timeline.encloses(job.toRange())) {
                 throw new JobException(TIME_BOUND_OVERFLOW, "The global dictionary can not meet the time bound, skip the building.");
             }
         }

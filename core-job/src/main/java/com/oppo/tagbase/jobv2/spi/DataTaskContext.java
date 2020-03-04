@@ -68,6 +68,7 @@ public class DataTaskContext {
         return joiner.toString();
     }
 
+    //TODO add uuid like postfix
     public String getOutputLocation() {
         StringJoiner joiner = new StringJoiner(File.separator);
         joiner.add(jobConfig.getWorkDir());

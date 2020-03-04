@@ -118,4 +118,8 @@ public class MetadataJob {
     public Job getLatestDictJob(JobState... stateList) {
         return metadataConnector.getLatestDictJob(stateList);
     }
+
+    public void updateJobProgress(String id, float v) {
+        //TODO
+    }
 }

@@ -52,10 +52,11 @@ public class SingletonScheduler implements Scheduler {
         jobScheduler = Executors.newSingleThreadScheduledExecutor(
                 r -> new Thread(r, "job-scheduler")
         );
-
+        //TODO process down
         // schedule task
         jobScheduler.scheduleAtFixedRate(() -> {
             // get pending jobs
+            //TODO
             List<Job> jobList = metadataJob.listPendingJobs();
             log.debug("taking {} pending jobs from metadata", jobList.size());
 

@@ -33,8 +33,12 @@ public class TaskExecutable implements Executable {
         try {
             log.info("Task {} task starting", task.getName());
             metadataJob.updateTaskStartTime(task.getId(), LocalDateTime.now());
-            taskFSM.toRunning();
+            if(!taskFSM.isRunning()) {
+                taskFSM.toRunning();
+            }
             delegate.call();
+
+            //TODO handle user action
             taskFSM.toSuccess();
             metadataJob.updateTaskEndTime(task.getId(), LocalDateTime.now());
             log.info("Task {} task success", task.getName());
