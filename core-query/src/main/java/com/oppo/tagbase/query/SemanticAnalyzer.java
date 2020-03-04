@@ -30,7 +30,7 @@ import static com.oppo.tagbase.query.exception.SemanticErrorCode.*;
  * @date 2020/2/9
  */
 public class SemanticAnalyzer {
-    private static Logger LOG = LoggerFactory.getLogger(QueryResource.class);
+    private static Logger LOG = LoggerFactory.getLogger(SemanticAnalyzer.class);
 
     private Metadata meta;
     private static final LocalDate LOW_BOUND = LocalDate.parse("2007-12-03");

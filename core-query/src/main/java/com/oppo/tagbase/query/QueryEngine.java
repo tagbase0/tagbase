@@ -1,5 +1,6 @@
 package com.oppo.tagbase.query;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import com.oppo.tagbase.query.operator.Operator;
 import org.slf4j.Logger;
@@ -28,8 +29,12 @@ public class QueryEngine {
         for(Operator operator:physicalPlan.getOperators()){
             service.execute(operator);
         }
-
-
-
     }
+
+
+    @VisibleForTesting
+    public void destory() {
+        service.shutdownNow();
+    }
+
 }

@@ -10,21 +10,22 @@ import java.util.*;
  * @date 2020/2/28 14:12
  */
 public class PluginManager {
+
     private static final List<String> SPI_PACKAGES = Arrays.asList("com.oppo.tagbase.extension.spi");
 
-    Map<String, FileSystem> resultWriterFactories = new HashMap<>();
+    Map<String, FileSystemFactory> factories = new HashMap<>();
 
-    public void register(String name, FileSystem factory) {
-        resultWriterFactories.put(name, factory);
+    public void register(String name, FileSystemFactory factory) {
+        factories.put(name, factory);
     }
 
     public void load(String dirPath) throws Exception {
 
         URLClassLoader classLoader = buildExtensionLoader(dirPath);
 
-        ServiceLoader<FileSystem> writerFactories = ServiceLoader.load(FileSystem.class, classLoader);
-        for (FileSystem writerFactory : writerFactories) {
-            register(writerFactory.getName(), writerFactory);
+        ServiceLoader<FileSystemFactory> factories = ServiceLoader.load(FileSystemFactory.class, classLoader);
+        for (FileSystemFactory factory : factories) {
+            register(factory.getName(),factory);
         }
     }
 

@@ -43,11 +43,4 @@ public class IdGenerator {
         return String.format("%s_%02d_%06d",now.format(ID_DATE_FORMATTER),serverId,count.incrementAndGet());
     }
 
-
-    public static void main(String[] args) {
-       IdGenerator generator =  new IdGenerator(1);
-       System.out.println(generator.getNextId());
-       System.out.println(generator.getNextId());
-       System.out.println(generator.getNextId());
-    }
 }

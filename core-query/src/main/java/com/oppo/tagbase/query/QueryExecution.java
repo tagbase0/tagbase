@@ -17,13 +17,13 @@ import static com.oppo.tagbase.query.exception.QueryErrorCode.*;
 public class QueryExecution {
     private static Logger LOG = LoggerFactory.getLogger(QueryExecution.class);
 
-    private Query query;
+    @Inject
+    private QueryEngine queryExecutor;
 
+    private Query query;
     private SemanticAnalyzer analyzer;
     private PhysicalPlanner planner;
 
-    @Inject
-    private QueryEngine queryExecutor;
 
     private PhysicalPlan physicalPlan;
 
@@ -42,16 +42,13 @@ public class QueryExecution {
 
     public void execute() {
 
-        //semantic analyze
         Analysis analysis = analyzer.analyze(query);
 
-        //转化为operator树
         physicalPlan = planner.plan(query, analysis);
 
         convertState(RUNNING);
 
         physicalPlan.ifFinish(() -> convertState(FINISHED));
-
 
         physicalPlan.ifException((Exception e) -> {
                     exception = e;
@@ -59,22 +56,6 @@ public class QueryExecution {
                     });
 
         queryExecutor.execute(physicalPlan);
-
-//        physicalPlan.get(physicalPlan.size() - 1).ifFinish(() -> convertState(FINISHED));
-//
-//        for (Operator operator : physicalPlan) {
-//            operator.ifException((Exception e) -> {
-//                exception = e;
-//            convertState(Fail);
-//            //cancel
-//        });
-//        }
-//
-//
-//        for (Operator operator : physicalPlan) {
-//            queryExecutor.execute(operator);
-//        }
-
     }
 
 

@@ -40,7 +40,7 @@ public abstract class StorageConnector {
     /**
      * init query thread pool and connector
      */
-    public void init(){
+        public void init(){
         log.info(commonConfig.toString());
         synchronized (StorageConnector.class) {
             if (queryExecutor == null) {

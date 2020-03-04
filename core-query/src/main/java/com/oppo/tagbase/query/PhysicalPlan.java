@@ -47,8 +47,6 @@ public class PhysicalPlan {
 
     public Object getResult() {
 //        OperatorBuffer output = getOutputOperator().getOutputBuffer();
-
-
         return getOutputOperator().getOutputBuffer().next();
     }
 
