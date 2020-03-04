@@ -7,12 +7,13 @@ import com.oppo.tagbase.common.guice.PropsModule;
 import com.oppo.tagbase.common.guice.ValidatorModule;
 import com.oppo.tagbase.meta.connector.MetaStoreConnectorConfig;
 import com.oppo.tagbase.meta.obj.*;
+import com.oppo.tagbase.meta.util.DateUtil;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ import static java.time.LocalDateTime.now;
  * Created by daikai on 2020/2/27.
  */
 public class MetadataJobTest {
+
 
     MetadataJob metadataJob;
     Metadata metadata;
@@ -53,16 +55,17 @@ public class MetadataJobTest {
         job.setName("DictBuild20200227_1");
         job.setDbName("hive");
         job.setTableName("gobal_imei");
-        job.setStartTime(LocalDateTime.parse("2020-02-27 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        job.setStartTime(DateUtil.toLocalDateTime("2020-02-27 10:12:05"));
         job.setState(JobState.PENDING);
         job.setLatestTask("");
-        job.setDataLowerTime(LocalDateTime.parse("2020-02-27 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        job.setDataUpperTime(LocalDateTime.parse("2020-02-27 10:13:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        job.setDataLowerTime(DateUtil.toLocalDateTime("2020-02-26 10:12:05"));
+        job.setDataUpperTime(DateUtil.toLocalDateTime("2020-02-27 10:12:05"));
         job.setType(JobType.DICTIONARY);
-        job.setCreateTime(LocalDateTime.parse("2020-02-27 09:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        job.setCreateTime(DateUtil.toLocalDateTime("2020-02-27 09:12:05"));
         job.setProgress(0f);
 
     }
+
 
     public void iniTask() {
 
@@ -72,7 +75,7 @@ public class MetadataJobTest {
         task0.setOutput("/user/hive/tagbase/dict/inverted/20200227");
         task0.setStep((byte) 0);
         task0.setJobId("DictBuild20200227");
-        task0.setStartTime(LocalDateTime.parse("2020-02-27 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        task0.setStartTime(DateUtil.toLocalDateTime("2020-02-27 10:12:05"));
 
         task1.setId("TaskDictForwardBuild20200227");
         task1.setName("TaskDictForwardBuild20200227_1");
@@ -80,9 +83,10 @@ public class MetadataJobTest {
         task1.setOutput("/user/hive/tagbase/dict/forward/20200227");
         task1.setStep((byte) 1);
         task1.setJobId("DictBuild20200227");
-        task1.setStartTime(LocalDateTime.parse("2020-02-27 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        task1.setStartTime(DateUtil.toLocalDateTime("2020-02-27 10:12:05"));
     }
 
+    /*------------ Start to test --------------*/
 
     public void addJob() {
 
@@ -206,7 +210,7 @@ public class MetadataJobTest {
         metadataJob.completeTask(
                 task0.getId(),
                 TaskState.SUCCESS,
-                LocalDateTime.parse("2020-02-05 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                DateUtil.toLocalDateTime("2020-02-05 10:12:05"),
                 "/user/hive/tagbase/dict/forward/20200227");
 
         Assert.assertEquals(TaskState.SUCCESS, metadataJob.getTask(task0.getId()).getState());
@@ -222,7 +226,7 @@ public class MetadataJobTest {
         metadataJob.addJob(job);
 
         Assert.assertEquals(1, metadataJob.listNotCompletedJob(job.getDbName(), job.getTableName(),
-                LocalDateTime.parse("2020-02-27 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                DateUtil.toLocalDateTime("2020-02-26 10:10:05"),
                 now()).size());
 
         metadataJob.deleteJob(job.getId());
@@ -265,7 +269,7 @@ public class MetadataJobTest {
 
         metadataJob.addJob(job);
 
-        LocalDateTime startTime = LocalDateTime.parse("2020-02-27 11:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime startTime = DateUtil.toLocalDateTime("2020-02-27 11:12:05");
         metadataJob.updateJobStartTime(job.getId(), startTime);
         Assert.assertEquals(startTime, metadataJob.getJob(job.getId()).getStartTime());
         metadataJob.deleteJob(job.getId());
@@ -278,7 +282,7 @@ public class MetadataJobTest {
         metadataJob.addJob(job);
         metadataJob.addTask(task0);
 
-        LocalDateTime startTime = LocalDateTime.parse("2020-02-27 11:15:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime startTime = DateUtil.toLocalDateTime("2020-02-27 11:15:05");
         metadataJob.updateTaskStartTime(task0.getId(), startTime);
         Assert.assertEquals(startTime, metadataJob.getTask(task0.getId()).getStartTime());
 
@@ -305,7 +309,7 @@ public class MetadataJobTest {
         metadataJob.addJob(job);
         metadataJob.addTask(task0);
 
-        LocalDateTime endTime = LocalDateTime.parse("2020-02-27 12:15:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime endTime = DateUtil.toLocalDateTime("2020-02-27 12:15:05");
         metadataJob.updateTaskEndTime(task0.getId(), endTime);
         Assert.assertEquals(endTime, metadataJob.getTask(task0.getId()).getEndTime());
 
@@ -317,7 +321,7 @@ public class MetadataJobTest {
 
         metadataJob.addJob(job);
 
-        LocalDateTime endTime = LocalDateTime.parse("2020-02-27 13:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime endTime = DateUtil.toLocalDateTime("2020-02-27 13:12:05");
         metadataJob.updateJobEndTime(job.getId(), endTime);
         Assert.assertEquals(endTime, metadataJob.getJob(job.getId()).getEndTime());
 
@@ -344,7 +348,7 @@ public class MetadataJobTest {
 
         metadataJob.completeJob(job.getId(),
                 JobState.SUCCESS,
-                LocalDateTime.parse("2020-02-27 11:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                DateUtil.toLocalDateTime("2020-02-27 11:12:05"));
         Assert.assertEquals(JobState.SUCCESS, metadataJob.getJob(job.getId()).getState());
         Assert.assertEquals("2020-02-27T11:12:05",
                 metadataJob.getJob(job.getId()).getEndTime().toString());
@@ -358,8 +362,8 @@ public class MetadataJobTest {
         job.setState(JobState.SUCCESS);
         metadataJob.addJob(job);
 
-        LocalDateTime dataLowerTime = LocalDateTime.parse("2020-02-26 13:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        LocalDateTime dataUpperTime = LocalDateTime.parse("2020-02-28 13:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime dataLowerTime = DateUtil.toLocalDateTime("2020-02-25 10:12:05");
+        LocalDateTime dataUpperTime = DateUtil.toLocalDateTime("2020-02-28 10:12:05");
         List<Job> jobs = metadataJob.listSuccessDictJobs(dataLowerTime, dataUpperTime);
         Assert.assertEquals(JobState.SUCCESS, jobs.get(0).getState());
 

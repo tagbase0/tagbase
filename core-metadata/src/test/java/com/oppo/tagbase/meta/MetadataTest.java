@@ -16,12 +16,12 @@ import com.oppo.tagbase.meta.obj.SliceStatus;
 import com.oppo.tagbase.meta.obj.Table;
 import com.oppo.tagbase.meta.obj.TableType;
 import com.oppo.tagbase.meta.type.DataType;
+import com.oppo.tagbase.meta.util.DateUtil;
 import org.junit.Assert;
 import org.junit.Before;
 
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,6 +45,8 @@ public class MetadataTest {
 
         metadata = injector.getInstance(Metadata.class);
     }
+
+    /*------------ Start to test in order --------------*/
 
     /*-------------Metadata initialization part--------------*/
 
@@ -174,8 +176,8 @@ public class MetadataTest {
 
     public void addSlice() {
         Slice sliceCity = new Slice();
-        sliceCity.setStartTime(LocalDateTime.parse("2018-06-01 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        sliceCity.setEndTime(LocalDateTime.parse("2018-06-02 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceCity.setStartTime(DateUtil.toLocalDateTime("2018-06-01 10:12:05"));
+        sliceCity.setEndTime(DateUtil.toLocalDateTime("2018-06-02 10:12:05"));
         sliceCity.setTableId(1);
         sliceCity.setSink("/tagbase_tag_city_01");
         sliceCity.setShardNum(1);
@@ -187,8 +189,8 @@ public class MetadataTest {
         metadata.addSlice(sliceCity);
 
         Slice sliceCity1 = new Slice();
-        sliceCity1.setStartTime(LocalDateTime.parse("2018-06-02 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        sliceCity1.setEndTime(LocalDateTime.parse("2018-06-03 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceCity1.setStartTime(DateUtil.toLocalDateTime("2018-06-02 10:12:05"));
+        sliceCity1.setEndTime(DateUtil.toLocalDateTime("2018-06-03 10:12:05"));
         sliceCity1.setTableId(1);
         sliceCity1.setSink("/tagbase_tag_city_02");
         sliceCity1.setShardNum(1);
@@ -200,8 +202,8 @@ public class MetadataTest {
         metadata.addSlice(sliceCity1);
 
         Slice sliceAction = new Slice();
-        sliceAction.setStartTime(LocalDateTime.parse("2018-06-01 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        sliceAction.setEndTime(LocalDateTime.parse("2018-06-02 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceAction.setStartTime(DateUtil.toLocalDateTime("2018-06-01 10:12:05"));
+        sliceAction.setEndTime(DateUtil.toLocalDateTime("2018-06-02 10:12:05"));
         sliceAction.setTableId(2);
         sliceAction.setSink("/tagbase_action_01");
         sliceAction.setShardNum(1);
@@ -214,8 +216,8 @@ public class MetadataTest {
         metadata.addSlice(sliceAction);
 
         Slice sliceAction1 = new Slice();
-        sliceAction1.setStartTime(LocalDateTime.parse("2018-06-02 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        sliceAction1.setEndTime(LocalDateTime.parse("2018-06-03 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        sliceAction1.setStartTime(DateUtil.toLocalDateTime("2018-06-02 10:12:05"));
+        sliceAction1.setEndTime(DateUtil.toLocalDateTime("2018-06-03 10:12:05"));
         sliceAction1.setTableId(2);
         sliceAction1.setSink("/tagbase_action_02");
         sliceAction1.setShardNum(1);
@@ -258,15 +260,15 @@ public class MetadataTest {
 
     public void getSlicesFilter() {
         RangeSet<LocalDateTime> range = TreeRangeSet.create();
-        range.add(Range.closed(LocalDateTime.parse("2018-06-01 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                LocalDateTime.parse("2018-06-02 10:12:05", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+        range.add(Range.closed(DateUtil.toLocalDateTime("2018-06-01 10:12:05"),
+                DateUtil.toLocalDateTime("2018-06-02 10:12:05")));
 
         System.out.println(range);
         for (Slice slice : metadata.getSlices("test_db", "test_table_action", range)) {
             System.out.println(slice);
         }
 
-        Assert.assertEquals(1, metadata.getSlices("test_db", "test_table_action", range).size());
+        Assert.assertEquals(2, metadata.getSlices("test_db", "test_table_action", range).size());
 
     }
 
@@ -281,6 +283,7 @@ public class MetadataTest {
     public void listDBs() {
         Assert.assertEquals("test_db", metadata.listDBs().get(0).getName());
     }
+
 
     public void listTables() {
         Assert.assertEquals("test_table_tag_city", metadata.listTables("test_db").get(0).getName());

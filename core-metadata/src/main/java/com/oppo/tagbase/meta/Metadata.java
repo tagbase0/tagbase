@@ -169,11 +169,6 @@ public class Metadata {
     public ImmutableList<Table> listTables(String dbName) throws MetadataException {
         return metadataConnector.listTable(dbName);
     }
-
-    /*-------------Metadata API for test --------------*/
-
-    public void doSQL(String sql) throws MetadataException {
-        metadataConnector.doSQL(sql);
-    }
+    
 
 }

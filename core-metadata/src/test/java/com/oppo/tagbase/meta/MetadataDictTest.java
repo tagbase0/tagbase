@@ -9,10 +9,11 @@ import com.oppo.tagbase.meta.connector.MetaStoreConnectorConfig;
 import com.oppo.tagbase.meta.obj.Dict;
 import com.oppo.tagbase.meta.obj.DictStatus;
 import com.oppo.tagbase.meta.obj.DictType;
+import com.oppo.tagbase.meta.util.DateUtil;
 import org.junit.Assert;
 import org.junit.Before;
 
-import java.time.LocalDateTime;
+
 import java.time.format.DateTimeFormatter;
 
 
@@ -21,6 +22,7 @@ import java.time.format.DateTimeFormatter;
  */
 public class MetadataDictTest {
 
+    static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     MetadataDict metadataDict;
     Metadata metadata;
     Dict dict;
@@ -50,11 +52,12 @@ public class MetadataDictTest {
         dict.setElementCount(500000000);
         dict.setStatus(DictStatus.READY);
         dict.setLocation("/hive/osql/dict/forward1");
-        dict.setCreateDate(LocalDateTime.parse("2020-02-10 10:12:05",
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        dict.setCreateDate(DateUtil.toLocalDateTime("2020-02-10 10:12:05"));
 
         return dict;
     }
+
+    /*------------ Start to test --------------*/
 
     public void addDict() {
 
