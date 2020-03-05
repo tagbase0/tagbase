@@ -33,21 +33,39 @@ public class TaskExecutable implements Executable {
         try {
             log.info("Task {} task starting", task.getName());
             metadataJob.updateTaskStartTime(task.getId(), LocalDateTime.now());
-            if(!taskFSM.isRunning()) {
-                taskFSM.toRunning();
+
+            if (taskFSM.isRunning()) {
+                log.info("resume task {}", task.getName());
             }
+
+            taskFSM.toRunning();
             delegate.call();
 
-            //TODO handle user action
             taskFSM.toSuccess();
+
             metadataJob.updateTaskEndTime(task.getId(), LocalDateTime.now());
             log.info("Task {} task success", task.getName());
+
         } catch (Exception e) {
-            taskFSM.toFailed();
-            if(!(e instanceof TagbaseException)) {
+
+            if (e instanceof JobStateException) {
+                // user suspend or discard the task
+                log.warn("user suspend or discard {}", task.getName());
+                throw (JobStateException) e;
+            }
+
+            try {
+                taskFSM.toFailed();
+            } catch (JobStateException jse) {
+                log.warn("user suspend or discard {}", task.getName());
+                throw jse;
+            }
+
+            if (!(e instanceof TagbaseException)) {
                 throw new JobException(e, "Task %s failed", task.getName());
             }
-            throw (TagbaseException)e;
+
+            throw (TagbaseException) e;
         }
     }
 

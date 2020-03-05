@@ -7,8 +7,6 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.StringJoiner;
 
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
-
 /**
  * Created by wujianchao on 2020/3/2.
  */
@@ -48,8 +46,8 @@ public class DataTaskContext {
         return table;
     }
 
-    public JobConfig getJobConfig() {
-        return jobConfig;
+    public String getInvertedDictLocation() {
+        return jobConfig.getInvertedDictPath();
     }
 
     public LocalDateTime getLowerBound() {
@@ -68,13 +66,7 @@ public class DataTaskContext {
         return joiner.toString();
     }
 
-    //TODO add uuid like postfix
     public String getOutputLocation() {
-        StringJoiner joiner = new StringJoiner(File.separator);
-        joiner.add(jobConfig.getWorkDir());
-        joiner.add(jobId);
-        joiner.add(taskId);
-        joiner.add(lowerBound.format(ISO_LOCAL_DATE));
-        return joiner.toString();
+        return getWorkDir();
     }
 }

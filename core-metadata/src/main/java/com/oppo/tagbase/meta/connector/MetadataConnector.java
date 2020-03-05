@@ -276,7 +276,6 @@ public abstract class MetadataConnector {
 
 
     //TODO transaction
-    //TODO check timeline overlap
     public void addSlice(Slice slice) {
         submit(handle -> {
 

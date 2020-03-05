@@ -155,6 +155,8 @@ public class DataJobExecutableMaker {
             //TODO set value
             slice.setSinkSizeMb(0);
 
+            //when Job process resume building bitmap task may execute twice
+            // in case of adding slice twice there should be a checking
             metadata.addSlice(slice);
             metadataJob.updateJobProgress(job.getId(), 1.0f);
             return null;

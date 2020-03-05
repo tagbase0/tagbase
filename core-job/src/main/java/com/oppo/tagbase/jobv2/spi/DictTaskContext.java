@@ -7,7 +7,8 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.StringJoiner;
 
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 /**
  * Created by wujianchao on 2020/3/2.
@@ -51,10 +52,6 @@ public class DictTaskContext {
         return dictHiveInputConfig;
     }
 
-    public JobConfig getJobConfig() {
-        return jobConfig;
-    }
-
     public long getNextId() {
         return nextId;
     }
@@ -67,6 +64,9 @@ public class DictTaskContext {
         return upperBound;
     }
 
+    /**
+     * @return remote engine working dir
+     */
     public String getWorkDir() {
         StringJoiner joiner = new StringJoiner(File.separator);
         joiner.add(jobConfig.getWorkDir());
@@ -75,12 +75,13 @@ public class DictTaskContext {
         return joiner.toString();
     }
 
+    /**
+     * @return  increasing inverted dict location
+     */
     public String getOutputLocation() {
         StringJoiner joiner = new StringJoiner(File.separator);
         joiner.add(jobConfig.getInvertedDictPath());
-        joiner.add(jobId);
-        joiner.add(taskId);
-        joiner.add(lowerBound.format(ISO_LOCAL_DATE));
+        joiner.add(lowerBound.format(ISO_DATE_TIME));
         return joiner.toString();
     }
 }

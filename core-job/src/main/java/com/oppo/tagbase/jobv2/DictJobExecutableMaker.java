@@ -6,8 +6,6 @@ import com.google.inject.Inject;
 import com.oppo.tagbase.common.util.BytesUtil;
 import com.oppo.tagbase.dict.ForwardDictionaryWriter;
 import com.oppo.tagbase.extension.spi.FileSystem;
-import com.oppo.tagbase.extension.spi.Reader;
-import com.oppo.tagbase.extension.spi.Writer;
 import com.oppo.tagbase.jobv2.spi.DictTaskContext;
 import com.oppo.tagbase.jobv2.spi.TaskEngine;
 import com.oppo.tagbase.jobv2.spi.TaskStatus;
@@ -25,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -36,7 +33,7 @@ import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.oppo.tagbase.jobv2.JobUtil.makeForwardDictName;
+import static com.oppo.tagbase.jobv2.JobUtil.makeForwardDictPath;
 
 /**
  * Created by wujianchao on 2020/2/29.
@@ -91,6 +88,9 @@ public class DictJobExecutableMaker {
 
     }
 
+    /**
+     * must generate only one dict file
+     */
     private Executable makeBuildingInvertedDictStep(Job job, Task task) {
         return new TaskExecutable(task, metadataJob, () -> {
 
@@ -160,9 +160,10 @@ public class DictJobExecutableMaker {
                 // 2. create a dict writer
 
                 Dict currentForwardDict = metadataDict.getDict();
-                forwardDictLocalPath = makeForwardDictName();
+                forwardDictLocalPath = makeForwardDictPath();
                 if (currentForwardDict == null) {
                     // first building
+                    log.info("dictionary first building");
                     writer = ForwardDictionaryWriter.createWriter(new File(forwardDictLocalPath));
                 } else {
                     //daily building
@@ -176,9 +177,8 @@ public class DictJobExecutableMaker {
                 for (Map.Entry<Long, String> e : incInvertedDictEntries.entrySet()) {
                     //check dict consistency
                     Preconditions.checkState(
-                            //TODO - 1?
                             writer.add(BytesUtil.toUTF8Bytes(e.getValue())) == e.getKey(),
-                            "inconsistent index between Inverted and Forward dictionaries."
+                            "inconsistent index " + e.getKey() + " between Inverted and Forward dictionaries."
                     );
                 }
 
@@ -187,15 +187,16 @@ public class DictJobExecutableMaker {
 
                 // 4. push to remote file system
 
-                // TODO get path
-                String newDictRemoteLocation = null;
-                Writer remoteWriter = fileSystem.createWriter(newDictRemoteLocation);
-//                remoteWriter.write();
+                String newDictRemotePath = JobUtil.makeRemoteForwardDictPath(
+                        jobConfig.getForwardDictPath(),
+                        job.getDataLowerTime(), JobUtil.getLocalFileName(forwardDictLocalPath));
+
+                fileSystem.copyFromLocalFile(forwardDictLocalPath, newDictRemotePath);
 
                 // 5. update dict metadata
 
                 Dict dict = new Dict();
-                dict.setLocation(newDictRemoteLocation);
+                dict.setLocation(newDictRemotePath);
                 dict.setType(DictType.FORWARD);
                 dict.setElementCount(incInvertedDictEntries.lastKey());
                 dict.setStatus(DictStatus.READY);
@@ -213,9 +214,8 @@ public class DictJobExecutableMaker {
     }
 
     private void copyRemoteForwardDictToLocal(String remotePath, String localPath) {
-        try (Reader remoteFileReader = fileSystem.createReader(remotePath);) {
-//            remoteFileReader.rea
-            //TODO
+        try {
+            fileSystem.copyToLocalFile(remotePath, localPath);
         } catch (IOException e) {
             throw new JobException(e, "Error when copy remote forward dict to local.");
         }
@@ -224,12 +224,12 @@ public class DictJobExecutableMaker {
     /**
      * inverted dict file schema "id,entry"
      */
-    // TODO multi-file
     private SortedMap<Long, String> loadIncEntry(String invertedDictLocation) {
 
-        try (Reader invertedDictReader = fileSystem.createReader(invertedDictLocation);
-             BufferedReader bf = new BufferedReader(
-                     new InputStreamReader(new ByteArrayInputStream(invertedDictReader.readFully())))) {
+        String remoteInvertedDictFile = JobUtil.getRemoteInvertedDictPath(invertedDictLocation);
+
+        try (BufferedReader bf = new BufferedReader(
+                     new InputStreamReader(fileSystem.open(remoteInvertedDictFile)))) {
 
             ImmutableSortedMap.Builder<Long, String> ret = new ImmutableSortedMap.Builder<Long, String>(Long::compareTo);
 

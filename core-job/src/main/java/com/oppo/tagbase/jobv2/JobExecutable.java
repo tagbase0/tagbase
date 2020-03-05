@@ -45,9 +45,11 @@ public class JobExecutable implements Executable {
             checkDictJobPreConditions();
             checkDataJobPreConditions();
 
-            if(!jobFSM.isRunning()) {
-                jobFSM.toRunning();
+            if(jobFSM.isRunning()) {
+                log.info("resume job {}", job.getName());
             }
+            jobFSM.toRunning();
+
             metadataJob.updateJobStartTime(job.getId(), LocalDateTime.now());
 
             for (Executable task : taskChain) {
@@ -61,7 +63,7 @@ public class JobExecutable implements Executable {
         } catch (JobException e) {
 
             if(e instanceof JobStateException) {
-                log.warn("Job fails because of user changing job state, ignore it.");
+                log.warn("user suspend or discard {}", job.getName());
                 throw e;
             }
 
@@ -70,9 +72,9 @@ public class JobExecutable implements Executable {
             try {
                 jobFSM.toFailed();
             }catch (JobStateException jse) {
-                log.warn("Job failed to transfer to FAILED state because of user changing job state, ignore it.");
+                log.warn("user suspend or discard {}", job.getName());
+                throw e;
             }
-            throw e;
 
         } finally {
             Thread.currentThread().setName(previousThreadName);

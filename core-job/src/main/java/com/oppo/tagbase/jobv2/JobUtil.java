@@ -13,7 +13,9 @@ import com.oppo.tagbase.meta.util.RangeUtil;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.TreeSet;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -23,11 +25,14 @@ import java.util.stream.Collectors;
  */
 public class JobUtil {
 
+
     public static final String BUILDING_BITMAP_TASK = "BUILDING_BITMAP_TASK";
     public static final String LOAD_BITMAP_TO_STORAGE_TASK = "LOAD_BITMAP_TO_STORAGE_TASK";
 
     public static final String BUILDING_INVERTED_DICT_TASK = "BUILDING_INVERTED_DICT_TASK";
     public static final String BUILDING_FORWARD_DICT_TASK = "BUILDING_FORWARD_DICT_TASK";
+
+    public static final String REMOTE_STORE_FILE_SEPARATOR = "/";
 
     public static String taskNamePrefix(Job job) {
         return job.getName();
@@ -123,7 +128,7 @@ public class JobUtil {
         job.setTasks(Lists.newArrayList(buildingInvertedDictTask, loadDataToStorageTask));
     }
 
-    public static String makeForwardDictName() {
+    public static String makeForwardDictPath() {
         return System.getProperty("user.dir")
                 + File.separator
                 + "dict"
@@ -135,7 +140,7 @@ public class JobUtil {
                 ;
     }
 
-    public static String getFileName(String path) {
+    public static String getLocalFileName(String path) {
         String[] parts = path.split(File.separator);
         return parts[parts.length - 1 ];
     }
@@ -174,4 +179,23 @@ public class JobUtil {
         }
     }
 
+    /**
+     *
+     * @param invertedDictLocation remote dir
+     * @return remote inverted dict file name
+     */
+    public static String getRemoteInvertedDictPath(String invertedDictLocation) {
+        StringJoiner joiner = new StringJoiner(REMOTE_STORE_FILE_SEPARATOR);
+        joiner.add(invertedDictLocation);
+        joiner.add("part-000000");
+        return joiner.toString();
+    }
+
+    public static String makeRemoteForwardDictPath(String baseDir, LocalDateTime dataLowerTime, String localFileName) {
+        StringJoiner joiner = new StringJoiner(REMOTE_STORE_FILE_SEPARATOR);
+        joiner.add(baseDir);
+        joiner.add(dataLowerTime.format(DateTimeFormatter.ISO_DATE_TIME));
+        joiner.add(localFileName);
+        return joiner.toString();
+    }
 }

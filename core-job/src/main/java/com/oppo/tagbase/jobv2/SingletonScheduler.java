@@ -104,6 +104,9 @@ public class SingletonScheduler implements Scheduler {
                     }
                     @Override
                     public void onFailure(Throwable t) {
+                        if(!(t instanceof JobStateException)) {
+                            log.error("Job failed", t);
+                        }
                         running.decrementAndGet();
                     }
                 }, Runnable::run);
