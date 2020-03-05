@@ -20,6 +20,7 @@ public final class Lifecycle {
 
     private static Logger LOG = LoggerFactory.getLogger(Lifecycle.class);
 
+    // TODO Adding registering interfaces support
     public static void registerInstance(Binder binder, Class<?> instance) {
         Multibinder.newSetBinder(binder, new TypeLiteral<Class<?>>() {
         }, Names.named("lifecycle"))
