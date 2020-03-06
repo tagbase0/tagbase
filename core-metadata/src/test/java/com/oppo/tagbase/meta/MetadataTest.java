@@ -9,12 +9,7 @@ import com.oppo.tagbase.common.guice.ExampleGuiceInjectors;
 import com.oppo.tagbase.common.guice.PropsModule;
 import com.oppo.tagbase.common.guice.ValidatorModule;
 import com.oppo.tagbase.meta.connector.MetaStoreConnectorConfig;
-import com.oppo.tagbase.meta.obj.Column;
-import com.oppo.tagbase.meta.obj.ColumnType;
-import com.oppo.tagbase.meta.obj.Slice;
-import com.oppo.tagbase.meta.obj.SliceStatus;
-import com.oppo.tagbase.meta.obj.Table;
-import com.oppo.tagbase.meta.obj.TableType;
+import com.oppo.tagbase.meta.obj.*;
 import com.oppo.tagbase.meta.type.DataType;
 import com.oppo.tagbase.meta.util.DateUtil;
 import org.junit.Assert;
@@ -29,6 +24,7 @@ import java.util.List;
 /**
  * Created by wujianchao on 2020/2/27.
  */
+
 public class MetadataTest {
 
     Metadata metadata;
@@ -47,6 +43,23 @@ public class MetadataTest {
     }
 
     /*------------ Start to test in order --------------*/
+
+    public void testAll(){
+    initSchemaTest();
+    addDb();
+    addTable();
+    getTable();
+    addSlice();
+    updateSliceStatus();
+    updateSliceSinkStatistics();
+    getSlices();
+    getSlicesFilter();
+    getDb();
+    listDBs();
+    listTables();
+
+}
+
 
     /*-------------Metadata initialization part--------------*/
 
@@ -101,7 +114,18 @@ public class MetadataTest {
         columnList.add(columnSlice);
         columnList.add(columnDim0);
 
-        metadata.addTable(dbName, tableName, srcDb, srcTable, desc, type, srcType, columnList);
+        List<Props> propsList = new ArrayList<>();
+        Props props = new Props();
+        props.setKey("key");
+        props.setValue("v");
+        Props props1 = new Props();
+        props1.setKey("key1");
+        props1.setValue("v1");
+
+        propsList.add(props);
+        propsList.add(props1);
+
+        metadata.addTable(dbName, tableName, srcDb, srcTable, desc, type, srcType, columnList, propsList);
 
         // action - app_action_version  test
         String dbName1 = "test_db";
@@ -154,7 +178,18 @@ public class MetadataTest {
         columnList1.add(columnDim01);
         columnList1.add(columnDim02);
 
-        metadata.addTable(dbName1, tableName1, srcDb1, srcTable1, desc1, type1, srcType, columnList1);
+        List<Props> propsList1 = new ArrayList<>();
+        Props props11 = new Props();
+        props11.setKey("key11");
+        props11.setValue("v11");
+        Props props12 = new Props();
+        props12.setKey("key12");
+        props12.setValue("v12");
+
+        propsList1.add(props11);
+        propsList1.add(props12);
+
+        metadata.addTable(dbName1, tableName1, srcDb1, srcTable1, desc1, type1, srcType, columnList1, propsList1);
 
     }
 
@@ -171,6 +206,9 @@ public class MetadataTest {
 
         Assert.assertEquals("test_db_hive_srcDb_action", tableAction.getSrcDb());
         Assert.assertEquals("test_table_hive_srcTable_action", tableAction.getSrcTable());
+
+        Assert.assertEquals("v", table.getProps().get(0).getValue());
+        Assert.assertEquals("key", table.getProps().get(0).getKey());
     }
 
 

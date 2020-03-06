@@ -120,6 +120,6 @@ public class MetadataJob {
     }
 
     public void updateJobProgress(String id, float v) {
-        //TODO
+        metadataConnector.updateJobProgress(id, v);
     }
 }

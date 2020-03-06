@@ -652,6 +652,15 @@ public abstract class MetadataConnector {
         });
     }
 
+    public void updateJobProgress(String id, float v) {
+
+        submit(handle -> {
+            String sql = "Update `JOB` set `progress`=? where `id` =?";
+
+            return handle.execute(sql, v, id);
+        });
+    }
+
     public void updateJobEndTime(String id, LocalDateTime endTime) {
 
         submit(handle -> {
@@ -950,4 +959,6 @@ public abstract class MetadataConnector {
         submit(handle -> handle.execute(sql)
         );
     }
+
+
 }
