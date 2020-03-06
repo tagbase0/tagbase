@@ -57,6 +57,13 @@ public class MetadataDictTest {
         return dict;
     }
 
+
+    public void testAll() {
+        addDict();
+        getDict();
+        getDictElementCount();
+    }
+
     /*------------ Start to test --------------*/
 
     public void addDict() {

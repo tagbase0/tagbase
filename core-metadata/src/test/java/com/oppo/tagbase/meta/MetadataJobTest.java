@@ -12,7 +12,6 @@ import org.junit.Assert;
 import org.junit.Before;
 
 
-
 import java.time.LocalDateTime;
 
 import java.util.List;
@@ -84,6 +83,34 @@ public class MetadataJobTest {
         task1.setStep((byte) 1);
         task1.setJobId("DictBuild20200227");
         task1.setStartTime(DateUtil.toLocalDateTime("2020-02-27 10:12:05"));
+    }
+
+    public void testAll() {
+        addJob();
+        getJob();
+        addTask();
+        getPendingJobCount();
+        listPendingJobs();
+        getLatestDictJob();
+        updateJob();
+        updateTask();
+        updateTaskAppId();
+        updateTaskStatus();
+        completeTask();
+        listNotCompletedJob();
+        getRunningDictJob();
+        getTask();
+        updateJobStartTime();
+        updateTaskStartTime();
+        updateTaskOutput();
+        updateTaskEndTime();
+        updateJobEndTime();
+        updateJobStatus();
+        completeJob();
+        listSuccessDictJobs();
+        deleteJob();
+
+
     }
 
     /*------------ Start to test --------------*/

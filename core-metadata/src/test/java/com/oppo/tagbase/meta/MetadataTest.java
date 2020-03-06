@@ -44,21 +44,21 @@ public class MetadataTest {
 
     /*------------ Start to test in order --------------*/
 
-    public void testAll(){
-    initSchemaTest();
-    addDb();
-    addTable();
-    getTable();
-    addSlice();
-    updateSliceStatus();
-    updateSliceSinkStatistics();
-    getSlices();
-    getSlicesFilter();
-    getDb();
-    listDBs();
-    listTables();
+    public void testAll() {
+        initSchemaTest();
+        addDb();
+        addTable();
+        getTable();
+        addSlice();
+        updateSliceStatus();
+        updateSliceSinkStatistics();
+        getSlices();
+        getSlicesFilter();
+        getDb();
+        listDBs();
+        listTables();
 
-}
+    }
 
 
     /*-------------Metadata initialization part--------------*/

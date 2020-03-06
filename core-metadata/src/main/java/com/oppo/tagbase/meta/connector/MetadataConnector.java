@@ -245,7 +245,7 @@ public abstract class MetadataConnector {
             }
 
             // 4. add props
-            if(propsList != null) {
+            if (propsList != null) {
                 for (Props prop : propsList) {
                     handle.createUpdate("INSERT INTO " +
                             "`PROPS`(`tableId`, `key`, `value`, `desc`) " +
