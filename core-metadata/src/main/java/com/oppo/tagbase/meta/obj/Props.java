@@ -8,6 +8,7 @@ public class Props {
     private long tableId;
     private String key;
     private String value;
+    private String desc;
 
     public long getTableId() {
         return tableId;
@@ -31,5 +32,13 @@ public class Props {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
     }
 }

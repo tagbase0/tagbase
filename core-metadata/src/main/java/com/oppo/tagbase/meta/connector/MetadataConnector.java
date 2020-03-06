@@ -11,6 +11,7 @@ import com.oppo.tagbase.meta.obj.DictStatus;
 import com.oppo.tagbase.meta.obj.Job;
 import com.oppo.tagbase.meta.obj.JobState;
 import com.oppo.tagbase.meta.obj.JobType;
+import com.oppo.tagbase.meta.obj.Props;
 import com.oppo.tagbase.meta.obj.Slice;
 import com.oppo.tagbase.meta.obj.SliceStatus;
 import com.oppo.tagbase.meta.obj.Table;
@@ -100,7 +101,14 @@ public abstract class MetadataConnector {
 
                     // add index
                     "CREATE UNIQUE INDEX nameAndTableId ON `COLUMN`(`name`, `tableId`)",
-//
+
+                    // create table props
+                    "Create table  if not exists `PROPS` (\n" +
+                            "\t`tableId` INTEGER,\n" +
+                            "\t`key` VARCHAR(256),\n" +
+                            "\t`value` VARCHAR(256),\n" +
+                            "\t`desc` VARCHAR(256)\n" +
+                            ") ENGINE=InnoDB DEFAULT CHARSET=utf8",
 
                     // create table SLICE
                     "Create table  if not exists `SLICE` (\n" +
@@ -189,7 +197,8 @@ public abstract class MetadataConnector {
                          String desc,
                          TableType type,
                          String srcType,
-                         List<Column> columnList) {
+                         List<Column> columnList,
+                         List<Props> propsList) {
         submit(handle -> {
 
             // 1. get dbId
@@ -235,6 +244,20 @@ public abstract class MetadataConnector {
                         .execute();
             }
 
+            // 4. add props
+            if(propsList != null) {
+                for (Props prop : propsList) {
+                    handle.createUpdate("INSERT INTO " +
+                            "`PROPS`(`tableId`, `key`, `value`, `desc`) " +
+                            "values(:tableId, :key, :value, :desc)")
+                            .bind("tableId", tableId)
+                            .bind("key", prop.getKey())
+                            .bind("value", prop.getValue())
+                            .bind("desc", prop.getDesc())
+                            .execute();
+                }
+            }
+
             return null;
         });
     }
@@ -259,7 +282,13 @@ public abstract class MetadataConnector {
                     .mapToBean(Column.class)
                     .list();
 
+            List<Props> propsList = handle.createQuery("select * from `PROPS` where `tableId`=:tableId")
+                    .bind("tableId", table.getId())
+                    .mapToBean(Props.class)
+                    .list();
+
             table.setColumns(columnList);
+            table.setProps(propsList);
             return table;
         });
     }

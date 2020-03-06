@@ -24,7 +24,7 @@ public class Table {
 
     private List<Column> columns;
 
-    private List<Props> tableProps;
+    private List<Props> props;
 
     public long getId() {
         return id;
@@ -119,12 +119,12 @@ public class Table {
                 .findFirst().get();
     }
 
-    public List<Props> getTableProps() {
-        return tableProps;
+    public List<Props> getProps() {
+        return props;
     }
 
-    public void setTableProps(List<Props> tableProps) {
-        this.tableProps = tableProps;
+    public void setProps(List<Props> props) {
+        this.props = props;
     }
 
     @Override

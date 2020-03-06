@@ -2,6 +2,7 @@ package com.oppo.tagbase.meta;
 
 import com.oppo.tagbase.meta.obj.Column;
 import com.oppo.tagbase.meta.obj.DB;
+import com.oppo.tagbase.meta.obj.Props;
 import com.oppo.tagbase.meta.obj.Table;
 import com.oppo.tagbase.meta.obj.TableType;
 import org.slf4j.Logger;
@@ -73,7 +74,8 @@ public class MetadataResource {
                                 @FormParam("desc") String desc,
                                 @FormParam("type") @NotNull(message = "type is null") TableType type,
                                 @FormParam("srcType") @NotNull(message = "type is null") String srcType,
-                                @FormParam("columnList") @NotNull(message = "columnList is null") List<Column> columnList) {
+                                @FormParam("columnList") @NotNull(message = "columnList is null") List<Column> columnList,
+                                @FormParam("propsList") @NotNull(message = "propsList is null") List<Props> propsList) {
         metadata.addTable(dbName,
                 tableName,
                 srcDb,
@@ -81,7 +83,8 @@ public class MetadataResource {
                 desc,
                 type,
                 srcType,
-                columnList);
+                columnList,
+                propsList);
         return metadata.getTable(dbName, tableName);
     }
 

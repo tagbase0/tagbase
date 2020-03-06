@@ -8,6 +8,7 @@ import com.google.common.collect.TreeRangeSet;
 import com.oppo.tagbase.meta.connector.MetadataConnector;
 import com.oppo.tagbase.meta.obj.Column;
 import com.oppo.tagbase.meta.obj.DB;
+import com.oppo.tagbase.meta.obj.Props;
 import com.oppo.tagbase.meta.obj.Slice;
 import com.oppo.tagbase.meta.obj.SliceStatus;
 import com.oppo.tagbase.meta.obj.Table;
@@ -48,7 +49,8 @@ public class Metadata {
                          String desc,
                          TableType type,
                          String srcType,
-                         List<Column> columnList) throws MetadataException {
+                         List<Column> columnList,
+                         List<Props> propsList) throws MetadataException {
         metadataConnector.addTable(dbName,
                 tableName,
                 srcDb,
@@ -56,7 +58,8 @@ public class Metadata {
                 desc,
                 type,
                 srcType,
-                columnList);
+                columnList,
+                propsList);
     }
 
     /*-------------Metadata API for data building--------------*/
