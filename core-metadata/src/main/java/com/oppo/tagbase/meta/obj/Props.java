@@ -5,6 +5,8 @@ package com.oppo.tagbase.meta.obj;
  */
 public class Props {
 
+    public static final String KEY_SHARD_ITEMS = "job.data.shard.items";
+
     private long tableId;
     private String key;
     private String value;
