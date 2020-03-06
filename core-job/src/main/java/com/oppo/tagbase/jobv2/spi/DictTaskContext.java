@@ -3,8 +3,11 @@ package com.oppo.tagbase.jobv2.spi;
 import com.oppo.tagbase.jobv2.DictHiveInputConfig;
 import com.oppo.tagbase.jobv2.JobConfig;
 import com.oppo.tagbase.jobv2.JobUtil;
+import com.oppo.tagbase.meta.obj.Props;
+import com.oppo.tagbase.meta.obj.Table;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.StringJoiner;
 
 import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
@@ -14,6 +17,7 @@ import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
  */
 public class DictTaskContext {
 
+    private Table table;
     private DictHiveInputConfig dictHiveInputConfig;
     private JobConfig jobConfig;
     private long nextId;
@@ -23,13 +27,15 @@ public class DictTaskContext {
     private String jobId;
     private String taskId;
 
-    public DictTaskContext(String jobId,
+    public DictTaskContext(Table table,
+                           String jobId,
                            String taskId,
                            DictHiveInputConfig dictHiveInputConfig,
                            JobConfig jobConfig,
                            long nextId,
                            LocalDateTime lowerBound,
                            LocalDateTime upperBound) {
+        this.table = table;
         this.jobId = jobId;
         this.taskId = taskId;
         this.dictHiveInputConfig = dictHiveInputConfig;
@@ -65,6 +71,10 @@ public class DictTaskContext {
 
     public LocalDateTime getUpperBound() {
         return upperBound;
+    }
+
+    public List<Props> getJobProps() {
+        return table.getProps();
     }
 
     /**

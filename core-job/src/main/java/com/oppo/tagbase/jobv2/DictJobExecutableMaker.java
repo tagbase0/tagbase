@@ -16,6 +16,7 @@ import com.oppo.tagbase.meta.obj.Dict;
 import com.oppo.tagbase.meta.obj.DictStatus;
 import com.oppo.tagbase.meta.obj.DictType;
 import com.oppo.tagbase.meta.obj.Job;
+import com.oppo.tagbase.meta.obj.Table;
 import com.oppo.tagbase.meta.obj.Task;
 import com.oppo.tagbase.meta.obj.TaskState;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
@@ -96,7 +97,9 @@ public class DictJobExecutableMaker {
 
             try {
                 // init context
-                DictTaskContext context = new DictTaskContext(job.getId(),
+                Table table = metadata.getTable(job.getDbName(), job.getTableName());
+                DictTaskContext context = new DictTaskContext(table,
+                        job.getId(),
                         task.getId(),
                         dictHiveInputConfig,
                         jobConfig,

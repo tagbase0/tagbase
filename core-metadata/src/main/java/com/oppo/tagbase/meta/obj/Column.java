@@ -22,7 +22,7 @@ public class Column {
      * If column is Hive partition column and hive data type is string,
      * we must know the date format.
      */
-    private String srcPartColDateFormat;
+    private ColDateFormat srcPartColDateFormat;
 
     public long getId() {
         return id;
@@ -96,11 +96,11 @@ public class Column {
         this.srcDataType = srcDataType;
     }
 
-    public String getSrcPartColDateFormat() {
+    public ColDateFormat getSrcPartColDateFormat() {
         return srcPartColDateFormat;
     }
 
-    public void setSrcPartColDateFormat(String srcPartColDateFormat) {
+    public void setSrcPartColDateFormat(ColDateFormat srcPartColDateFormat) {
         this.srcPartColDateFormat = srcPartColDateFormat;
     }
 

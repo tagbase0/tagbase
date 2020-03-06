@@ -2,10 +2,12 @@ package com.oppo.tagbase.jobv2.spi;
 
 import com.oppo.tagbase.common.util.Uuid;
 import com.oppo.tagbase.jobv2.JobConfig;
+import com.oppo.tagbase.meta.obj.Props;
 import com.oppo.tagbase.meta.obj.Table;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.StringJoiner;
 
 /**
@@ -60,6 +62,10 @@ public class DataTaskContext {
 
     public LocalDateTime getUpperBound() {
         return upperBound;
+    }
+
+    public List<Props> getJobProps() {
+        return table.getProps();
     }
 
     public String getWorkDir() {

@@ -101,7 +101,7 @@ public class MetadataTest {
         columnSlice.setType(ColumnType.SLICE_COLUMN);
         columnSlice.setDesc("For test column dayno");
         columnSlice.setDataType(DataType.STRING);
-        columnSlice.setSrcPartColDateFormat("yyyy-MM-dd");
+        columnSlice.setSrcPartColDateFormat(ColDateFormat.ISO_DATE);
 
         Column columnDim0 = new Column();
         columnDim0.setSrcName("city");

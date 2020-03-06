@@ -2,6 +2,7 @@ package com.oppo.tagbase.jobv2;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.oppo.tagbase.common.guice.Config;
+import com.oppo.tagbase.meta.obj.ColDateFormat;
 
 import java.util.Objects;
 
@@ -34,7 +35,7 @@ public class DictHiveInputConfig {
     private String partitionColumnType;
 
     @JsonProperty("part_column.format")
-    private String partitionColumnFormat;
+    private ColDateFormat partitionColumnFormat;
 
     public String getDbName() {
         return dbName;
@@ -60,7 +61,7 @@ public class DictHiveInputConfig {
         return partitionColumnType;
     }
 
-    public String getPartitionColumnFormat() {
+    public ColDateFormat getPartitionColumnFormat() {
         return partitionColumnFormat;
     }
 
