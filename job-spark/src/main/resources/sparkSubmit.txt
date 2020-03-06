@@ -1,0 +1,98 @@
+#!/bin/bash
+work_path="/home/amy/ljy/lib"
+conf_json="$(cat /home/amy/ljy/lib/hive_event.json)"
+
+export HADOOP_USER_NAME=osql
+/usr/local/share/spark/bin/spark-submit \
+--master yarn \
+--deploy-mode cluster \
+--driver-memory 4g \
+--executor-memory 8g \
+--executor-cores 2 \
+--num-executors 75 \
+--conf spark.executor.memoryOverhead=1000 \
+--conf spark.default.parallelism=450 \
+--conf spark.sql.shuffle.partitions=450  \
+--conf spark.dynamicAllocation.enabled=false \
+--conf spark.yarn.maxAppAttempts=3 \
+--files core-site.xml,hdfs-site.xml \
+--queue root.tagbase \
+--class com.oppo.tagbase.job.spark.BitmapBuildingTask \
+${work_path}/job-spark-1.0-jar-with-dependencies.jar "${conf_json}"
+
+
+
+#!/bin/bash
+work_path="/home/amy/ljy/lib"
+conf_json="$(cat /home/amy/ljy/lib/hive_dict.json)"
+
+export HADOOP_USER_NAME=osql
+/usr/local/share/spark/bin/spark-submit \
+--master yarn \
+--deploy-mode cluster \
+--driver-memory 4g \
+--executor-memory 16g \
+--executor-cores 2 \
+--num-executors 10 \
+--conf spark.executor.memoryOverhead=2000 \
+--conf spark.default.parallelism=50 \
+--conf spark.yarn.maxAppAttempts=1 \
+--conf spark.sql.shuffle.partitions=50  \
+--conf spark.dynamicAllocation.enabled=false \
+--files core-site.xml,hdfs-site.xml \
+--queue root.tagbase \
+--class com.oppo.tagbase.job.spark.InvertedDictBuildingTask \
+${work_path}/job-spark-1.0-jar-with-dependencies.jar "${conf_json}"
+
+
+
+
+
+#!/bin/bash
+work_path="/home/amy/ljy/lib"
+conf_json="$(cat /home/amy/ljy/lib/hive_age.json)"
+
+export HADOOP_USER_NAME=osql
+/usr/local/share/spark/bin/spark-submit \
+--master yarn \
+--deploy-mode cluster \
+--driver-memory 4g \
+--executor-memory 8g \
+--executor-cores 2 \
+--num-executors 10 \
+--conf spark.executor.memoryOverhead=1000 \
+--conf spark.default.parallelism=50 \
+--conf spark.sql.shuffle.partitions=50  \
+--conf spark.dynamicAllocation.enabled=false \
+--conf spark.yarn.maxAppAttempts=3 \
+--files core-site.xml,hdfs-site.xml \
+--queue root.tagbase \
+--class com.oppo.tagbase.job.spark.BitmapBuildingTask \
+${work_path}/job-spark-1.0-jar-with-dependencies.jar "${conf_json}"
+
+
+
+
+
+
+#!/bin/bash
+work_path="/home/amy/ljy/lib"
+conf_json="$(cat /home/amy/ljy/lib/hive_flow.json)"
+
+export HADOOP_USER_NAME=osql
+/usr/local/share/spark/bin/spark-submit \
+--master yarn \
+--deploy-mode cluster \
+--driver-memory 4g \
+--executor-memory 8g \
+--executor-cores 2 \
+--num-executors 20 \
+--conf spark.executor.memoryOverhead=1000 \
+--conf spark.default.parallelism=100 \
+--conf spark.sql.shuffle.partitions=100  \
+--conf spark.dynamicAllocation.enabled=false \
+--conf spark.yarn.maxAppAttempts=3 \
+--files core-site.xml,hdfs-site.xml \
+--queue root.tagbase \
+--class com.oppo.tagbase.job.spark.BitmapBuildingTask \
+${work_path}/job-spark-1.0-jar-with-dependencies.jar "${conf_json}"

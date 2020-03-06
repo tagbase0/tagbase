@@ -1,9 +1,10 @@
 package com.oppo.tagbase.job.spark.example
 
 import java.io.{ByteArrayOutputStream, DataOutputStream, File}
+import java.util.UUID
 
-import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
-import com.oppo.tagbase.job.obj.HiveMeta
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.oppo.tagbase.job.obj.DataTaskMeta
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
@@ -11,10 +12,9 @@ import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat2
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{HBaseConfiguration, KeyValue}
 import org.apache.hadoop.mapreduce.Job
-import org.apache.spark.SparkConf
+import org.apache.spark.{Partitioner, SparkConf}
 import org.apache.spark.sql.SparkSession
 import org.roaringbitmap.buffer.{ImmutableRoaringBitmap, MutableRoaringBitmap}
-
 import scala.collection.JavaConverters._
 
 /**
@@ -29,52 +29,47 @@ object BitmapBuildingTaskExample {
 
   def main(args: Array[String]): Unit = {
 
-    val hiveMeataJson =
+    val dataMeataJson =
       """
         |{
-        |	"dictTablePath":"D:\\workStation\\tagbase\\invertedDict\\",
-        |	"maxId":"",
-        |	"hiveSrcTable":{
-        |		"dbName":"default",
-        |		"tableName":"eventTable",
-        |		"dimColumns":[
-        |			"app",
-        |			"event",
-        |			"version"
-        |		],
-        |		"sliceColumn":{
-        |			"columnName":"daynum",
-        |			"columnValueLeft":"20200220",
-        |			"columnValueRight":"20200221"
-        |		},
-        |		"imeiColumnName":"imei"
-        |	},
-        |	"outputPath":"D:\\workStation\\tagbase\\jobidxxxx\\hfile",
-        |	"rowCountPath":"D:\\workStation\\tagbase\\jobidxxxx\\rowCount"
+        |	"dictBasePath": "D:\\workStation\\tagbase\\invertedDict",
+        |	"maxRowPartition": "50000000",
+        |	"outputPath": "D:\\workStation\\tagbase\\bitmapData\\jobidxxxx\\taskidxxxx",
+        |	"dbName": "default",
+        |	"tableName": "eventTable",
+        |	"dimColumnNames": ["app","event","version"],
+        |	"imeiColumnName": "imei",
+        |	"sliceColumnName": "daynum",
+        |	"sliceColumnnValueLeft": "20200220",
+        |	"sliceColumnValueRight": "20200221"
         |}
         |""".stripMargin
 
     val objectMapper = new ObjectMapper
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    val hiveMeata = objectMapper.readValue(hiveMeataJson, classOf[HiveMeta])
+//   objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    val dataTaskMeta = objectMapper.readValue(dataMeataJson, classOf[DataTaskMeta])
 
-    val hfileOutputPath = hiveMeata.getOutputPath
-    val dictInputPath = hiveMeata.getDictTablePath + "*" + File.separator + "*"
-    val db = hiveMeata.getHiveSrcTable.getDbName
-    val table = hiveMeata.getHiveSrcTable.getTableName
-    val imeiColumn = hiveMeata.getHiveSrcTable.getImeiColumnName
-    val sliceColumn = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnName
-    val sliceLeftValue = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueLeft
-    val sliceRightValue = hiveMeata.getHiveSrcTable.getSliceColumn.getColumnValueRight
+    val hfileOutputPath = dataTaskMeta.getOutputPath
+    val dictInputPath = dataTaskMeta.getDictBasePath + File.separator + "*"
+    val db = dataTaskMeta.getDbName
+    val table = dataTaskMeta.getTableName
+    val imeiColumn = dataTaskMeta.getImeiColumnName
+    val sliceColumn = dataTaskMeta.getSliceColumnName
+    val sliceLeftValue = dataTaskMeta.getSliceColumnnValueLeft
+    val sliceRightValue = dataTaskMeta.getSliceColumnValueRight
     val dimColumnBuilder = new StringBuilder
-    hiveMeata.getHiveSrcTable.getDimColumns.asScala.toStream
+    dataTaskMeta.getDimColumnNames.asScala.toStream
       .foreach(dimColumnBuilder.append("b.").append(_).append(","))
     val dimColumn = dimColumnBuilder.deleteCharAt(dimColumnBuilder.size-1).toString()
+    val filterColumnBuilder = new StringBuilder
+    dataTaskMeta.getDimColumnNames.asScala.toStream
+      .foreach(filterColumnBuilder.append(" and b.").append(_).append(" is not NULL "))
+    val nullFilter = filterColumnBuilder.toString()
 
     val rowkeyDelimiter = "\u0001" //rowkey分隔符
     val familyName = "f1" //hbase的列簇
     val qualifierName = "q1" //hbase的列名
-    val appName = "bitmap_task" //appName
+    val appName = "tagbase_bitmap_task" //appName
 
     val sparkConf = new SparkConf()
       .setAppName(appName)
@@ -84,7 +79,7 @@ object BitmapBuildingTaskExample {
       .set("spark.sql.crossJoin.enabled", "true")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .set("spark.local.dir", "D:\\workStation\\sparkTemp")
-      .registerKryoClasses(Array(classOf[ImmutableBytesWritable], classOf[ImmutableRoaringBitmap]))
+      .registerKryoClasses(Array(classOf[ImmutableBytesWritable], classOf[ImmutableRoaringBitmap], classOf[MutableRoaringBitmap], classOf[KeyValue]))
     val spark = SparkSession.builder()
       .config(sparkConf)
       //      .enableHiveSupport()
@@ -115,39 +110,66 @@ object BitmapBuildingTaskExample {
     val dictTable = "dictTable"
     dictDs.createOrReplaceTempView(s"$dictTable")
 
-    val data = spark.sql(
+
+    val bitmapData=spark.sql(
       s"""
          |select CONCAT_WS('$rowkeyDelimiter', $dimColumn) as dimension,
          |a.id as index from $dictTable a join $db$table b
          |on a.imei=b.$imeiColumn
-         |where b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue
+         |where b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue $nullFilter
          |""".stripMargin)
       .rdd
-      .map(row => (row(0).toString, row(1).toString.toInt))
-      .groupByKey()
-      .mapPartitions(iter => {
-        val rowkeyDelimiterBro = rowkeyDelimiterBroadcast.value
-        val shardPrefix = "1" //前期默认1个shard,后续bitmap切分可以在这里处理
-        var bitmapList: List[(String, ImmutableRoaringBitmap)] = List()
-        while (iter.hasNext) {
-          val bitmap = new MutableRoaringBitmap
-          val data = iter.next()
-          data._2.foreach(bitmap.add(_)) //遍历索引放入roaringbitmap
-          val rowkey = shardPrefix + rowkeyDelimiterBro + data._1
-          bitmapList :+= (rowkey, bitmap)
-        }
+      .map(row => {
+        val bitmap = MutableRoaringBitmap.bitmapOf(row(1).toString.toInt)
+        (row(0).toString, bitmap)
+      })
+      .reduceByKey((x,y)=>{
+        x.or(y)
+        x
+      })
+
+
+    val bitmapCount = bitmapData.count()
+    val maxCountPerPartition = 10000
+    val partitionCount =
+      if (bitmapCount % maxCountPerPartition > 0) (bitmapCount / maxCountPerPartition + 1)
+      else (bitmapCount / maxCountPerPartition)
+    System.out.println(String.format("tagbase info, bitmapCount: %s, partitionCount： %s, maxCountPerPartition: %s", bitmapCount.toString, partitionCount.toString, maxCountPerPartition.toString))
+
+    class bitmapPartitioner() extends Partitioner{
+      override def numPartitions: Int = partitionCount.toInt
+      override def getPartition(key: Any): Int = {
+        val sliceNum = 1//暂时只有一个分片,后续安排切分bitmap后的分区号
+        UUID.randomUUID().hashCode() % numPartitions
+      }
+    }
+
+    implicit val bitmapOrdering = new Ordering[(Int,String)] {
+      override def compare(a: (Int,String), b: (Int,String)): Int = {
+        a._2.compareTo(b._2)
+      }
+    }
+
+    val hfileRdd = bitmapData
+      .flatMap(kv=>{
+        val sliceNum = 1//暂时只有一个分片，后续这里切分bitmap
+        var bitmapList: List[((Int,String) ,ImmutableRoaringBitmap)] = List()
+        val rowkey = sliceNum + rowkeyDelimiterBroadcast.value + kv._1
+        bitmapList :+= ((sliceNum,rowkey), kv._2)
         bitmapList.iterator
       })
-      .sortByKey(true, 1) //hfile要求rowkey有序
+      .repartitionAndSortWithinPartitions(new bitmapPartitioner())
       .map(tuple => {
+        val key = tuple._1._2
+        val value = tuple._2
         val familyName = familyNameBroadcast.value
         val qualifierName = qualifierNameBroadcast.value
         val bos = new ByteArrayOutputStream
         val dos = new DataOutputStream(bos)
-        tuple._2.serialize(dos)
+        value.serialize(dos)
         dos.close()
-        val kv = new KeyValue(Bytes.toBytes(tuple._1), Bytes.toBytes(familyName), Bytes.toBytes(qualifierName), bos.toByteArray)
-        (new ImmutableBytesWritable(Bytes.toBytes(tuple._1)), kv)
+        val kv = new KeyValue(Bytes.toBytes(key), Bytes.toBytes(familyName), Bytes.toBytes(qualifierName), bos.toByteArray)
+        (new ImmutableBytesWritable(Bytes.toBytes(key)), kv)
       })
 
     /*
@@ -165,7 +187,7 @@ object BitmapBuildingTaskExample {
       fileSystem.delete(new Path(hfileOutputPath), true)
     }
 
-    data.saveAsNewAPIHadoopFile(
+    hfileRdd.saveAsNewAPIHadoopFile(
       hfileOutputPath,
       classOf[ImmutableBytesWritable],
       classOf[KeyValue],

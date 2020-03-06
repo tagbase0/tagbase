@@ -1,0 +1,110 @@
+{
+	"dictBasePath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/invertedDict",
+    "maxId":"550259980",
+	"maxRowPartition": "50000000",
+	"outputPath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/invertedDict/20200303",
+	"dbName": "oppo_os_dw",
+	"tableName": "dws_os_user_active_info_all_d",
+	"imeiColumnName": "statis_id",
+	"sliceColumnName": "dayno",
+	"sliceColumnnValueLeft": "20200303",
+	"sliceColumnValueRight": "20200304"
+}
+
+{
+	"dictBasePath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/invertedDict",
+    "maxId":"0",
+	"maxRowPartition": "50000000",
+	"outputPath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/invertedDict/20200302",
+	"dbName": "oppo_os_dw",
+	"tableName": "dws_os_user_active_info_all_d",
+	"imeiColumnName": "statis_id",
+	"sliceColumnName": "dayno",
+	"sliceColumnnValueLeft": "20200302",
+	"sliceColumnValueRight": "20200303"
+}
+
+
+
+{
+	"dictBasePath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/invertedDict",
+	"maxRowPartition": "80000",
+	"outputPath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/bitmapData/jobid_age/taskid_age",
+	"dbName": "tag_dw",
+	"tableName": "dws_tag_age_imei_model_output_insights",
+	"dimColumnNames": ["age"],
+	"imeiColumnName": "statis_id",
+	"sliceColumnName": "dayno",
+	"sliceColumnnValueLeft": "20200301",
+	"sliceColumnValueRight": "20200302"
+}
+
+
+{
+	"dictBasePath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/invertedDict",
+	"maxRowPartition": "80000",
+	"outputPath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/bitmapData/jobid_price/taskid_price",
+	"dbName": "dw",
+	"tableName": "l_agt_model_info_ds",
+	"dimColumnNames": ["price"],
+	"imeiColumnName": "statis_id",
+	"sliceColumnName": "dayno",
+	"sliceColumnnValueLeft": "20200301",
+	"sliceColumnValueRight": "20200302"
+}
+
+
+{
+	"dictBasePath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/invertedDict",
+	"maxRowPartition": "80000",
+	"outputPath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/bitmapData/jobid_event/taskid_event",
+	"dbName": "tag_dw",
+	"tableName": "dws_os_app_user_tagbase_event_d",
+	"dimColumnNames": ["app_id","event","app_version"],
+	"imeiColumnName": "statis_id",
+	"sliceColumnName": "dayno",
+	"sliceColumnnValueLeft": "20200301",
+	"sliceColumnValueRight": "20200302"
+}
+
+
+{
+	"dictBasePath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/invertedDict",
+	"maxRowPartition": "80000",
+	"outputPath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/bitmapData/jobid_gender/taskid_gender",
+	"dbName": "dw",
+	"tableName": "l_agt_tag_gender_merge_d",
+	"dimColumnNames": ["gender"],
+	"imeiColumnName": "statis_id",
+	"sliceColumnName": "dayno",
+	"sliceColumnnValueLeft": "20200301",
+	"sliceColumnValueRight": "20200302"
+}
+
+
+{
+	"dictBasePath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/invertedDict",
+	"maxRowPartition": "80000",
+	"outputPath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/bitmapData/jobid_city_level/taskid_city_level",
+	"dbName": "dw",
+	"tableName": "l_agt_location_info_ds",
+	"dimColumnNames": ["city_level"],
+	"imeiColumnName": "statis_id",
+	"sliceColumnName": "dayno",
+	"sliceColumnnValueLeft": "20200301",
+	"sliceColumnValueRight": "20200302"
+}
+
+
+{
+	"dictBasePath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/invertedDict",
+	"maxRowPartition": "80000",
+	"outputPath": "hdfs://alg-hdfs/business/datacenter/osql/tagbase/bitmapData/jobid_flow/taskid_flow",
+	"dbName": "oppo_os_dw",
+	"tableName": "dws_os_user_app_aft_uninstall_30s_toward_app_int_w ",
+	"dimColumnNames": ["app_id","to_app_id"],
+	"imeiColumnName": "statis_id",
+	"sliceColumnName": "dayno",
+	"sliceColumnnValueLeft": "20200120",
+	"sliceColumnValueRight": "20200121"
+}
