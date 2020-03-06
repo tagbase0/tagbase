@@ -1,5 +1,6 @@
 package com.oppo.tagbase.jobv2.spi;
 
+import com.oppo.tagbase.common.util.Uuid;
 import com.oppo.tagbase.jobv2.JobConfig;
 import com.oppo.tagbase.meta.obj.Table;
 
@@ -20,6 +21,8 @@ public class DataTaskContext {
     private String jobId;
     private String taskId;
 
+    private String uuid;
+
     public DataTaskContext(String jobId,
                            String taskId,
                            Table table,
@@ -32,6 +35,7 @@ public class DataTaskContext {
         this.jobConfig = jobConfig;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
+        this.uuid = Uuid.nextId();
     }
 
     public String getJobId() {
@@ -63,6 +67,7 @@ public class DataTaskContext {
         joiner.add(jobConfig.getWorkDir());
         joiner.add(jobId);
         joiner.add(taskId);
+        joiner.add(uuid);
         return joiner.toString();
     }
 

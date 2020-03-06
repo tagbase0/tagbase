@@ -224,6 +224,7 @@ public class DictJobExecutableMaker {
     /**
      * inverted dict file schema "id,entry"
      */
+    //TODO multi-dict file
     private SortedMap<Long, String> loadIncEntry(String invertedDictLocation) {
 
         String remoteInvertedDictFile = JobUtil.getRemoteInvertedDictPath(invertedDictLocation);

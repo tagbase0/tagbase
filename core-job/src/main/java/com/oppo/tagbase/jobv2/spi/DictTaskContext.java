@@ -2,8 +2,8 @@ package com.oppo.tagbase.jobv2.spi;
 
 import com.oppo.tagbase.jobv2.DictHiveInputConfig;
 import com.oppo.tagbase.jobv2.JobConfig;
+import com.oppo.tagbase.jobv2.JobUtil;
 
-import java.io.File;
 import java.time.LocalDateTime;
 import java.util.StringJoiner;
 
@@ -59,6 +59,10 @@ public class DictTaskContext {
         return lowerBound;
     }
 
+    public String getInvertedDictPath() {
+        return jobConfig.getInvertedDictPath();
+    }
+
     public LocalDateTime getUpperBound() {
         return upperBound;
     }
@@ -67,7 +71,7 @@ public class DictTaskContext {
      * @return remote engine working dir
      */
     public String getWorkDir() {
-        StringJoiner joiner = new StringJoiner(File.separator);
+        StringJoiner joiner = new StringJoiner(JobUtil.REMOTE_STORE_FILE_SEPARATOR);
         joiner.add(jobConfig.getWorkDir());
         joiner.add(jobId);
         joiner.add(taskId);
@@ -75,10 +79,10 @@ public class DictTaskContext {
     }
 
     /**
-     * @return  increasing inverted dict location
+     * @return increasing inverted dict location
      */
     public String getOutputLocation() {
-        StringJoiner joiner = new StringJoiner(File.separator);
+        StringJoiner joiner = new StringJoiner(JobUtil.REMOTE_STORE_FILE_SEPARATOR);
         joiner.add(jobConfig.getInvertedDictPath());
         joiner.add(lowerBound.format(ISO_DATE_TIME));
         return joiner.toString();

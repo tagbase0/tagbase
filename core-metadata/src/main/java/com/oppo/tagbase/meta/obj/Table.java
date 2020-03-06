@@ -19,11 +19,12 @@ public class Table {
     private TableType type;
     private String desc;
 
-    //TODO 数据源 ，目前都是hive
+    // data source such as Hive
     private TableResourceType srcType;
 
     private List<Column> columns;
 
+    private List<Props> tableProps;
 
     public long getId() {
         return id;
@@ -116,6 +117,14 @@ public class Table {
                 .filter(column -> Objects.equals(column.getName(), columnName))
                 .filter(column -> !(TableType.TAG == getType() && ColumnType.SLICE_COLUMN == column.getType()))
                 .findFirst().get();
+    }
+
+    public List<Props> getTableProps() {
+        return tableProps;
+    }
+
+    public void setTableProps(List<Props> tableProps) {
+        this.tableProps = tableProps;
     }
 
     @Override
