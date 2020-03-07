@@ -2,43 +2,46 @@ package com.oppo.tagbase.storage.hbase;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.oppo.tagbase.common.guice.Config;
 
 import javax.validation.constraints.NotNull;
 
 /**
  * Created by liangjingya on 2020/2/8.
  */
+@Config("tagbase.storage.hbase")
 public class HbaseStorageConnectorConfig {
-    @JsonProperty
+
+    @JsonProperty("zkPort")
     private String zkPort = "2181";
 
-    @JsonProperty
+    @JsonProperty("zkQuorum")
     @NotNull
     private String zkQuorum;
 
-    @JsonProperty
+    @JsonProperty("rootDir")
     @NotNull
     private String rootDir;
 
-    @JsonProperty
+    @JsonProperty("nameSpace")
     private String nameSpace = "tagbase";
 
-    @JsonProperty
+    @JsonProperty("tablePrefix")
     private String tablePrefix = "tagbase_";
 
-    @JsonProperty
+    @JsonProperty("family")
     private String family = "f1";
 
-    @JsonProperty
+    @JsonProperty("qualifier")
     private String qualifier = "q1";
 
     @JsonIgnore
     private String rowkeyDelimiter = "\u0001";
 
-    @JsonProperty
+    @JsonProperty("scanCacheSize")
     private int scanCacheSize = 100;
 
-    @JsonProperty
+    @JsonProperty("scanMaxResultSize")
     private int scanMaxResultSize = 5 * 1024 * 1024;
 
     public String getTablePrefix() {

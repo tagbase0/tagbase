@@ -1,5 +1,6 @@
 package com.oppo.tagbase.storage.hbase;
 
+import com.oppo.tagbase.common.guice.ExtensionImpl;
 import com.oppo.tagbase.meta.obj.ColumnType;
 import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import com.oppo.tagbase.storage.core.exception.StorageErrorCode;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 /**
  * Created by liangjingya on 2020/2/8.
  */
+@ExtensionImpl(name = "hbase", extensionPoint = StorageConnector.class)
 public class HbaseStorageConnector extends StorageConnector {
 
     @Inject

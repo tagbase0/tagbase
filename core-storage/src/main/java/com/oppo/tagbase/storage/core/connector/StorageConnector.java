@@ -1,6 +1,7 @@
 package com.oppo.tagbase.storage.core.connector;
 
 import com.google.inject.Inject;
+import com.oppo.tagbase.common.guice.Extension;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.obj.ColumnType;
 import com.oppo.tagbase.meta.obj.Slice;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 /**
  * Created by liangjingya on 2020/2/8.
  */
+@Extension(key = "tagbase.storage.type", defaultImpl = "hbase")
 public abstract class StorageConnector {
 
     private ExecutorService queryExecutor = null;
@@ -139,7 +141,7 @@ public abstract class StorageConnector {
 
         metaTable.getColumns().stream()
                 .filter(column -> column.getType()== ColumnType.DIM_COLUMN)
-                .forEach(column -> dimContextMap.put(column.getName(), new DimContext(column.getIndex(), column.getName(), ColumnType.DIM_COLUMN)));
+                .forEach(column -> dimContextMap.put(column.getSrcName(), new DimContext(column.getIndex(), column.getSrcName(), ColumnType.DIM_COLUMN)));
 
         if(queryHandler.hasFilterColumnList()){
             queryHandler.getFilterColumnList().stream()

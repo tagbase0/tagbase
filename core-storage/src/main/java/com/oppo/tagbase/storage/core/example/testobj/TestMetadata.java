@@ -29,21 +29,21 @@ public class TestMetadata {
         Table metaTable = null;
         switch (type){
             case EVENT:
-                Column a=new Column();a.setName("version");a.setIndex(3);a.setType(ColumnType.DIM_COLUMN);
+                Column a=new Column();a.setSrcName("version");a.setIndex(3);a.setType(ColumnType.DIM_COLUMN);
                 columns.add(a);
-                Column b=new Column();b.setName("app");b.setIndex(1);b.setType(ColumnType.DIM_COLUMN);
+                Column b=new Column();b.setSrcName("app");b.setIndex(1);b.setType(ColumnType.DIM_COLUMN);
                 columns.add(b);
-                Column c=new Column();c.setName("event");c.setIndex(2);c.setType(ColumnType.DIM_COLUMN);
+                Column c=new Column();c.setSrcName("event");c.setIndex(2);c.setType(ColumnType.DIM_COLUMN);
                 columns.add(c);
-                Column d=new Column();d.setName("imei");d.setIndex(-1);d.setType(ColumnType.BITMAP_COLUMN);
+                Column d=new Column();d.setSrcName("imei");d.setIndex(-1);d.setType(ColumnType.BITMAP_COLUMN);
                 columns.add(d);
-                Column e=new Column();e.setName("daynum");e.setIndex(-1);e.setType(ColumnType.SLICE_COLUMN);
+                Column e=new Column();e.setSrcName("daynum");e.setIndex(-1);e.setType(ColumnType.SLICE_COLUMN);
                 columns.add(e);
                 metaTable=new Table();
                 metaTable.setName("event");metaTable.setType(TableType.ACTION);metaTable.setColumns(columns);
                 break;
             case TAG:
-                Column g=new Column();g.setName("city");g.setIndex(1);g.setType(ColumnType.DIM_COLUMN);
+                Column g=new Column();g.setSrcName("city");g.setIndex(1);g.setType(ColumnType.DIM_COLUMN);
                 columns.add(g);
                 metaTable = new Table();
                 metaTable.setName("city");metaTable.setType(TableType.TAG);metaTable.setColumns(columns);

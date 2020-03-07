@@ -16,28 +16,35 @@ public class HbaseStorageModule extends AbstractModule {
     protected void configure() {
 
         Binder binder = binder();
-        ConfBind.bind(binder,
-                "tagbase.bitmap.storage.hbase",
-                HbaseStorageConnectorConfig.class
-        );
 
-        ConfBind.bind(binder,
-                "tagbase.bitmap.storage.common",
-                StorageConnectorConfig.class
-        );
+        ConfBind.bind(binder, HbaseStorageConnectorConfig.class);
+        ConfBind.bind(binder, StorageConnectorConfig.class);
+        ExtensionBind.bind(binder, StorageConnector.class);
+        ExtensionBind.registerImpl(binder, HbaseStorageConnector.class);
 
-        ExtensionBind.bind(
-                binder,
-                StorageConnector.class,
-                "tagbase.bitmap.storage.type",
-                "hbase"
-        );
 
-        ExtensionBind.registerImpl(
-                binder,
-                StorageConnector.class,
-                "hbase",
-                HbaseStorageConnector.class
-        );
+//        ConfBind.bind(binder,
+//                "tagbase.storage.hbase",
+//                HbaseStorageConnectorConfig.class
+//        );
+//
+//        ConfBind.bind(binder,
+//                "tagbase.storage.core",
+//                StorageConnectorConfig.class
+//        );
+//
+//        ExtensionBind.bind(
+//                binder,
+//                StorageConnector.class,
+//                "tagbase.storage.type",
+//                "hbase"
+//        );
+//
+//        ExtensionBind.registerImpl(
+//                binder,
+//                StorageConnector.class,
+//                "hbase",
+//                HbaseStorageConnector.class
+//        );
     }
 }

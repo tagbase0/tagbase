@@ -1,22 +1,24 @@
 package com.oppo.tagbase.storage.core.connector;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.oppo.tagbase.common.guice.Config;
 
 /**
  * Created by liangjingya on 2020/2/8.
  */
+@Config("tagbase.storage.core")
 public class StorageConnectorConfig {
 
-    @JsonProperty
+    @JsonProperty("queryPoolMaxThread")
     private int queryPoolMaxThread = 10;
 
-    @JsonProperty
+    @JsonProperty("queryPoolCoreThread")
     private int queryPoolCoreThread = 5;
 
-    @JsonProperty
+    @JsonProperty("queryPoolKeepAliveSecond")
     private int queryPoolKeepAliveSecond = 300;
 
-    @JsonProperty
+    @JsonProperty("queryPoolQueueSie")
     private int queryPoolQueueSie = 500;
 
     public int getQueryPoolMaxThread() {
