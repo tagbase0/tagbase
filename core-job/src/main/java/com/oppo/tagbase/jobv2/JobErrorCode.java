@@ -13,7 +13,11 @@ public enum JobErrorCode implements ErrorCode {
     JOB_OVERLAP(503),
     SLICE_OVERLAP(504),
     JOB_STATE_TRANSFER(505),
-    JOB_ERROR(500)
+    JOB_ERROR(500),
+
+    JOB_SUBMIT_ERROR(510),
+    JOB_MONITOR_ERROR(511),
+    JOB_KILL_ERROR(511)
     ;
 
     private int code;

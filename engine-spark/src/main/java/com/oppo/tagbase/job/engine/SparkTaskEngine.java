@@ -3,11 +3,19 @@ package com.oppo.tagbase.job.engine;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.oppo.tagbase.job.engine.exception.JobErrorCode;
-import com.oppo.tagbase.job.engine.exception.JobException;
-import com.oppo.tagbase.job.engine.obj.HiveMeta;
-import com.oppo.tagbase.job.engine.obj.JobType;
-import com.oppo.tagbase.job.engine.obj.TaskMessage;
+import com.oppo.tagbase.common.guice.ExtensionImpl;
+import com.oppo.tagbase.job.engine.obj.DataTaskMeta;
+import com.oppo.tagbase.job.engine.obj.DictTaskMeta;
+import com.oppo.tagbase.jobv2.JobErrorCode;
+import com.oppo.tagbase.jobv2.JobException;
+import com.oppo.tagbase.jobv2.spi.DataTaskContext;
+import com.oppo.tagbase.jobv2.spi.DictTaskContext;
+import com.oppo.tagbase.jobv2.spi.TaskEngine;
+import com.oppo.tagbase.jobv2.spi.TaskStatus;
+import com.oppo.tagbase.meta.obj.Column;
+import com.oppo.tagbase.meta.obj.ColumnType;
+import com.oppo.tagbase.meta.obj.Props;
+import com.oppo.tagbase.meta.obj.ResourceColType;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -19,68 +27,160 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
-import javax.inject.Named;
+import java.io.File;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by liangjingya on 2020/2/20.
  */
-public class SparkTaskEngine extends TaskEngine {
+
+@ExtensionImpl(name = "spark", extensionPoint = TaskEngine.class)
+public class SparkTaskEngine implements TaskEngine {
 
     @Inject
-    @Named("bitmapBuildingTaskConfig")
-    private SparkTaskConfig bitmapBuildingTaskConfig;
-
-    @Inject
-    @Named("invertedDictTaskConfig")
-    private SparkTaskConfig invertedDictTaskConfig;
+    private SparkTaskConfig defaultTaskConfig;
 
     private Logger log = LoggerFactory.getLogger(SparkTaskEngine.class);
 
-    @Override
-    public String submitTask(HiveMeta hiveMeta, JobType type) throws JobException {
+    private static final String SINGLE_QUOTATION = "\'";
 
-        //根据job类型，选择不同的配置提交任务
+    @Override
+    public String buildDict(DictTaskContext context) throws JobException {
+
+        DictTaskMeta taskMeta = getDictTaskMeta(context);
+        Map<String,String> taskConfigMap = getTaskConfig(context.getJobProps());
         ObjectMapper objectMapper=new ObjectMapper();
         String appArgs = null;
         try {
-            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            appArgs = objectMapper.writeValueAsString(hiveMeta);
+//            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            appArgs = objectMapper.writeValueAsString(taskMeta);
         } catch (JsonProcessingException e) {
             throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, e, "parse json error");
         }
-        String result = null;
-        switch (type){
-            case DATA:
-                result = submitSparkJob(appArgs, bitmapBuildingTaskConfig);
-                break;
-            case DICTIONARY:
-                result = submitSparkJob(appArgs, invertedDictTaskConfig);
-                break;
-            default:
-                break;
-        }
-        return result;
+        String mainClass = "com.oppo.tagbase.job.spark.InvertedDictBuildingTask";
+//        String mainClass = "com.oppo.tagbase.job.spark.example.InvertedDictBuildingTaskExample";
+        String result = submitSparkJob(appArgs, taskConfigMap, mainClass);
 
+        return result;
+    }
+
+    private DictTaskMeta getDictTaskMeta(DictTaskContext context) {
+
+        DictTaskMeta taskMeta = new DictTaskMeta();
+        taskMeta.setDbName(context.getDictHiveInputConfig().getDbName());
+        taskMeta.setTableName(context.getDictHiveInputConfig().getTableName());
+        taskMeta.setImeiColumnName(context.getDictHiveInputConfig().getColumn());
+        taskMeta.setSliceColumnName(context.getDictHiveInputConfig().getPartitionColumn());
+
+        DateTimeFormatter df = DateTimeFormatter.ofPattern(context.getDictHiveInputConfig().getPartitionColumnFormat().getFormat());
+        if(context.getDictHiveInputConfig().getPartitionColumnType() == ResourceColType.STRING) {
+            taskMeta.setSliceColumnnValueLeft(SINGLE_QUOTATION + df.format(context.getLowerBound()) + SINGLE_QUOTATION);
+            taskMeta.setSliceColumnValueRight(SINGLE_QUOTATION + df.format(context.getUpperBound()) + SINGLE_QUOTATION);
+        }else{
+            taskMeta.setSliceColumnnValueLeft(df.format(context.getLowerBound()));
+            taskMeta.setSliceColumnValueRight(df.format(context.getUpperBound()));
+        }
+
+        taskMeta.setMaxId(context.getNextId());
+        taskMeta.setDictBasePath(context.getInvertedDictPath());
+        taskMeta.setOutputPath(context.getOutputLocation());
+
+        taskMeta.setMaxRowPartition(defaultTaskConfig.getShardItems());//设置默认文件切分限制
+        context.getJobProps().stream()
+                .filter(props -> Props.KEY_SHARD_ITEMS.equals(props.getKey()))
+                .forEach(props -> taskMeta.setMaxRowPartition(Integer.parseInt(props.getValue())));
+
+        return taskMeta;
     }
 
     @Override
-    public TaskMessage getTaskStatus(String appid, JobType type) throws JobException {
+    public String buildData(DataTaskContext context) throws JobException {
+
+        DataTaskMeta taskMeta = getDataTaskMeta(context);
+        Map<String,String> taskConfigMap = getTaskConfig(context.getJobProps());
+        ObjectMapper objectMapper=new ObjectMapper();
+        String appArgs = null;
+        try {
+//            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            appArgs = objectMapper.writeValueAsString(taskMeta);
+        } catch (JsonProcessingException e) {
+            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, e, "parse json error");
+        }
+        String mainClass = "com.oppo.tagbase.job.spark.BitmapBuildingTask";
+//        String mainClass = "com.oppo.tagbase.job.spark.example.BitmapBuildingTaskExample";
+        String result = submitSparkJob(appArgs, taskConfigMap, mainClass);
+
+        return result;
+    }
+
+    private DataTaskMeta getDataTaskMeta(DataTaskContext context) {
+
+        DataTaskMeta taskMeta = new DataTaskMeta();
+        taskMeta.setDbName(context.getTable().getSrcDb());
+        taskMeta.setTableName(context.getTable().getSrcTable());
+
+        String imeiColumnName =
+                context.getTable().getColumns().stream()
+                    .filter(column -> column.getType()== ColumnType.BITMAP_COLUMN)
+                    .map(column -> column.getSrcName())
+                    .collect(Collectors.toList())
+                    .get(0);
+        taskMeta.setImeiColumnName(imeiColumnName);
+
+        List<String> dimColumnNames =
+            context.getTable().getColumns().stream()
+                    .filter(column -> column.getType()== ColumnType.DIM_COLUMN)
+                    .sorted(Comparator.comparingInt(Column::getIndex))
+                    .map(column -> column.getSrcName())
+                    .collect(Collectors.toList());
+        taskMeta.setDimColumnNames(dimColumnNames);
+
+        Column sliceColumn =
+            context.getTable().getColumns().stream()
+                    .filter(column -> column.getType()== ColumnType.SLICE_COLUMN)
+                    .collect(Collectors.toList())
+                    .get(0);
+        taskMeta.setSliceColumnName(sliceColumn.getSrcName());
+
+        DateTimeFormatter df = DateTimeFormatter.ofPattern(sliceColumn.getSrcPartColDateFormat().getFormat());
+        if(sliceColumn.getSrcDataType()== ResourceColType.STRING) {
+            taskMeta.setSliceColumnnValueLeft(SINGLE_QUOTATION + df.format(context.getLowerBound()) + SINGLE_QUOTATION);
+            taskMeta.setSliceColumnValueRight(SINGLE_QUOTATION + df.format(context.getUpperBound()) + SINGLE_QUOTATION);
+        }else{
+            taskMeta.setSliceColumnnValueLeft(df.format(context.getLowerBound()));
+            taskMeta.setSliceColumnValueRight(df.format(context.getUpperBound()));
+        }
+
+        taskMeta.setDictBasePath(context.getInvertedDictLocation());
+        taskMeta.setOutputPath(context.getOutputLocation());
+
+        taskMeta.setMaxRowPartition(defaultTaskConfig.getShardItems());//设置默认文件切分限制
+        context.getJobProps().stream()
+                .filter(props -> Props.KEY_SHARD_ITEMS.equals(props.getKey()))
+                .forEach(props -> taskMeta.setMaxRowPartition(Integer.parseInt(props.getValue())));
+
+        return taskMeta;
+    }
+
+    @Override
+    public TaskStatus kill(String appId) throws JobException {
+        throw new JobException(JobErrorCode.JOB_KILL_ERROR,  "kill operation is not allowed");
+    }
+
+    @Override
+    public TaskStatus status(String appId) throws JobException {
 
         //向hadoop集群根据appid发送请求获取job执行进度
         String message = null;
-        TaskMessage taskMessage = null;
+        TaskStatus taskStatus = null;
         try {
-            switch (type){
-                case DATA:
-                    message = sendGet(bitmapBuildingTaskConfig.getTrackUrl(), appid);
-                    break;
-                case DICTIONARY:
-                    message = sendGet(invertedDictTaskConfig.getTrackUrl(), appid);
-                    break;
-                default:
-                    break;
-            }
+            message = sendGet(defaultTaskConfig.getTrackUrl(), appId);
 
             //解析集群返回的信息
             String appJsonKey = "app";
@@ -90,54 +190,100 @@ public class SparkTaskEngine extends TaskEngine {
             if(rootNode.has(appJsonKey)){
                 JsonNode appNode = rootNode.get(appJsonKey);
                 objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                taskMessage = objectMapper.readValue(appNode.toString(), TaskMessage.class);
+                taskStatus = objectMapper.readValue(appNode.toString(), TaskStatus.class);
             }else {
                 throw new JobException(JobErrorCode.JOB_MONITOR_ERROR, "job response error, message : %s", message);
             }
         } catch (IOException e) {
             throw new JobException(JobErrorCode.JOB_MONITOR_ERROR, e, "get job status error");
         }
-        return taskMessage;
+        return taskStatus;
     }
 
-    /*
-     SparkLauncher api文档：http://spark.apache.org/docs/2.3.2/api/java/org/apache/spark/launcher/SparkLauncher.html
-     windows下模拟测试，需要下载winutil,可以设置环境变量HADOOP_HOME
-     https://github.com/amihalik/hadoop-common-2.6.0-bin
-     另外下载spark-2.3.2-bin-hadoop2.6.tgz解压，可以设置环境变量SPARK_HOME，提交任务需要本地有客户端
-     https://archive.apache.org/dist/spark/spark-2.3.2/
-    */
-    private String submitSparkJob(String hiveMeta, SparkTaskConfig config) throws JobException {
+    private Map<String, String> getTaskConfig(List<Props> jobProps) {
 
+        Map<String, String> taskConfigMap = new HashMap<>();
+
+        //设置默认配置
+        taskConfigMap.put(SparkConfigConstant.DRIVER_MEMORY, defaultTaskConfig.getDriverMemory());
+        taskConfigMap.put(SparkConfigConstant.EXECUTOR_CORES, defaultTaskConfig.getExecutorCores());
+        taskConfigMap.put(SparkConfigConstant.EXECUTOR_INSTANCES, defaultTaskConfig.getExecutorInstances());
+        taskConfigMap.put(SparkConfigConstant.EXECUTOR_MEMORY, defaultTaskConfig.getExecutorMemory());
+        taskConfigMap.put(SparkConfigConstant.EXECUTOR_MEMORY_OVERHEAD, defaultTaskConfig.getMemoryOverhead());
+        taskConfigMap.put(SparkConfigConstant.YARN_QUEUE, defaultTaskConfig.getQueue());
+
+        //设置用户自定义配置
+        jobProps.stream()
+                .filter(props -> SparkConfigConstant.USER_CONFIG_WHITELIST.contains(props.getKey()))
+                .forEach(props -> taskConfigMap.put(props.getKey(), props.getValue()));
+
+        //根据executor配置计算默认并行度
+        int parallelism = Integer.parseInt(taskConfigMap.get(SparkConfigConstant.EXECUTOR_INSTANCES))
+                * Integer.parseInt(taskConfigMap.get(SparkConfigConstant.EXECUTOR_CORES))
+                * defaultTaskConfig.getParallelism();
+        taskConfigMap.put(SparkConfigConstant.DEFAULT_PARALLELISM, String.valueOf(parallelism));
+        taskConfigMap.put(SparkConfigConstant.SQL_SHUFFLE_PARTITION, String.valueOf(parallelism));
+
+        return taskConfigMap;
+    }
+
+    private String checkSparkHome(){
         String sparkHome = System.getenv("SPARK_HOME");
         if(sparkHome == null){
             throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, "submit spark job error, not found SPARK_HOME");
         }
-        log.debug("submit Spark Job : {}", hiveMeta);
-        log.debug("submit Spark Job : {}", config);
+        return sparkHome;
+    }
 
-        System.setProperty("user.name", config.getUser());
+    private void checkFile(String path){
+        if(!new File(path).exists()){
+            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, "submit spark job error, %s is not exist", path);
+        }
+    }
+
+    private String checkTagbaseConfDir(){
+        String tagbaseConfDir = System.getenv("TAGBASE_CONF_DIR");
+        if(tagbaseConfDir == null){
+            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, "submit spark job error, not found TAGBASE_CONF_DIR");
+        }
+        return tagbaseConfDir;
+    }
+
+    private String submitSparkJob(String taskMeta, Map<String,String> taskConfigMap, String mainClass) throws JobException {
+
+        log.debug("submit Spark Job, taskMeta: {}", taskMeta);
+        log.debug("submit Spark Job, taskConfigMap: {}", taskConfigMap);
+
+        String sparkHome = checkSparkHome();
+        String tagbaseConfDir = checkTagbaseConfDir();
+        String coreSitePath = tagbaseConfDir + File.separator + "core-site.xml";
+        String hdfsSitePath = tagbaseConfDir + File.separator + "hdfs-site.xml";
+        checkFile(coreSitePath);
+        checkFile(hdfsSitePath);
+
+        System.setProperty("user.name", defaultTaskConfig.getUser());
+        System.setProperty("HADOOP_USER_NAME", defaultTaskConfig.getUser());
+
         SparkAppHandle handle = null;
         String appid = null;
         try {
-            handle = new SparkLauncher()
+            SparkLauncher launcher  = new SparkLauncher()
                     .setSparkHome(sparkHome)
-                    .setAppResource(config.getJarPath())
-                    .setMainClass(config.getMainClass())
-                    .setMaster(config.getMaster())
-                    .setDeployMode(config.getDeployMode())
-                    //这里将hive表等参数传递到job,即main函数的args接收
-                    .addAppArgs(hiveMeta)
-                    //设置一系列job启动参数
-                    .setConf(SparkLauncher.DRIVER_MEMORY, config.getDriverMemory())
-                    .setConf(SparkLauncher.EXECUTOR_MEMORY, config.getExecutorMemory())
-                    .setConf("spark.executor.instances", config.getExecutorInstances())
-                    .setConf(SparkLauncher.EXECUTOR_CORES,config.getExecutorCores())
-                    .setConf("spark.default.parallelism", config.getParallelism())
-                    .setConf("spark.sql.shuffle.partitions", config.getParallelism())
-                    .setConf("spark.yarn.queue", config.getQueue())
-                    .setVerbose(true)
-                    .startApplication();
+                    //重定向spark客户端的错误日志
+                    .redirectError(ProcessBuilder.Redirect.appendTo(new File(defaultTaskConfig.getSparkClientErrorLog())))
+                    .setAppResource(defaultTaskConfig.getJarPath())
+                    .setMainClass(mainClass)
+                    .addAppArgs(taskMeta)//传递hive表等json参数
+                    .addFile(coreSitePath)//添加配置文件
+                    .addFile(hdfsSitePath)
+                    .setMaster(defaultTaskConfig.getMaster())
+                    .setDeployMode(defaultTaskConfig.getDeployMode())
+                    .setVerbose(defaultTaskConfig.isLogVerbose());
+
+            taskConfigMap.forEach((key,value) -> launcher.setConf(key, value));//设置一系列job启动参数
+
+            handle = launcher.startApplication();
+
         } catch (IOException e) {
             throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, e, "SparkLauncher submit error");
         }
@@ -153,9 +299,9 @@ public class SparkTaskEngine extends TaskEngine {
                 log.error("thread sleep error", e);
             }
         }
-        //TODO 提交失败，多次提交，如果出现这种情况？
-        if(appid == null && handle.getState() != SparkAppHandle.State.FINISHED){
-            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, "SparkLauncher error, appid is null");
+        //提交失败
+        if(appid == null){
+            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, "SparkLauncher error, please check %s", defaultTaskConfig.getSparkClientErrorLog());
         }
         return appid;
 

@@ -17,7 +17,6 @@ import com.oppo.tagbase.storage.core.connector.StorageConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -117,7 +116,7 @@ public class DataJobExecutableMaker {
                 metadataJob.updateJobProgress(job.getId(), 0.5f);
                 return null;
 
-            } catch (IOException | InterruptedException e) {
+            } catch (InterruptedException e) {
                 throw new JobException("error when get external task %s status", task.getAppId());
             }
         });

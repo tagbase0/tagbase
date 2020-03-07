@@ -1,95 +1,58 @@
 package com.oppo.tagbase.job.engine;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.oppo.tagbase.common.guice.Config;
 
 /**
  * Created by liangjingya on 2020/2/20.
  */
+@Config("tagbase.job.spark.default")
 public class SparkTaskConfig {
 
-    @JsonProperty
+    @JsonProperty("driverMemory")
     private String driverMemory;
 
-    @JsonProperty
+    @JsonProperty("executorMemory")
     private String executorMemory;
 
-    @JsonProperty
+    @JsonProperty("executorInstances")
     private String executorInstances;
 
-    @JsonProperty
+    @JsonProperty("memoryOverhead")
+    private String memoryOverhead;
+
+    @JsonProperty("queue")
     private String queue;
 
-    @JsonProperty
+    @JsonProperty("executorCores")
     private String executorCores;
 
-    @JsonProperty
-    private String parallelism;
-
-    @JsonProperty
-    private String mainClass;
-
-    @JsonProperty
+    @JsonProperty("jarPath")
     private String jarPath;
 
-    @JsonProperty
+    @JsonProperty("master")
     private String master;
 
-    @JsonProperty
+    @JsonProperty("deployMode")
     private String deployMode;
 
-    @JsonProperty
+    @JsonProperty("trackUrl")
     private String trackUrl;
 
-    @JsonProperty
+    @JsonProperty("user")
     private String user;
 
-    public String getUser() {
-        return user;
-    }
+    @JsonProperty("shardItems")
+    private int shardItems;
 
-    public void setUser(String user) {
-        this.user = user;
-    }
+    @JsonProperty("parallelism")
+    private int parallelism;
 
-    public String getTrackUrl() {
-        return trackUrl;
-    }
+    @JsonProperty("sparkClientErrorLog")
+    private String sparkClientErrorLog;
 
-    public void setTrackUrl(String trackUrl) {
-        this.trackUrl = trackUrl;
-    }
-
-    public String getMaster() {
-        return master;
-    }
-
-    public void setMaster(String master) {
-        this.master = master;
-    }
-
-    public String getDeployMode() {
-        return deployMode;
-    }
-
-    public void setDeployMode(String deployMode) {
-        this.deployMode = deployMode;
-    }
-
-    public String getMainClass() {
-        return mainClass;
-    }
-
-    public void setMainClass(String mainClass) {
-        this.mainClass = mainClass;
-    }
-
-    public String getJarPath() {
-        return jarPath;
-    }
-
-    public void setJarPath(String jarPath) {
-        this.jarPath = jarPath;
-    }
+    @JsonProperty("logVerbose")
+    private boolean logVerbose;
 
     public String getDriverMemory() {
         return driverMemory;
@@ -115,6 +78,14 @@ public class SparkTaskConfig {
         this.executorInstances = executorInstances;
     }
 
+    public String getMemoryOverhead() {
+        return memoryOverhead;
+    }
+
+    public void setMemoryOverhead(String memoryOverhead) {
+        this.memoryOverhead = memoryOverhead;
+    }
+
     public String getQueue() {
         return queue;
     }
@@ -131,29 +102,96 @@ public class SparkTaskConfig {
         this.executorCores = executorCores;
     }
 
-    public String getParallelism() {
+    public String getJarPath() {
+        return jarPath;
+    }
+
+    public void setJarPath(String jarPath) {
+        this.jarPath = jarPath;
+    }
+
+    public String getMaster() {
+        return master;
+    }
+
+    public void setMaster(String master) {
+        this.master = master;
+    }
+
+    public String getDeployMode() {
+        return deployMode;
+    }
+
+    public void setDeployMode(String deployMode) {
+        this.deployMode = deployMode;
+    }
+
+    public String getTrackUrl() {
+        return trackUrl;
+    }
+
+    public void setTrackUrl(String trackUrl) {
+        this.trackUrl = trackUrl;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public int getShardItems() {
+        return shardItems;
+    }
+
+    public void setShardItems(int shardItems) {
+        this.shardItems = shardItems;
+    }
+
+    public int getParallelism() {
         return parallelism;
     }
 
-    public void setParallelism(String parallelism) {
+    public void setParallelism(int parallelism) {
         this.parallelism = parallelism;
+    }
+
+    public String getSparkClientErrorLog() {
+        return sparkClientErrorLog;
+    }
+
+    public void setSparkClientErrorLog(String sparkClientErrorLog) {
+        this.sparkClientErrorLog = sparkClientErrorLog;
+    }
+
+    public boolean isLogVerbose() {
+        return logVerbose;
+    }
+
+    public void setLogVerbose(boolean logVerbose) {
+        this.logVerbose = logVerbose;
     }
 
     @Override
     public String toString() {
-        return "SparkJobConfig{" +
+        return "SparkTaskConfig{" +
                 "driverMemory='" + driverMemory + '\'' +
                 ", executorMemory='" + executorMemory + '\'' +
                 ", executorInstances='" + executorInstances + '\'' +
+                ", memoryOverhead='" + memoryOverhead + '\'' +
                 ", queue='" + queue + '\'' +
                 ", executorCores='" + executorCores + '\'' +
-                ", parallelism='" + parallelism + '\'' +
-                ", mainClass='" + mainClass + '\'' +
                 ", jarPath='" + jarPath + '\'' +
                 ", master='" + master + '\'' +
                 ", deployMode='" + deployMode + '\'' +
                 ", trackUrl='" + trackUrl + '\'' +
                 ", user='" + user + '\'' +
+                ", shardItems=" + shardItems +
+                ", parallelism=" + parallelism +
+                ", sparkClientErrorLog='" + sparkClientErrorLog + '\'' +
+                ", logVerbose=" + logVerbose +
                 '}';
     }
 }

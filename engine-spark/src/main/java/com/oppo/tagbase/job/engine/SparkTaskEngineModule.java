@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.oppo.tagbase.common.guice.ConfBind;
 import com.oppo.tagbase.common.guice.ExtensionBind;
+import com.oppo.tagbase.jobv2.spi.TaskEngine;
 
 /**
  * Created by liangjingya on 2020/2/8.
@@ -14,31 +15,9 @@ public class SparkTaskEngineModule extends AbstractModule {
     protected void configure() {
 
         Binder binder = binder();
-        ConfBind.bind(binder,
-                "tagbase.job.spark.bitmap",
-                SparkTaskConfig.class,
-                "bitmapBuildingTaskConfig"
-        );
 
-        ConfBind.bind(binder,
-                "tagbase.job.spark.invertedDict",
-                SparkTaskConfig.class,
-                "invertedDictTaskConfig"
-        );
-
-        ExtensionBind.bind(
-                binder,
-                TaskEngine.class,
-                "tagbase.job.type",
-                "spark"
-        );
-
-        ExtensionBind.registerImpl(
-                binder,
-                TaskEngine.class,
-                "spark",
-                SparkTaskEngine.class
-        );
-
+        ConfBind.bind(binder, SparkTaskConfig.class);
+        ExtensionBind.bind(binder, TaskEngine.class);
+        ExtensionBind.registerImpl(binder, SparkTaskEngine.class);
     }
 }

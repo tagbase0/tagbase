@@ -140,7 +140,7 @@ public class DictJobExecutableMaker {
 
                 return null;
 
-            } catch (IOException | InterruptedException e) {
+            } catch (InterruptedException e) {
                 throw new JobException("error when get external task %s status", task.getAppId());
             }
         });

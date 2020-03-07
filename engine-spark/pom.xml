@@ -12,14 +12,28 @@
     <artifactId>engine-spark</artifactId>
 
     <properties>
-        <spark.version>2.3.2</spark.version>
+        <spark.version>2.4.0</spark.version>
+        <httpclient.version>4.5.10</httpclient.version>
     </properties>
 
     <dependencies>
+
         <dependency>
             <groupId>com.oppo</groupId>
             <artifactId>core-common</artifactId>
             <version>${parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.oppo</groupId>
+            <artifactId>core-job</artifactId>
+            <version>${parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${httpclient.version}</version>
         </dependency>
 
         <dependency>
