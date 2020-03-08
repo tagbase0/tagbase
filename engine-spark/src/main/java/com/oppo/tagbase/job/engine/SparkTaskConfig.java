@@ -48,11 +48,18 @@ public class SparkTaskConfig {
     @JsonProperty("parallelism")
     private int parallelism;
 
-    @JsonProperty("sparkClientErrorLog")
-    private String sparkClientErrorLog;
+    @JsonProperty("sparkLogPath")
+    private String sparkLogPath;
 
     @JsonProperty("logVerbose")
     private boolean logVerbose;
+
+    @JsonProperty("waitAppCompletion")
+    private boolean waitAppCompletion;
+
+    @JsonProperty("maxAppAttempts")
+    private int maxAppAttempts;
+
 
     public String getDriverMemory() {
         return driverMemory;
@@ -158,12 +165,12 @@ public class SparkTaskConfig {
         this.parallelism = parallelism;
     }
 
-    public String getSparkClientErrorLog() {
-        return sparkClientErrorLog;
+    public String getSparkLogPath() {
+        return sparkLogPath;
     }
 
-    public void setSparkClientErrorLog(String sparkClientErrorLog) {
-        this.sparkClientErrorLog = sparkClientErrorLog;
+    public void setSparkLogPath(String sparkLogPath) {
+        this.sparkLogPath = sparkLogPath;
     }
 
     public boolean isLogVerbose() {
@@ -172,6 +179,22 @@ public class SparkTaskConfig {
 
     public void setLogVerbose(boolean logVerbose) {
         this.logVerbose = logVerbose;
+    }
+
+    public boolean isWaitAppCompletion() {
+        return waitAppCompletion;
+    }
+
+    public void setWaitAppCompletion(boolean waitAppCompletion) {
+        this.waitAppCompletion = waitAppCompletion;
+    }
+
+    public int getMaxAppAttempts() {
+        return maxAppAttempts;
+    }
+
+    public void setMaxAppAttempts(int maxAppAttempts) {
+        this.maxAppAttempts = maxAppAttempts;
     }
 
     @Override
@@ -190,8 +213,10 @@ public class SparkTaskConfig {
                 ", user='" + user + '\'' +
                 ", shardItems=" + shardItems +
                 ", parallelism=" + parallelism +
-                ", sparkClientErrorLog='" + sparkClientErrorLog + '\'' +
+                ", sparkLogPath='" + sparkLogPath + '\'' +
                 ", logVerbose=" + logVerbose +
+                ", waitAppCompletion=" + waitAppCompletion +
+                ", maxAppAttempts=" + maxAppAttempts +
                 '}';
     }
 }

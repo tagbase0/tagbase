@@ -45,7 +45,7 @@ object InvertedDictBuildingTask{
     val sliceColumn = dictTaskMeta.getSliceColumnName
     val sliceLeftValue = dictTaskMeta.getSliceColumnnValueLeft
     val sliceRightValue = dictTaskMeta.getSliceColumnValueRight
-    val maxCountPerPartition = if (dictTaskMeta.getMaxRowPartition<50000000) 50000000 else dictTaskMeta.getMaxRowPartition
+    val maxCountPerPartition = if (dictTaskMeta.getMaxRowPartition<10000000) 10000000 else dictTaskMeta.getMaxRowPartition
 
     val appName = "tagbase_invertedDict_task"
 

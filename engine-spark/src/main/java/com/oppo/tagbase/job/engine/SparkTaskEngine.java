@@ -29,11 +29,9 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -50,6 +48,9 @@ public class SparkTaskEngine implements TaskEngine {
 
     private static final String SINGLE_QUOTATION = "\'";
 
+
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
     @Override
     public String buildDict(DictTaskContext context) throws JobException {
 
@@ -65,7 +66,8 @@ public class SparkTaskEngine implements TaskEngine {
         }
         String mainClass = "com.oppo.tagbase.job.spark.InvertedDictBuildingTask";
 //        String mainClass = "com.oppo.tagbase.job.spark.example.InvertedDictBuildingTaskExample";
-        String result = submitSparkJob(appArgs, taskConfigMap, mainClass);
+        String sparkLoggerName = context.getJobId() + "_" + context.getTaskId() + ".log";
+        String result = submitSparkJob(appArgs, taskConfigMap, mainClass, sparkLoggerName);
 
         return result;
     }
@@ -114,7 +116,8 @@ public class SparkTaskEngine implements TaskEngine {
         }
         String mainClass = "com.oppo.tagbase.job.spark.BitmapBuildingTask";
 //        String mainClass = "com.oppo.tagbase.job.spark.example.BitmapBuildingTaskExample";
-        String result = submitSparkJob(appArgs, taskConfigMap, mainClass);
+        String sparkLoggerName = context.getJobId() + "_" + context.getTaskId() + ".log";
+        String result = submitSparkJob(appArgs, taskConfigMap, mainClass, sparkLoggerName);
 
         return result;
     }
@@ -212,6 +215,9 @@ public class SparkTaskEngine implements TaskEngine {
         taskConfigMap.put(SparkConfigConstant.EXECUTOR_MEMORY_OVERHEAD, defaultTaskConfig.getMemoryOverhead());
         taskConfigMap.put(SparkConfigConstant.YARN_QUEUE, defaultTaskConfig.getQueue());
 
+        taskConfigMap.put(SparkConfigConstant.WAIT_APP_COMPLETION, String.valueOf(defaultTaskConfig.isWaitAppCompletion()));
+        taskConfigMap.put(SparkConfigConstant.MAX_APP_ATTEMPTS, String.valueOf(defaultTaskConfig.getMaxAppAttempts()));
+
         //设置用户自定义配置
         jobProps.stream()
                 .filter(props -> SparkConfigConstant.USER_CONFIG_WHITELIST.contains(props.getKey()))
@@ -249,9 +255,17 @@ public class SparkTaskEngine implements TaskEngine {
         return tagbaseConfDir;
     }
 
-    private String submitSparkJob(String taskMeta, Map<String,String> taskConfigMap, String mainClass) throws JobException {
+    private synchronized boolean checkSparkLogDir(String path){
+        File dir = new File(path);
+        if(!dir.exists() && !dir.mkdirs()){
+            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, "submit spark job error, can not create %s", path);
+        }
+        return true;
+    }
 
-        log.debug("submit Spark Job, taskMeta: {}", taskMeta);
+    private String submitSparkJob(String taskMeta, Map<String,String> taskConfigMap, String mainClass, String sparkLoggerName) throws JobException {
+
+        log.info("submit Spark Job, taskMeta: {}", taskMeta);
         log.debug("submit Spark Job, taskConfigMap: {}", taskConfigMap);
 
         String sparkHome = checkSparkHome();
@@ -261,6 +275,10 @@ public class SparkTaskEngine implements TaskEngine {
         checkFile(coreSitePath);
         checkFile(hdfsSitePath);
 
+        String sparkLogDir = defaultTaskConfig.getSparkLogPath() + File.separator + sdf.format(new Date());
+        checkSparkLogDir(sparkLogDir);
+        String taskLog = sparkLogDir + File.separator + sparkLoggerName;
+
         System.setProperty("user.name", defaultTaskConfig.getUser());
         System.setProperty("HADOOP_USER_NAME", defaultTaskConfig.getUser());
 
@@ -269,8 +287,11 @@ public class SparkTaskEngine implements TaskEngine {
         try {
             SparkLauncher launcher  = new SparkLauncher()
                     .setSparkHome(sparkHome)
-                    //重定向spark客户端的错误日志
-                    .redirectError(ProcessBuilder.Redirect.appendTo(new File(defaultTaskConfig.getSparkClientErrorLog())))
+                    //重定向spark客户端的日志
+                    //.redirectError(ProcessBuilder.Redirect.appendTo(new File(defaultTaskConfig.getSparkClientErrorLog())))
+                    //.redirectError(ProcessBuilder.Redirect.INHERIT)
+                    .redirectError()
+                    .redirectOutput(ProcessBuilder.Redirect.appendTo(new File(taskLog)))
                     .setAppResource(defaultTaskConfig.getJarPath())
                     .setMainClass(mainClass)
                     .addAppArgs(taskMeta)//传递hive表等json参数
@@ -301,7 +322,7 @@ public class SparkTaskEngine implements TaskEngine {
         }
         //提交失败
         if(appid == null){
-            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, "SparkLauncher error, please check %s", defaultTaskConfig.getSparkClientErrorLog());
+            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, "SparkLauncher error, please check %s", taskLog);
         }
         return appid;
 

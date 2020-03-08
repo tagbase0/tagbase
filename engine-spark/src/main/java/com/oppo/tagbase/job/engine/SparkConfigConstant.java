@@ -21,6 +21,9 @@ public class SparkConfigConstant {
     public static final String YARN_QUEUE = "spark.yarn.queue";
     public static final String EXECUTOR_MEMORY_OVERHEAD = "spark.executor.memoryOverhead";
 
+    public static final String WAIT_APP_COMPLETION = "spark.yarn.submit.waitAppCompletion";
+    public static final String MAX_APP_ATTEMPTS = "spark.yarn.maxAppAttempts";
+
     public static final String DRIVER_EXTRA_CLASSPATH = "spark.driver.extraClassPath";
     public static final String DRIVER_EXTRA_JAVA_OPTIONS = "spark.driver.extraJavaOptions";
     public static final String DRIVER_EXTRA_LIBRARY_PATH = "spark.driver.extraLibraryPath";
