@@ -1,9 +1,17 @@
 package com.oppo.tagbase.extension.spi;
 
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ServiceLoader;
 
 /**
  * @author huangfeng
@@ -11,22 +19,33 @@ import java.util.*;
  */
 public class PluginManager {
 
-    private static final List<String> SPI_PACKAGES = Arrays.asList("com.oppo.tagbase.extension.spi");
+    private static final List<String> SPI_PACKAGES = Arrays.asList("com.oppo.tagbase.extension.spi","com.google.inject","core-site","hdfs-site");
 
-    Map<String, FileSystemFactory> factories = new HashMap<>();
 
-    public void register(String name, FileSystemFactory factory) {
-        factories.put(name, factory);
+    public static void main(String[] args) throws Exception {
+
+        List<Module> modules = new PluginManager().load("plugin");
+        Injector injector = Guice.createInjector(modules);
+
+        FileSystem fileSystem = injector.getInstance(FileSystem.class);
+
+        if(args[0].equals("1")) {
+            fileSystem.copyToLocalFile("/test/feng/example",".");
+        }else if(args[0].equals("2")) {
+            fileSystem.copyFromLocalFile("a", "/test/feng/");
+        }else {
+            fileSystem.getFileSize(args[0]);
+        }
+        System.out.println(fileSystem.getClass());
     }
 
-    public void load(String dirPath) throws Exception {
+    public List<Module> load(String dirPath) throws Exception {
 
         URLClassLoader classLoader = buildExtensionLoader(dirPath);
 
-        ServiceLoader<FileSystemFactory> factories = ServiceLoader.load(FileSystemFactory.class, classLoader);
-        for (FileSystemFactory factory : factories) {
-            register(factory.getName(),factory);
-        }
+        ServiceLoader<Module> pluginModules = ServiceLoader.load(Module.class, classLoader);
+
+        return ImmutableList.copyOf(pluginModules);
     }
 
     private URLClassLoader buildExtensionLoader(String dirPath) throws Exception {

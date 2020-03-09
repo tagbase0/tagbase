@@ -25,10 +25,7 @@ public class GuiceInjectors {
         return ImmutableList.of(
                 new JacksonModule(),
                 new PropsModule(ImmutableList.of("tagbase.properties")),
-                new ValidatorModule(),
-                new LifecycleModule(),
-                new JettyModule(),
-                new StatusModule()
+                new ValidatorModule()
         );
     }
 }

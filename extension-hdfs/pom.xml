@@ -10,18 +10,42 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>extension-hdfs</artifactId>
+    <repositories>
+        <repository>
+            <id>cloudera</id>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+    </repositories>
+
+    <properties>
+        <hadoop.version>2.6.0-cdh5.14.4</hadoop.version>
+    </properties>
     <dependencies>
-        <dependency>
-            <groupId>com.oppo</groupId>
-            <artifactId>extension-spi</artifactId>
-            <version>1.0</version>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
             <version>${hadoop.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.oppo</groupId>
+            <artifactId>extension-spi</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+
 
 
     </dependencies>

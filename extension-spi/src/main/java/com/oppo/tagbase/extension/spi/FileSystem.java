@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 /**
  * @author huangfeng
@@ -17,6 +18,8 @@ public interface FileSystem extends Closeable {
     void copyFromLocalFile(String srcPath, String destPath) throws IOException;
 
     void copyToLocalFile(String srcPath, String destPath) throws IOException;
+
+    List<String> listFiles(String dirPath) throws  IOException;
 
     long getFileSize(String filePath) throws IOException;
 
