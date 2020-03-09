@@ -1,14 +1,19 @@
 package com.oppo.tagbase.extension.hdfs;
 
+import com.google.inject.Inject;
 import com.oppo.tagbase.extension.spi.FileSystem;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author huangfeng
@@ -17,8 +22,11 @@ import java.io.OutputStream;
 public class HDFSFileSystem implements FileSystem {
     org.apache.hadoop.fs.FileSystem delegate;
 
-    public HDFSFileSystem(Configuration configuration) throws IOException {
-        delegate = org.apache.hadoop.fs.FileSystem.newInstance(configuration);
+
+    @Inject
+    public HDFSFileSystem(Configuration conf) throws IOException {
+        conf.setClassLoader(HDFSFileSystem.class.getClassLoader());
+        delegate = org.apache.hadoop.fs.FileSystem.get(conf);
     }
 
     @Override
@@ -33,18 +41,29 @@ public class HDFSFileSystem implements FileSystem {
         return new HDFSReader(fsd);
     }
 
-    public void copyFromLocalFile(String srcPath,String destPath) throws IOException {
-        delegate.copyFromLocalFile(new Path(srcPath),new Path(destPath));
+    @Override
+    public void copyFromLocalFile(String srcPath, String destPath) throws IOException {
+        delegate.copyFromLocalFile(new Path(srcPath), new Path(destPath));
     }
 
-    public void copyToLocalFile(String srcPath,String destPath) throws IOException {
-        delegate.copyToLocalFile(new Path(srcPath),new Path(destPath));
+    @Override
+    public void copyToLocalFile(String srcPath, String destPath) throws IOException {
+        delegate.copyToLocalFile(new Path(srcPath), new Path(destPath));
+    }
+
+    @Override
+    public List<String> listFiles(String dirPath) throws IOException {
+        return Arrays.stream(delegate.listStatus(new Path(dirPath))).map(fileStatus -> fileStatus.getPath().getName()).collect(Collectors.toList());
     }
 
 
     @Override
     public long getFileSize(String filePath) throws IOException {
-        return delegate.getFileStatus(new Path(filePath)).getLen();
+        Path path = new Path(filePath);
+        System.out.println(path);
+        FileStatus status = delegate.getFileStatus(new Path(filePath));
+        System.out.println(status);
+        return status.getLen();
     }
 
     @Override

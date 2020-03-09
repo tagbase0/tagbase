@@ -46,6 +46,7 @@ public final class PluginClassLoader
         this.spiResources = spiResources;
     }
 
+
     @Override
     protected Class<?> loadClass(String name, boolean resolve)
             throws ClassNotFoundException {
