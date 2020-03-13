@@ -1,5 +1,8 @@
 package com.oppo.tagbase.job.obj;
 
+/**
+ * Created by liangjingya on 2020/3/05.
+ */
 public class DictTaskMeta {
 
     private String dictBasePath;//反向字典表的hdfspath

@@ -18,20 +18,20 @@ import org.slf4j.{Logger, LoggerFactory}
 
 object InvertedDictBuildingTask{
 
-  case class invertedDict(imei: String, id: Long)
+  case class InvertedDict(imei: String, id: Long)
 
   val log: Logger = LoggerFactory.getLogger(getClass)
 
   def main(args: Array[String]): Unit = {
 
-    checkArgs(args)
+    TaskUtil.checkArgs(args)
     val dictMeataJson = args(0)
     log.info("tagbase info, dictMeataJson: {}", dictMeataJson)
 
     val objectMapper = new ObjectMapper
 //    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     val dictTaskMeta = objectMapper.readValue(dictMeataJson, classOf[DictTaskMeta])
-    checkPath(dictTaskMeta.getOutputPath)
+    TaskUtil.checkPath(dictTaskMeta.getOutputPath)
 
     log.info("tagbase info, dictTaskMeta: {}", dictTaskMeta)
 
@@ -91,7 +91,7 @@ object InvertedDictBuildingTask{
       else spark.sparkContext.textFile(dictInputPath)
         .map(row => {
           val imeiIdMap = row.split(delimiterBroadcast.value)
-          invertedDict(imeiIdMap(0), imeiIdMap(1).toLong)
+          InvertedDict(imeiIdMap(0), imeiIdMap(1).toLong)
         })
         .toDF()
 
@@ -107,10 +107,9 @@ object InvertedDictBuildingTask{
       .rdd
 
     val newImeiCount = newImeiRdd.count()
-    val partitionCount =
-      if (newImeiCount % maxCountPerPartition > 0) (newImeiCount / maxCountPerPartition + 1)
-      else (newImeiCount / maxCountPerPartition)
+    val partitionCount = TaskUtil.getPartition(newImeiCount, maxCountPerPartition)
     log.info(String.format("tagbase info, newImeiCount: %s, partitionCount： %s, maxCountPerPartition: %s", newImeiCount.toString, partitionCount.toString, maxCountPerPartition.toString))
+
     class imeiIdPartitioner() extends Partitioner{
       override def numPartitions: Int = partitionCount.toInt
       override def getPartition(key: Any): Int = {
@@ -137,28 +136,6 @@ object InvertedDictBuildingTask{
 
     spark.stop()
 
-  }
-
-
-  def checkArgs(args: Array[String]): Unit = {
-    if (args == null){
-      log.error("tagbase info, illegal parameter, not found args")
-      System.exit(1)
-    }
-    if (args.size > 1){
-      log.error("tagbase info, illegal parameter, args size must be 1, {}", args)
-      System.exit(1)
-    }
-  }
-
-  def checkPath(path: String): Unit = {
-    val dictTablePath = "hdfs://alg-hdfs/business/datacenter/osql/tagbase/invertedDict"
-    val tagbasePath = "hdfs://alg-hdfs/business/datacenter/osql/tagbase"
-    val osqlPath = "hdfs://alg-hdfs/business/datacenter/osql"
-    if (dictTablePath.equals(path) || tagbasePath.equals(path) || osqlPath.equals(path)){
-      log.error("tagbase info, illegal Path, {}", path)
-      System.exit(1)
-    }
   }
 
 }

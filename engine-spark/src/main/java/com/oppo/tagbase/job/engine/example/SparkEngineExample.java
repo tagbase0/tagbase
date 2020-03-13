@@ -59,7 +59,7 @@ public class SparkEngineExample {
         columns.add(c);
         Column d=new Column();d.setSrcName("imei");d.setIndex(-1);d.setType(ColumnType.BITMAP_COLUMN);
         columns.add(d);
-        Column e=new Column();e.setSrcName("daynum");e.setIndex(-1);e.setType(ColumnType.SLICE_COLUMN);
+        Column e=new Column();e.setSrcName("dayno");e.setIndex(-1);e.setType(ColumnType.SLICE_COLUMN);
         e.setSrcPartColDateFormat(ColDateFormat.HIVE_DATE);e.setSrcDataType(ResourceColType.NUMBER);
         columns.add(e);
         table.setColumns(columns);

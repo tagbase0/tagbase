@@ -12,10 +12,7 @@ import com.oppo.tagbase.jobv2.spi.DataTaskContext;
 import com.oppo.tagbase.jobv2.spi.DictTaskContext;
 import com.oppo.tagbase.jobv2.spi.TaskEngine;
 import com.oppo.tagbase.jobv2.spi.TaskStatus;
-import com.oppo.tagbase.meta.obj.Column;
-import com.oppo.tagbase.meta.obj.ColumnType;
-import com.oppo.tagbase.meta.obj.Props;
-import com.oppo.tagbase.meta.obj.ResourceColType;
+import com.oppo.tagbase.meta.obj.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -114,8 +111,16 @@ public class SparkTaskEngine implements TaskEngine {
         } catch (JsonProcessingException e) {
             throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, e, "parse json error");
         }
-        String mainClass = "com.oppo.tagbase.job.spark.BitmapBuildingTask";
-//        String mainClass = "com.oppo.tagbase.job.spark.example.BitmapBuildingTaskExample";
+//        String mainClass = "com.oppo.tagbase.job.spark.BitmapBuildingTask";
+        String mainClass = null;
+        TableType taskType = context.getTable().getType();
+        if(taskType == TableType.TAG){
+            mainClass = "com.oppo.tagbase.job.spark.BitmapBuildingTagTask";
+        }else if(taskType == TableType.ACTION){
+            mainClass = "com.oppo.tagbase.job.spark.BitmapBuildingActionTask";
+        }else {
+            throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, "not support taskType %s", taskType);
+        }
         String sparkLoggerName = context.getJobId() + "_" + context.getTaskId() + ".log";
         String result = submitSparkJob(appArgs, taskConfigMap, mainClass, sparkLoggerName);
 
@@ -155,11 +160,14 @@ public class SparkTaskEngine implements TaskEngine {
         if(sliceColumn.getSrcDataType()== ResourceColType.STRING) {
             taskMeta.setSliceColumnnValueLeft(SINGLE_QUOTATION + df.format(context.getLowerBound()) + SINGLE_QUOTATION);
             taskMeta.setSliceColumnValueRight(SINGLE_QUOTATION + df.format(context.getUpperBound()) + SINGLE_QUOTATION);
+            taskMeta.setSliceColumnFormat(sliceColumn.getSrcPartColDateFormat().getFormat());
         }else{
             taskMeta.setSliceColumnnValueLeft(df.format(context.getLowerBound()));
             taskMeta.setSliceColumnValueRight(df.format(context.getUpperBound()));
+            taskMeta.setSliceColumnFormat(ColDateFormat.HIVE_DATE.getFormat());
         }
 
+        taskMeta.setEventIdColumnName(defaultTaskConfig.getEventIdColumnName());
         taskMeta.setDictBasePath(context.getInvertedDictLocation());
         taskMeta.setOutputPath(context.getOutputLocation());
 

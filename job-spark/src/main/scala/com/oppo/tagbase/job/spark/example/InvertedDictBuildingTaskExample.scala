@@ -13,26 +13,30 @@ import org.apache.spark.sql.{Row, SparkSession}
 /**
  * Created by liangjingya on 2020/2/20.
  * 该spark任务功能：构造反向字典，本地可执行调试
+ * windows下模拟测试，需要下载winutil,可以设置环境变量HADOOP_HOME
+ * https://github.com/amihalik/hadoop-common-2.6.0-bin
+ * 另外下载spark-2.3.2-bin-hadoop2.6.tgz解压，可以设置环境变量SPARK_HOME，提交任务需要本地有客户端
+ * https://archive.apache.org/dist/spark/spark-2.3.2/
  */
 object InvertedDictBuildingTaskExample {
 
-  case class imeiHiveTable(imei: String, daynum: String)
+  case class ImeiHiveTable(imei: String, dayno: String)
 
-  case class invertedDict(imei: String, id: Long)
+  case class InvertedDict(imei: String, id: Long)
 
   def main(args: Array[String]): Unit = {
 
     val dictMeataJson =
       """
         |{
-        |	"dictBasePath": "D:\\workStation\\tagbase\\invertedDict",
+        |	"dictBasePath": "D:/workStation/tagbase/invertedDict",
         | "maxId":"7",
         |	"maxRowPartition": "80000",
-        |	"outputPath": "D:\\workStation\\tagbase\\invertedDict\\20200220",
+        |	"outputPath": "D:/workStation/tagbase/invertedDict/20200220",
         |	"dbName": "default",
         |	"tableName": "imeiTable",
         |	"imeiColumnName": "imei",
-        |	"sliceColumnName": "daynum",
+        |	"sliceColumnName": "dayno",
         |	"sliceColumnnValueLeft": "20200220",
         |	"sliceColumnValueRight": "20200221"
         |}
@@ -75,17 +79,17 @@ object InvertedDictBuildingTaskExample {
 
     //此处先伪造本地数据模拟，后续从hive表获取
     val imeiDS = Seq(
-      imeiHiveTable("imeix", "20200220"),
-      imeiHiveTable("imeiy", "20200220"),
-      imeiHiveTable("imeie", "20200220"),
-      imeiHiveTable("imeig", "20200220")
-//      imeiHiveTable("imeia", "20200220"),
-//      imeiHiveTable("imeib", "20200220"),
-//      imeiHiveTable("imeic", "20200220"),
-//      imeiHiveTable("imeid", "20200220"),
+//      imeiHiveTable("imeix", "20200220"),
+//      imeiHiveTable("imeiy", "20200220"),
 //      imeiHiveTable("imeie", "20200220"),
-//      imeiHiveTable("imeif", "20200220"),
 //      imeiHiveTable("imeig", "20200220")
+      ImeiHiveTable("imeia", "20200220"),
+      ImeiHiveTable("imeib", "20200220"),
+      ImeiHiveTable("imeic", "20200220"),
+      ImeiHiveTable("imeid", "20200220"),
+      ImeiHiveTable("imeie", "20200220"),
+      ImeiHiveTable("imeif", "20200220"),
+      ImeiHiveTable("imeig", "20200220")
     ).toDS()
     imeiDS.createTempView(s"$db$table")
 
@@ -110,7 +114,7 @@ object InvertedDictBuildingTaskExample {
       else spark.sparkContext.textFile(dictInputPath)
         .map(row => {
           val imeiIdMap = row.split(delimiterBroadcast.value)
-          invertedDict(imeiIdMap(0), imeiIdMap(1).toLong)
+          InvertedDict(imeiIdMap(0), imeiIdMap(1).toLong)
         })
         .toDF()
 

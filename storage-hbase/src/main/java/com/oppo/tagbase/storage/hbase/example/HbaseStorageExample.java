@@ -86,9 +86,9 @@ public class HbaseStorageExample {
 
         RangeSet<LocalDateTime> sliceRange = TreeRangeSet.create();
         sliceRange.add(Range.lessThan(LocalDateTime.now()));
-        ColumnDomain<LocalDateTime> sliceQuery = new ColumnDomain<LocalDateTime>(sliceRange,"daynum");
+        ColumnDomain<LocalDateTime> sliceQuery = new ColumnDomain<LocalDateTime>(sliceRange,"dayno");
 
-        List<String> dims = new ArrayList<String>(){{add("app");add("event");add("version");add("daynum");}};
+        List<String> dims = new ArrayList<String>(){{add("app");add("event");add("version");add("dayno");}};
         //  List<String> dims = null;
 
         QueryHandler query = new QueryHandler("default","event_20200210",dims,dimQueryList,sliceQuery,"2139872645714");

@@ -60,6 +60,9 @@ public class SparkTaskConfig {
     @JsonProperty("maxAppAttempts")
     private int maxAppAttempts;
 
+    @JsonProperty("eventIdColumnName")
+    private String eventIdColumnName;
+
 
     public String getDriverMemory() {
         return driverMemory;
@@ -197,6 +200,14 @@ public class SparkTaskConfig {
         this.maxAppAttempts = maxAppAttempts;
     }
 
+    public String getEventIdColumnName() {
+        return eventIdColumnName;
+    }
+
+    public void setEventIdColumnName(String eventIdColumnName) {
+        this.eventIdColumnName = eventIdColumnName;
+    }
+
     @Override
     public String toString() {
         return "SparkTaskConfig{" +
@@ -217,6 +228,7 @@ public class SparkTaskConfig {
                 ", logVerbose=" + logVerbose +
                 ", waitAppCompletion=" + waitAppCompletion +
                 ", maxAppAttempts=" + maxAppAttempts +
+                ", eventIdColumnName=" + eventIdColumnName +
                 '}';
     }
 }

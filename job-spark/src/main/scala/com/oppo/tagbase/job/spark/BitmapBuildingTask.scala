@@ -24,13 +24,13 @@ import scala.collection.JavaConverters._
  */
 object BitmapBuildingTask {
 
-  case class invertedDict(imei: String, id: Long)
+  case class InvertedDict(imei: String, id: Long)
 
   val log: Logger = LoggerFactory.getLogger(getClass)
 
   def main(args: Array[String]): Unit = {
 
-    checkArgs(args)
+    TaskUtil.checkArgs(args)
     val dataMeataJson = args(0)
     log.info("tagbase info, dataMeataJson: " + dataMeataJson)
 
@@ -38,7 +38,7 @@ object BitmapBuildingTask {
 //    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     val dataTaskMeta = objectMapper.readValue(dataMeataJson, classOf[DataTaskMeta])
     log.info("tagbase info, dataTaskMeta: " + dataTaskMeta)
-    checkPath(dataTaskMeta.getOutputPath)
+    TaskUtil.checkPath(dataTaskMeta.getOutputPath)
 
     val hfileOutputPath = dataTaskMeta.getOutputPath
     val dictInputPath = dataTaskMeta.getDictBasePath + File.separator + "*"
@@ -87,7 +87,7 @@ object BitmapBuildingTask {
     val dictDs = spark.sparkContext.textFile(dictInputPath)
       .map(row => {
         val imeiIdMap = row.split(delimiterBroadcast.value)
-        invertedDict(imeiIdMap(0), imeiIdMap(1).toLong)
+        InvertedDict(imeiIdMap(0), imeiIdMap(1).toLong)
       })
       .toDS()
     val dictTable = "dictTable"
@@ -116,9 +116,7 @@ object BitmapBuildingTask {
 
 
     val bitmapCount = bitmapData.count()
-    val partitionCount =
-      if (bitmapCount % maxCountPerPartition > 0) (bitmapCount / maxCountPerPartition + 1)
-      else (bitmapCount / maxCountPerPartition)
+    val partitionCount = TaskUtil.getPartition(bitmapCount, maxCountPerPartition)
     log.info(String.format("tagbase info, bitmapCount: %s, partitionCount： %s, maxCountPerPartition: %s", bitmapCount.toString, partitionCount.toString, maxCountPerPartition.toString))
 
     class bitmapPartitioner() extends Partitioner{
@@ -180,28 +178,6 @@ object BitmapBuildingTask {
 
     spark.stop()
 
-  }
-
-
-  def checkArgs(args: Array[String]): Unit = {
-    if (args == null){
-      log.error("tagbase info, illegal parameter, not found args")
-      System.exit(1)
-    }
-    if (args.size > 1){
-      log.error("tagbase info, illeal parameter, args size must be 1, {}", args)
-      System.exit(1)
-    }
-  }
-
-  def checkPath(path: String): Unit = {
-    val dictTablePath = "hdfs://alg-hdfs/business/datacenter/osql/tagbase/invertedDict"
-    val tagbasePath = "hdfs://alg-hdfs/business/datacenter/osql/tagbase"
-    val osqlPath = "hdfs://alg-hdfs/business/datacenter/osql"
-    if (dictTablePath.equals(path) || tagbasePath.equals(path) || osqlPath.equals(path)){
-      log.error("tagbase info, illegal Path, {}", path)
-      System.exit(1)
-    }
   }
 
 }

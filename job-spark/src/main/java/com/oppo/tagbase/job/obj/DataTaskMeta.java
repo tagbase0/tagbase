@@ -24,7 +24,11 @@ public class DataTaskMeta {
 
     private String sliceColumnValueRight;
 
-    public DataTaskMeta(String dictBasePath, int maxRowPartition, String outputPath, String dbName, String tableName, List<String> dimColumnNames, String imeiColumnName, String sliceColumnName, String sliceColumnnValueLeft, String sliceColumnValueRight) {
+    private String sliceColumnFormat;
+
+    private String eventIdColumnName;
+
+    public DataTaskMeta(String dictBasePath, int maxRowPartition, String outputPath, String dbName, String tableName, List<String> dimColumnNames, String imeiColumnName, String sliceColumnName, String sliceColumnnValueLeft, String sliceColumnValueRight, String sliceColumnFormat, String eventIdColumnName) {
         this.dictBasePath = dictBasePath;
         this.maxRowPartition = maxRowPartition;
         this.outputPath = outputPath;
@@ -35,6 +39,8 @@ public class DataTaskMeta {
         this.sliceColumnName = sliceColumnName;
         this.sliceColumnnValueLeft = sliceColumnnValueLeft;
         this.sliceColumnValueRight = sliceColumnValueRight;
+        this.sliceColumnFormat = sliceColumnFormat;
+        this.eventIdColumnName = eventIdColumnName;
     }
 
     public DataTaskMeta() {
@@ -120,9 +126,25 @@ public class DataTaskMeta {
         this.sliceColumnValueRight = sliceColumnValueRight;
     }
 
+    public String getSliceColumnFormat() {
+        return sliceColumnFormat;
+    }
+
+    public void setSliceColumnFormat(String sliceColumnFormat) {
+        this.sliceColumnFormat = sliceColumnFormat;
+    }
+
+    public String getEventIdColumnName() {
+        return eventIdColumnName;
+    }
+
+    public void setEventIdColumnName(String eventIdColumnName) {
+        this.eventIdColumnName = eventIdColumnName;
+    }
+
     @Override
     public String toString() {
-        return "DictTaskMeta{" +
+        return "DataTaskMeta{" +
                 "dictBasePath='" + dictBasePath + '\'' +
                 ", maxRowPartition=" + maxRowPartition +
                 ", outputPath='" + outputPath + '\'' +
@@ -133,6 +155,8 @@ public class DataTaskMeta {
                 ", sliceColumnName='" + sliceColumnName + '\'' +
                 ", sliceColumnnValueLeft='" + sliceColumnnValueLeft + '\'' +
                 ", sliceColumnValueRight='" + sliceColumnValueRight + '\'' +
+                ", sliceColumnFormat='" + sliceColumnFormat + '\'' +
+                ", eventIdColumnName='" + eventIdColumnName + '\'' +
                 '}';
     }
 }

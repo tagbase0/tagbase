@@ -20,26 +20,30 @@ import scala.collection.JavaConverters._
 /**
  * Created by liangjingya on 2020/2/11.
  * 该spark任务功能：读取反向字典和维度hive表，批量生成hfile，本地可执行调试
+ * windows下模拟测试，需要下载winutil,可以设置环境变量HADOOP_HOME
+ * https://github.com/amihalik/hadoop-common-2.6.0-bin
+ * 另外下载spark-2.3.2-bin-hadoop2.6.tgz解压，可以设置环境变量SPARK_HOME，提交任务需要本地有客户端
+ * https://archive.apache.org/dist/spark/spark-2.3.2/
  */
 object BitmapBuildingTaskExample {
 
-  case class eventHiveTable(imei: String, app: String, event: String, version: String, daynum: String)
+  case class EventHiveTable(imei: String, app: String, event: String, version: String, dayno: String)
 
-  case class invertedDict(imei: String, id: Long)
+  case class InvertedDict(imei: String, id: Long)
 
   def main(args: Array[String]): Unit = {
 
     val dataMeataJson =
       """
         |{
-        |	"dictBasePath": "D:\\workStation\\tagbase\\invertedDict",
+        |	"dictBasePath": "D:/workStation/tagbase/invertedDict",
         |	"maxRowPartition": "50000000",
-        |	"outputPath": "D:\\workStation\\tagbase\\bitmapData\\jobidxxxx\\taskidxxxx",
+        |	"outputPath": "D:/workStation/tagbase/hfileData/jobidxxxx/taskidxxxx",
         |	"dbName": "default",
         |	"tableName": "eventTable",
         |	"dimColumnNames": ["app","event","version"],
         |	"imeiColumnName": "imei",
-        |	"sliceColumnName": "daynum",
+        |	"sliceColumnName": "dayno",
         |	"sliceColumnnValueLeft": "20200220",
         |	"sliceColumnValueRight": "20200221"
         |}
@@ -94,17 +98,17 @@ object BitmapBuildingTaskExample {
 
     //此处先伪造本地数据模拟，后续从hive表获取
     val eventDS = Seq(
-      eventHiveTable("imeia", "wechat", "install", "5.2", "20200220"),
-      eventHiveTable("imeib", "qq", "install", "5.1", "20200220"),
-      eventHiveTable("imeie", "wechat", "uninstall", "5.0", "20200220"),
-      eventHiveTable("imeig", "qq", "install", "5.1", "20200220")
+      EventHiveTable("imeia", "wechat", "install", "5.2", "20200220"),
+      EventHiveTable("imeib", "qq", "install", "5.1", "20200220"),
+      EventHiveTable("imeie", "wechat", "uninstall", "5.0", "20200220"),
+      EventHiveTable("imeig", "qq", "install", "5.1", "20200220")
     ).toDS()
     eventDS.createTempView(s"$db$table")
 
     val dictDs = spark.sparkContext.textFile(dictInputPath)
       .map(row => {
         val imeiIdMap = row.split(delimiterBroadcast.value)
-        invertedDict(imeiIdMap(0), imeiIdMap(1).toLong)
+        InvertedDict(imeiIdMap(0), imeiIdMap(1).toLong)
       })
       .toDS()
     val dictTable = "dictTable"
@@ -134,7 +138,6 @@ object BitmapBuildingTaskExample {
     val partitionCount =
       if (bitmapCount % maxCountPerPartition > 0) (bitmapCount / maxCountPerPartition + 1)
       else (bitmapCount / maxCountPerPartition)
-    System.out.println(String.format("tagbase info, bitmapCount: %s, partitionCount： %s, maxCountPerPartition: %s", bitmapCount.toString, partitionCount.toString, maxCountPerPartition.toString))
 
     class bitmapPartitioner() extends Partitioner{
       override def numPartitions: Int = partitionCount.toInt
