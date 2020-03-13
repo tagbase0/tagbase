@@ -86,6 +86,8 @@ public final class ForwardDictionary extends AbstractDictionary {
 
             // init group first element id index
             //TODO replace [] with [][]
+            // Because [] index can not large than Integer.MA_VALUE,
+            // so the dict file size cannot larger than 64kb * Integer.MA_VALUE
             groupFirstElementId = new long[(int) meta.getGroupNum()];
             if(meta.getGroupNum() > 0L) {
                 groupFirstElementId[0] = 0;
