@@ -12,6 +12,9 @@ public class JobConfig {
     @JsonProperty("work.base.dir")
     private String workDir;
 
+    @JsonProperty("bitmap.dir")
+    private String bitmapDir;
+
     @JsonProperty("dict.inverted.base.path")
     private String invertedDictPath;
 
@@ -21,8 +24,12 @@ public class JobConfig {
     @JsonProperty("pending.limit")
     private int pendingLimit;
 
-  public String getWorkDir() {
+    public String getWorkDir() {
         return workDir;
+    }
+
+    public String getBitmapDir() {
+        return bitmapDir;
     }
 
     public String getInvertedDictPath() {

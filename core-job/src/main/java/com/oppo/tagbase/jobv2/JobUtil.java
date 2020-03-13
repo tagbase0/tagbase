@@ -32,8 +32,7 @@ public class JobUtil {
     public static final String BUILDING_INVERTED_DICT_TASK = "BUILDING_INVERTED_DICT_TASK";
     public static final String BUILDING_FORWARD_DICT_TASK = "BUILDING_FORWARD_DICT_TASK";
 
-    //public static final String REMOTE_STORE_FILE_SEPARATOR = "/";
-    public static final String REMOTE_STORE_FILE_SEPARATOR = File.separator;
+    public static final String REMOTE_STORE_FILE_SEPARATOR = "/";
 
     public static String taskNamePrefix(Job job) {
         return job.getName();

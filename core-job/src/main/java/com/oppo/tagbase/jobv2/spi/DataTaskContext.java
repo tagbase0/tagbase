@@ -2,13 +2,17 @@ package com.oppo.tagbase.jobv2.spi;
 
 import com.oppo.tagbase.common.util.Uuid;
 import com.oppo.tagbase.jobv2.JobConfig;
+import com.oppo.tagbase.jobv2.JobUtil;
 import com.oppo.tagbase.meta.obj.Props;
 import com.oppo.tagbase.meta.obj.Table;
+import com.oppo.tagbase.meta.obj.TableType;
 
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.StringJoiner;
+
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 
 /**
  * Created by wujianchao on 2020/3/2.
@@ -52,6 +56,10 @@ public class DataTaskContext {
         return table;
     }
 
+    public TableType getTableType() {
+        return table.getType();
+    }
+
     public String getInvertedDictLocation() {
         return jobConfig.getInvertedDictPath();
     }
@@ -69,15 +77,16 @@ public class DataTaskContext {
     }
 
     public String getWorkDir() {
-        StringJoiner joiner = new StringJoiner(File.separator);
+        StringJoiner joiner = new StringJoiner(JobUtil.REMOTE_STORE_FILE_SEPARATOR);
         joiner.add(jobConfig.getWorkDir());
-        joiner.add(jobId);
-        joiner.add(taskId);
-        joiner.add(uuid);
+        joiner.add(lowerBound.format(ISO_DATE_TIME));
         return joiner.toString();
     }
 
     public String getOutputLocation() {
-        return getWorkDir();
+        StringJoiner joiner = new StringJoiner(JobUtil.REMOTE_STORE_FILE_SEPARATOR);
+        joiner.add(jobConfig.getBitmapDir());
+        joiner.add(lowerBound.format(ISO_DATE_TIME));
+        return joiner.toString();
     }
 }
