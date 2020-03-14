@@ -2,6 +2,9 @@ package com.oppo.tagbase.job.engine.obj;
 
 import java.util.List;
 
+/**
+ * Created by liangjingya on 2020/3/05.
+ */
 public class DataTaskMeta {
 
     private String dictBasePath;//反向字典表的hdfspath
@@ -26,9 +29,7 @@ public class DataTaskMeta {
 
     private String sliceColumnFormat;
 
-    private String eventIdColumnName;
-
-    public DataTaskMeta(String dictBasePath, int maxRowPartition, String outputPath, String dbName, String tableName, List<String> dimColumnNames, String imeiColumnName, String sliceColumnName, String sliceColumnnValueLeft, String sliceColumnValueRight, String sliceColumnFormat, String eventIdColumnName) {
+    public DataTaskMeta(String dictBasePath, int maxRowPartition, String outputPath, String dbName, String tableName, List<String> dimColumnNames, String imeiColumnName, String sliceColumnName, String sliceColumnnValueLeft, String sliceColumnValueRight, String sliceColumnFormat) {
         this.dictBasePath = dictBasePath;
         this.maxRowPartition = maxRowPartition;
         this.outputPath = outputPath;
@@ -40,7 +41,6 @@ public class DataTaskMeta {
         this.sliceColumnnValueLeft = sliceColumnnValueLeft;
         this.sliceColumnValueRight = sliceColumnValueRight;
         this.sliceColumnFormat = sliceColumnFormat;
-        this.eventIdColumnName = eventIdColumnName;
     }
 
     public DataTaskMeta() {
@@ -134,14 +134,6 @@ public class DataTaskMeta {
         this.sliceColumnFormat = sliceColumnFormat;
     }
 
-    public String getEventIdColumnName() {
-        return eventIdColumnName;
-    }
-
-    public void setEventIdColumnName(String eventIdColumnName) {
-        this.eventIdColumnName = eventIdColumnName;
-    }
-
     @Override
     public String toString() {
         return "DataTaskMeta{" +
@@ -156,7 +148,6 @@ public class DataTaskMeta {
                 ", sliceColumnnValueLeft='" + sliceColumnnValueLeft + '\'' +
                 ", sliceColumnValueRight='" + sliceColumnValueRight + '\'' +
                 ", sliceColumnFormat='" + sliceColumnFormat + '\'' +
-                ", eventIdColumnName='" + eventIdColumnName + '\'' +
                 '}';
     }
 }

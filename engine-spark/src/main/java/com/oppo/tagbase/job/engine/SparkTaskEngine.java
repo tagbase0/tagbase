@@ -62,7 +62,6 @@ public class SparkTaskEngine implements TaskEngine {
             throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, e, "parse json error");
         }
         String mainClass = "com.oppo.tagbase.job.spark.InvertedDictBuildingTask";
-//        String mainClass = "com.oppo.tagbase.job.spark.example.InvertedDictBuildingTaskExample";
         String sparkLoggerName = context.getJobId() + "_" + context.getTaskId() + ".log";
         String result = submitSparkJob(appArgs, taskConfigMap, mainClass, sparkLoggerName);
 
@@ -111,7 +110,7 @@ public class SparkTaskEngine implements TaskEngine {
         } catch (JsonProcessingException e) {
             throw new JobException(JobErrorCode.JOB_SUBMIT_ERROR, e, "parse json error");
         }
-//        String mainClass = "com.oppo.tagbase.job.spark.BitmapBuildingTask";
+
         String mainClass = null;
         TableType taskType = context.getTable().getType();
         if(taskType == TableType.TAG){
@@ -167,7 +166,6 @@ public class SparkTaskEngine implements TaskEngine {
             taskMeta.setSliceColumnFormat(ColDateFormat.HIVE_DATE.getFormat());
         }
 
-        taskMeta.setEventIdColumnName(defaultTaskConfig.getEventIdColumnName());
         taskMeta.setDictBasePath(context.getInvertedDictLocation());
         taskMeta.setOutputPath(context.getOutputLocation());
 
@@ -225,6 +223,7 @@ public class SparkTaskEngine implements TaskEngine {
 
         taskConfigMap.put(SparkConfigConstant.WAIT_APP_COMPLETION, String.valueOf(defaultTaskConfig.isWaitAppCompletion()));
         taskConfigMap.put(SparkConfigConstant.MAX_APP_ATTEMPTS, String.valueOf(defaultTaskConfig.getMaxAppAttempts()));
+        taskConfigMap.put(SparkConfigConstant.NETWORK_TIMEOUT, defaultTaskConfig.getNetworkTimeout());
 
         //设置用户自定义配置
         jobProps.stream()
@@ -274,7 +273,7 @@ public class SparkTaskEngine implements TaskEngine {
     private String submitSparkJob(String taskMeta, Map<String,String> taskConfigMap, String mainClass, String sparkLoggerName) throws JobException {
 
         log.info("submit Spark Job, taskMeta: {}", taskMeta);
-        log.debug("submit Spark Job, taskConfigMap: {}", taskConfigMap);
+        log.info("submit Spark Job, taskConfigMap: {}", taskConfigMap);
 
         String sparkHome = checkSparkHome();
         String tagbaseConfDir = checkTagbaseConfDir();

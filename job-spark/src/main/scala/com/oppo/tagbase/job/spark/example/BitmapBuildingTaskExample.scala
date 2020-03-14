@@ -119,8 +119,7 @@ object BitmapBuildingTaskExample {
       s"""
          |select CONCAT_WS('$rowkeyDelimiter', $dimColumn) as dimension,
          |a.id as index from $dictTable a join $db$table b
-         |on a.imei=b.$imeiColumn
-         |where b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue $nullFilter
+         |on (a.imei=b.$imeiColumn and b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue $nullFilter)
          |""".stripMargin)
       .rdd
       .map(row => {

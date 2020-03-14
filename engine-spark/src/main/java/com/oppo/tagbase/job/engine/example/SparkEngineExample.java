@@ -48,6 +48,7 @@ public class SparkEngineExample {
     public static void  buildData(TaskEngine executable, JobConfig jobConfig) {
 
         Table table = new Table();
+        table.setType(TableType.ACTION);
         table.setSrcDb("default");
         table.setSrcTable("age");
         List<Column> columns = new ArrayList<>();

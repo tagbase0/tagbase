@@ -26,13 +26,13 @@ import scala.collection.JavaConverters._
 
 object BitmapBuildingActionTaskExample {
 
-  case class ActionHiveTable(imei: String, event1: String, event2: String, event3: Int, dayno: Long, eventId: String)
+  case class ActionHiveTable(imei: String, event1: String, event2: String, event3: Int, dayno: Long, galileo_event_id: Int)
 
   case class InvertedDict(imei: String, tagbaseId: Long)
 
-  case class StringAction(name: String, value: String, metric: Array[Byte], dayno: java.sql.Date, eventId: String)
+  case class StringAction(name: String, value: String, metric: Array[Byte], dayno: java.sql.Date, galileo_event_id: Int)
 
-  case class LongAction(name: String, value: Long, metric: Array[Byte], dayno: java.sql.Date, eventId: String)
+  case class LongAction(name: String, value: Long, metric: Array[Byte], dayno: java.sql.Date, galileo_event_id: Int)
 
   def main(args: Array[String]): Unit = {
 
@@ -49,8 +49,7 @@ object BitmapBuildingActionTaskExample {
         |	"sliceColumnName": "dayno",
         |	"sliceColumnnValueLeft": "20200220",
         |	"sliceColumnValueRight": "20200221",
-        | "sliceColumnFormat": "yyyyMMdd",
-        | "eventIdColumnName":"eventId"
+        | "sliceColumnFormat": "yyyyMMdd"
         |}
         |""".stripMargin
 
@@ -58,10 +57,10 @@ object BitmapBuildingActionTaskExample {
     //   objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     val dataTaskMeta = objectMapper.readValue(dataMeataJson, classOf[DataTaskMeta])
 
-    val baseOutputPath = dataTaskMeta.getOutputPath + File.separator + "action"
-    val stringActionOutputPath = baseOutputPath + File.separator + "string"
-    val longActionOutputPath = baseOutputPath + File.separator + "number"
-    val dictInputPath = dataTaskMeta.getDictBasePath + File.separator + "*"
+    val baseOutputPath = dataTaskMeta.getOutputPath + TaskUtil.fileSeparator + "action"
+    val stringActionOutputPath = baseOutputPath + TaskUtil.fileSeparator + "string"
+    val longActionOutputPath = baseOutputPath + TaskUtil.fileSeparator + "number"
+    val dictInputPath = dataTaskMeta.getDictBasePath + TaskUtil.fileSeparator + "*"
     val db = dataTaskMeta.getDbName
     val table = dataTaskMeta.getTableName
     val imeiColumn = dataTaskMeta.getImeiColumnName
@@ -73,10 +72,10 @@ object BitmapBuildingActionTaskExample {
     dataTaskMeta.getDimColumnNames.asScala.toStream
       .foreach(dimColumnBuilder.append("b.").append(_).append(","))
     val dimColumn = dimColumnBuilder.toString()
-    val eventIdColumn = dataTaskMeta.getEventIdColumnName
-    val singleQuotation = "\'";
+    val eventIdColumn = TaskUtil.eventIdColumn
+
     val formatter = new SimpleDateFormat(sliceFormat)
-    val daynoValue = new java.sql.Date(formatter.parse(sliceLeftValue.replaceAll(singleQuotation, "")).getTime)
+    val daynoValue = new java.sql.Date(formatter.parse(sliceLeftValue.replaceAll(TaskUtil.singleQuotation, "")).getTime)
     val maxCountPerPartition = if (dataTaskMeta.getMaxRowPartition < 10000) 10000 else dataTaskMeta.getMaxRowPartition
 
     val appName = "tagbase_action_task" //appName
@@ -86,7 +85,7 @@ object BitmapBuildingActionTaskExample {
       .setMaster("local[4]")
       .set("spark.default.parallelism", "4")
       .set("spark.sql.shuffle.partitions", "4")
-      .set("spark.sql.crossJoin.enabled", "true")
+      //.set("spark.sql.crossJoin.enabled", "true")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .set("spark.local.dir", "D:\\workStation\\sparkTemp")
       .registerKryoClasses(Array(classOf[ImmutableRoaringBitmap], classOf[MutableRoaringBitmap]))
@@ -108,10 +107,10 @@ object BitmapBuildingActionTaskExample {
 
     //此处先伪造本地数据模拟，后续从hive表获取
     val eventDS = Seq(
-      ActionHiveTable("imeia", "a1", "b1", 50, 20200220, "eventId0"),
-      ActionHiveTable("imeib", "a2", "b2", 60, 20200220, "eventId1"),
-      ActionHiveTable("imeic", "a3", "b3", 20, 20200220, "eventId2"),
-      ActionHiveTable("imeid", "a4", "b4", 20, 20200220, "eventId3")
+      ActionHiveTable("imeia", "a1", "b1", 50, 20200220, 4),
+      ActionHiveTable("imeib", "a2", "b2", 60, 20200220, 4),
+      ActionHiveTable("imeic", "a3", "b3", 20, 20200220, 3),
+      ActionHiveTable("imeid", "a4", "b4", 20, 20200220, 1)
     ).toDS()
     eventDS.createTempView(s"$db$table")
 
@@ -126,33 +125,34 @@ object BitmapBuildingActionTaskExample {
 
     val hiveDataDF = spark.sql(
       s"""
-         |select $dimColumn  b.$eventIdColumn as tagbaseEventId, a.tagbaseId from $dictTable a join $db$table b on a.imei=b.$imeiColumn
-         |where b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue
+         |select $dimColumn  b.$eventIdColumn as tagbaseEventId, a.tagbaseId from $dictTable a join $db$table b
+         |on (a.imei=b.$imeiColumn and b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue
+         |and b.$imeiColumn !='' and b.$imeiColumn is not null and b.$eventIdColumn is not null)
          |""".stripMargin)
 
     //业务处理，组装bitmap
     val bitmapDataRdd = hiveDataDF
       .rdd
       .flatMap(row => {
-        var bitmapList: List[((FieldType, String, String, String), MutableRoaringBitmap)] = List()
+        var bitmapList: List[((FieldType, String, String, Int), MutableRoaringBitmap)] = List()
         val actionFieldSeq = row.schema.filter(field => !"tagbaseId".equals(field.name) && !"tagbaseEventId".equals(field.name)).seq
         val dimSize = actionFieldSeq.size
-        if (row(dimSize) != null) {//过滤eventId的null值
-          val eventId = row(dimSize).toString
-          val bitmap = MutableRoaringBitmap.bitmapOf(row.getLong(dimSize+1).toInt)
-          for (index <- 0 until dimSize) {
-            val fieldName = actionFieldSeq(index).name
-            //根据字段类型和null过滤
-            if (row(index) != null) {
-              val fieldValue = row(index).toString
-              if (actionFieldSeq(index).dataType == StringType || actionFieldSeq(index).dataType == VarcharType) {
-                bitmapList :+= ((FieldType.STRING, fieldName, fieldValue, eventId), bitmap)
-              } else {
-                bitmapList :+= ((FieldType.LONG, fieldName, fieldValue, eventId), bitmap)
-              }
+
+        val eventId = row.getInt(dimSize)
+        val bitmap = MutableRoaringBitmap.bitmapOf(row.getLong(dimSize+1).toInt)
+        for (index <- 0 until dimSize) {
+          val fieldName = actionFieldSeq(index).name
+          //根据字段类型和null过滤
+          if (row(index) != null) {
+            val fieldValue = row(index).toString
+            if (actionFieldSeq(index).dataType == StringType || actionFieldSeq(index).dataType == VarcharType) {
+              bitmapList :+= ((FieldType.STRING, fieldName, fieldValue, eventId), bitmap)
+            } else {
+              bitmapList :+= ((FieldType.LONG, fieldName, fieldValue, eventId), bitmap)
             }
           }
         }
+
         bitmapList.iterator
       })
       .reduceByKey((bitmap1, bitmap2) => {
@@ -193,16 +193,16 @@ object BitmapBuildingActionTaskExample {
     stringActionRdd
       .repartition(stringActionRddPartitionCount.toInt)
       .toDS()
-//      .show()
-      .write.mode(SaveMode.Append)
-      .parquet(stringActionOutputPath)
+      .show()
+//      .write.mode(SaveMode.Append)
+//      .parquet(stringActionOutputPath)
 
     longActionRdd
       .repartition(longActionRddPartitionCount.toInt)
       .toDS()
-//      .show()
-      .write.mode(SaveMode.Append)
-      .parquet(longActionOutputPath)
+      .show()
+//      .write.mode(SaveMode.Append)
+//      .parquet(longActionOutputPath)
 
     spark.stop()
   }

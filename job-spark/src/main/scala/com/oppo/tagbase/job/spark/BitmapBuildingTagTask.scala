@@ -1,6 +1,6 @@
 package com.oppo.tagbase.job.spark
 
-import java.io.{ByteArrayOutputStream, DataOutputStream, File}
+import java.io.{ByteArrayOutputStream, DataOutputStream}
 import java.text.SimpleDateFormat
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -41,10 +41,10 @@ object BitmapBuildingTagTask {
     log.info("tagbase info, dataTaskMeta: " + dataTaskMeta)
     TaskUtil.checkPath(dataTaskMeta.getOutputPath)
 
-    val baseOutputPath = dataTaskMeta.getOutputPath + File.separator + "tag"
-    val stringTagOutputPath = baseOutputPath + File.separator + "string"
-    val longTagOutputPath = baseOutputPath + File.separator + "number"
-    val dictInputPath = dataTaskMeta.getDictBasePath + File.separator + "*"
+    val baseOutputPath = dataTaskMeta.getOutputPath + TaskUtil.fileSeparator + "tag"
+    val stringTagOutputPath = baseOutputPath + TaskUtil.fileSeparator + "string"
+    val longTagOutputPath = baseOutputPath + TaskUtil.fileSeparator + "number"
+    val dictInputPath = dataTaskMeta.getDictBasePath + TaskUtil.fileSeparator + "*"
     val db = dataTaskMeta.getDbName
     val table = dataTaskMeta.getTableName
     val imeiColumn = dataTaskMeta.getImeiColumnName
@@ -56,9 +56,9 @@ object BitmapBuildingTagTask {
     dataTaskMeta.getDimColumnNames.asScala.toStream
       .foreach(dimColumnBuilder.append("b.").append(_).append(","))
     val dimColumn = dimColumnBuilder.toString()
-    val singleQuotation = "\'"
+
     val formatter = new SimpleDateFormat(sliceFormat)
-    val daynoValue = new java.sql.Date(formatter.parse(sliceLeftValue.replaceAll(singleQuotation, "")).getTime)
+    val daynoValue = new java.sql.Date(formatter.parse(sliceLeftValue.replaceAll(TaskUtil.singleQuotation, "")).getTime)
     val maxCountPerPartition = if (dataTaskMeta.getMaxRowPartition < 10000) 10000 else dataTaskMeta.getMaxRowPartition
 
     val appName = "tagbase_tag_task" //appName
@@ -98,8 +98,8 @@ object BitmapBuildingTagTask {
 
     val sqlStr =
       s"""
-         |select $dimColumn  a.tagbaseId from $dictTable a join $db.$table b on a.imei=b.$imeiColumn
-         |where b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue
+         |select $dimColumn  a.tagbaseId from $dictTable a join $db.$table b
+         |on (a.imei=b.$imeiColumn and b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue)
          |""".stripMargin
     log.info("tagbase info, sqlStr： {}", sqlStr)
 

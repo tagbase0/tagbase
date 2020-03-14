@@ -6,6 +6,12 @@ object TaskUtil {
 
   val log: Logger = LoggerFactory.getLogger(getClass)
 
+  val fileSeparator = "/"
+
+  val singleQuotation = "\'"
+
+  val eventIdColumn = "galileo_event_id"
+
   def checkArgs(args: Array[String]): Unit = {
     if (args == null){
       log.error("tagbase info, illegal parameter, not found args")

@@ -60,9 +60,8 @@ public class SparkTaskConfig {
     @JsonProperty("maxAppAttempts")
     private int maxAppAttempts;
 
-    @JsonProperty("eventIdColumnName")
-    private String eventIdColumnName;
-
+    @JsonProperty("networkTimeout")
+    private String networkTimeout;
 
     public String getDriverMemory() {
         return driverMemory;
@@ -200,12 +199,12 @@ public class SparkTaskConfig {
         this.maxAppAttempts = maxAppAttempts;
     }
 
-    public String getEventIdColumnName() {
-        return eventIdColumnName;
+    public String getNetworkTimeout() {
+        return networkTimeout;
     }
 
-    public void setEventIdColumnName(String eventIdColumnName) {
-        this.eventIdColumnName = eventIdColumnName;
+    public void setNetworkTimeout(String networkTimeout) {
+        this.networkTimeout = networkTimeout;
     }
 
     @Override
@@ -228,7 +227,7 @@ public class SparkTaskConfig {
                 ", logVerbose=" + logVerbose +
                 ", waitAppCompletion=" + waitAppCompletion +
                 ", maxAppAttempts=" + maxAppAttempts +
-                ", eventIdColumnName=" + eventIdColumnName +
+                ", networkTimeout='" + networkTimeout + '\'' +
                 '}';
     }
 }

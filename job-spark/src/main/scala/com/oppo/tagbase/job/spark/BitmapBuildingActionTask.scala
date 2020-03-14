@@ -24,9 +24,9 @@ object BitmapBuildingActionTask {
 
   case class InvertedDict(imei: String, tagbaseId: Long)
 
-  case class StringAction(name: String, value: String, metric: Array[Byte], dayno: java.sql.Date, eventId: String)
+  case class StringAction(name: String, value: String, metric: Array[Byte], dayno: java.sql.Date, galileo_event_id: Int)
 
-  case class LongAction(name: String, value: Long, metric: Array[Byte], dayno: java.sql.Date, eventId: String)
+  case class LongAction(name: String, value: Long, metric: Array[Byte], dayno: java.sql.Date, galileo_event_id: Int)
 
   val log: Logger = LoggerFactory.getLogger(getClass)
 
@@ -42,10 +42,10 @@ object BitmapBuildingActionTask {
     log.info("tagbase info, dataTaskMeta: " + dataTaskMeta)
     TaskUtil.checkPath(dataTaskMeta.getOutputPath)
 
-    val baseOutputPath = dataTaskMeta.getOutputPath + File.separator + "action"
-    val stringActionOutputPath = baseOutputPath + File.separator + "string"
-    val longActionOutputPath = baseOutputPath + File.separator + "number"
-    val dictInputPath = dataTaskMeta.getDictBasePath + File.separator + "*"
+    val baseOutputPath = dataTaskMeta.getOutputPath + TaskUtil.fileSeparator + "action"
+    val stringActionOutputPath = baseOutputPath + TaskUtil.fileSeparator + "string"
+    val longActionOutputPath = baseOutputPath + TaskUtil.fileSeparator + "number"
+    val dictInputPath = dataTaskMeta.getDictBasePath + TaskUtil.fileSeparator + "*"
     val db = dataTaskMeta.getDbName
     val table = dataTaskMeta.getTableName
     val imeiColumn = dataTaskMeta.getImeiColumnName
@@ -57,24 +57,17 @@ object BitmapBuildingActionTask {
     dataTaskMeta.getDimColumnNames.asScala.toStream
       .foreach(dimColumnBuilder.append("b.").append(_).append(","))
     val dimColumn = dimColumnBuilder.toString()
-    val eventIdColumn = dataTaskMeta.getEventIdColumnName
-    val singleQuotation = "\'";
+    val eventIdColumn = TaskUtil.eventIdColumn
+
     val formatter = new SimpleDateFormat(sliceFormat)
-    val daynoValue = new java.sql.Date(formatter.parse(sliceLeftValue.replaceAll(singleQuotation, "")).getTime)
+    val daynoValue = new java.sql.Date(formatter.parse(sliceLeftValue.replaceAll(TaskUtil.singleQuotation, "")).getTime)
     val maxCountPerPartition = if (dataTaskMeta.getMaxRowPartition < 10000) 10000 else dataTaskMeta.getMaxRowPartition
-
-
-    val cdimColumnBuilder = new StringBuilder
-    dataTaskMeta.getDimColumnNames.asScala.toStream
-      .foreach(cdimColumnBuilder.append(_).append(","))
-    val cdimColumn = cdimColumnBuilder.toString()
-
 
     val appName = "tagbase_action_task" //appName
 
     val sparkConf = new SparkConf()
       .setAppName(appName)
-      .set("spark.sql.crossJoin.enabled", "true")
+//      .set("spark.sql.crossJoin.enabled", "true")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .registerKryoClasses(Array(classOf[ImmutableRoaringBitmap], classOf[MutableRoaringBitmap]))
     val spark = SparkSession.builder()
@@ -85,6 +78,9 @@ object BitmapBuildingActionTask {
 
     spark.sparkContext.hadoopConfiguration.addResource("core-site.xml")
     spark.sparkContext.hadoopConfiguration.addResource("hdfs-site.xml")
+
+    val parallelism = spark.sparkContext.getConf.get("spark.default.parallelism").toInt
+    log.info("spark.default.parallelism: {}", parallelism)
 
     //driver广播相关参数到executor，用于反向字典的imei和id的分割
     val delimiterBroadcast = spark.sparkContext.broadcast(",")
@@ -105,37 +101,35 @@ object BitmapBuildingActionTask {
     val dictTable = "dictTable"
     dictDs.createOrReplaceTempView(s"$dictTable")
 
-
+    //galileo.event_all_orc的imei=''会造成数据倾斜
+    //TODO 为什么线上join时快时慢，没完全用完资源？
     val sqlStr =
       s"""
-         |select $dimColumn  b.$eventIdColumn as tagbaseEventId, a.tagbaseId from $dictTable a join $db.$table b on a.imei=b.$imeiColumn
-         |where b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue
+         |select $dimColumn  b.$eventIdColumn as tagbaseEventId, a.tagbaseId from $dictTable a join $db.$table b
+         |on (b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue
+         |and b.$imeiColumn !='' and b.$imeiColumn is not null and b.$eventIdColumn is not null and a.imei=b.$imeiColumn)
          |""".stripMargin
     log.info("tagbase info, sqlStr： {}", sqlStr)
 
 
     val flatMapRdd = spark.sql(sqlStr)
       .rdd
-      .repartition(1800)//imei分布不均衡
       .flatMap(row => {
-        var bitmapList: List[((FieldType, String, String, String), Int)] = List()
+        var bitmapList: List[((FieldType, String, String, Int), Int)] = List()
         val actionFieldSeq = row.schema.filter(field => !"tagbaseId".equals(field.name) && !"tagbaseEventId".equals(field.name)).seq
         val dimSize = actionFieldSeq.size
-        if (row(dimSize) != null) { //过滤eventId的null值
-          val eventId = row(dimSize).toString
 
-          val tagbaseId = row.getLong(dimSize+1).toInt
-
-          for (index <- 0 until dimSize) {
-            val fieldName = actionFieldSeq(index).name
-            //根据字段类型和null过滤
-            if (row(index) != null) {
-              val fieldValue = row(index).toString
-              if (actionFieldSeq(index).dataType == StringType || actionFieldSeq(index).dataType == VarcharType) {
-                bitmapList :+= ((FieldType.STRING, fieldName, fieldValue, eventId), tagbaseId)
-              } else {
-                bitmapList :+= ((FieldType.LONG, fieldName, fieldValue, eventId), tagbaseId)
-              }
+        val eventId = row.getInt(dimSize)
+        val tagbaseId = row.getLong(dimSize+1).toInt
+        for (index <- 0 until dimSize) {
+          val fieldName = actionFieldSeq(index).name
+          //根据字段类型和null过滤
+          if (row(index) != null && !"".equals(row(index).toString)) {
+            val fieldValue = row(index).toString
+            if (actionFieldSeq(index).dataType == StringType || actionFieldSeq(index).dataType == VarcharType) {
+              bitmapList :+= ((FieldType.STRING, fieldName, fieldValue, eventId), tagbaseId)
+            } else {
+              bitmapList :+= ((FieldType.LONG, fieldName, fieldValue, eventId), tagbaseId)
             }
           }
         }
@@ -143,7 +137,7 @@ object BitmapBuildingActionTask {
       })
 
     val bitmapDataRdd = flatMapRdd
-      .repartition(1800)//flatMap不均衡
+      .repartition(parallelism)//flatMap可能不均衡
       .map(row=>{
         val bitmap = MutableRoaringBitmap.bitmapOf(row._2)
         (row._1, bitmap)

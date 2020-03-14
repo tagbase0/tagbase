@@ -23,6 +23,7 @@ public class SparkConfigConstant {
 
     public static final String WAIT_APP_COMPLETION = "spark.yarn.submit.waitAppCompletion";
     public static final String MAX_APP_ATTEMPTS = "spark.yarn.maxAppAttempts";
+    public static final String NETWORK_TIMEOUT = "spark.network.timeout";
 
     public static final String DRIVER_EXTRA_CLASSPATH = "spark.driver.extraClassPath";
     public static final String DRIVER_EXTRA_JAVA_OPTIONS = "spark.driver.extraJavaOptions";

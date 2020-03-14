@@ -5,12 +5,14 @@ import java.text.SimpleDateFormat
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.oppo.tagbase.job.obj.{DataTaskMeta, FieldType}
+import com.oppo.tagbase.job.spark.TaskUtil
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.types.{StringType,VarcharType}
+import org.apache.spark.sql.types.{StringType, VarcharType}
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.roaringbitmap.buffer.{ImmutableRoaringBitmap, MutableRoaringBitmap}
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.JavaConverters._
 
@@ -32,6 +34,8 @@ object BitmapBuildingTagTaskExample {
 
   case class LongTag(name: String, value: Long, metric: Array[Byte], dayno: java.sql.Date)
 
+  val log: Logger = LoggerFactory.getLogger(getClass)
+
   def main(args: Array[String]): Unit = {
 
     val dataMeataJson =
@@ -47,8 +51,7 @@ object BitmapBuildingTagTaskExample {
         |	"sliceColumnName": "dayno",
         |	"sliceColumnnValueLeft": "20200220",
         |	"sliceColumnValueRight": "20200221",
-        | "sliceColumnFormat": "yyyyMMdd",
-        | "eventIdColumnName":"eventId"
+        | "sliceColumnFormat": "yyyyMMdd"
         |}
         |""".stripMargin
 
@@ -56,10 +59,10 @@ object BitmapBuildingTagTaskExample {
     //   objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     val dataTaskMeta = objectMapper.readValue(dataMeataJson, classOf[DataTaskMeta])
 
-    val baseOutputPath = dataTaskMeta.getOutputPath + File.separator + "tag"
-    val stringTagOutputPath = baseOutputPath + File.separator + "string"
-    val longTagOutputPath = baseOutputPath + File.separator + "number"
-    val dictInputPath = dataTaskMeta.getDictBasePath + File.separator + "*"
+    val baseOutputPath = dataTaskMeta.getOutputPath + TaskUtil.fileSeparator + "tag"
+    val stringTagOutputPath = baseOutputPath + TaskUtil.fileSeparator + "string"
+    val longTagOutputPath = baseOutputPath + TaskUtil.fileSeparator + "number"
+    val dictInputPath = dataTaskMeta.getDictBasePath + TaskUtil.fileSeparator + "*"
     val db = dataTaskMeta.getDbName
     val table = dataTaskMeta.getTableName
     val imeiColumn = dataTaskMeta.getImeiColumnName
@@ -71,9 +74,9 @@ object BitmapBuildingTagTaskExample {
     dataTaskMeta.getDimColumnNames.asScala.toStream
       .foreach(dimColumnBuilder.append("b.").append(_).append(","))
     val dimColumn = dimColumnBuilder.toString()
-    val singleQuotation = "\'"
+
     val formatter = new SimpleDateFormat(sliceFormat)
-    val daynoValue = new java.sql.Date(formatter.parse(sliceLeftValue.replaceAll(singleQuotation, "")).getTime)
+    val daynoValue = new java.sql.Date(formatter.parse(sliceLeftValue.replaceAll(TaskUtil.singleQuotation, "")).getTime)
     val maxCountPerPartition = if (dataTaskMeta.getMaxRowPartition < 10000) 10000 else dataTaskMeta.getMaxRowPartition
 
     val appName = "tagbase_tag_task" //appName
@@ -123,8 +126,8 @@ object BitmapBuildingTagTaskExample {
 
     val hiveDataDF = spark.sql(
       s"""
-         |select $dimColumn  a.tagbaseId from $dictTable a join $db$table b on a.imei=b.$imeiColumn
-         |where b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue
+         |select $dimColumn  a.tagbaseId from $dictTable a join $db$table b
+         |on (a.imei=b.$imeiColumn and b.$sliceColumn >= $sliceLeftValue and b.$sliceColumn < $sliceRightValue)
          |""".stripMargin)
 
     //业务处理，组装bitmap
@@ -187,16 +190,16 @@ object BitmapBuildingTagTaskExample {
     stringTagRdd
       .repartition(stringTagRddPartitionCount.toInt)
       .toDS()
-//      .show()
-      .write.mode(SaveMode.Append)
-      .parquet(stringTagOutputPath)
+      .show()
+//      .write.mode(SaveMode.Append)
+//      .parquet(stringTagOutputPath)
 
     longTagRdd
       .repartition(longTagRddPartitionCount.toInt)
       .toDS()
-//      .show()
-      .write.mode(SaveMode.Append)
-      .parquet(longTagOutputPath)
+      .show()
+//      .write.mode(SaveMode.Append)
+//      .parquet(longTagOutputPath)
 
     spark.stop()
   }
