@@ -2,7 +2,7 @@ package com.oppo.tagbase.jobv2;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.oppo.tagbase.common.util.Uuid;
+import com.oppo.tagbase.dict.util.Uuid;
 import com.oppo.tagbase.meta.obj.Job;
 import com.oppo.tagbase.meta.obj.JobState;
 import com.oppo.tagbase.meta.obj.JobType;

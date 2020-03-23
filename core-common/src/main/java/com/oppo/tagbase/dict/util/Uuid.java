@@ -1,4 +1,4 @@
-package com.oppo.tagbase.common.util;
+package com.oppo.tagbase.dict.util;
 
 /**
  * Created by wujianchao on 2020/2/26.

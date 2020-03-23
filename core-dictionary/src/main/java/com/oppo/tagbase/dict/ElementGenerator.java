@@ -1,6 +1,6 @@
 package com.oppo.tagbase.dict;
 
-import com.oppo.tagbase.common.util.BytesUtil;
+import com.oppo.tagbase.dict.util.BytesUtil;
 
 import java.util.concurrent.ThreadLocalRandom;
 

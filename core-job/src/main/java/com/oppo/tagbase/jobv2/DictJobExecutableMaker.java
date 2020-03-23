@@ -3,7 +3,7 @@ package com.oppo.tagbase.jobv2;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.inject.Inject;
-import com.oppo.tagbase.common.util.BytesUtil;
+import com.oppo.tagbase.dict.util.BytesUtil;
 import com.oppo.tagbase.dict.ForwardDictionaryWriter;
 import com.oppo.tagbase.extension.spi.FileSystem;
 import com.oppo.tagbase.jobv2.spi.DictTaskContext;

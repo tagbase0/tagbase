@@ -8,7 +8,7 @@ import com.google.inject.Provider;
 import com.google.inject.Scopes;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.util.Types;
-import com.oppo.tagbase.common.util.AnnotationUtil;
+import com.oppo.tagbase.dict.util.AnnotationUtil;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Map;

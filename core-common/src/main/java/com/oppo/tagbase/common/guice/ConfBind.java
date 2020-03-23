@@ -7,7 +7,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
 import com.google.inject.name.Names;
-import com.oppo.tagbase.common.util.AnnotationUtil;
+import com.oppo.tagbase.dict.util.AnnotationUtil;
 
 import javax.validation.Validator;
 import java.util.Map;

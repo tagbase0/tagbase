@@ -2,7 +2,7 @@ package com.oppo.tagbase.jobv2;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.RangeSet;
-import com.oppo.tagbase.common.util.LocalDateTimeUtil;
+import com.oppo.tagbase.dict.util.LocalDateTimeUtil;
 import com.oppo.tagbase.meta.Metadata;
 import com.oppo.tagbase.meta.MetadataJob;
 import com.oppo.tagbase.meta.obj.Job;

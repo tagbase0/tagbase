@@ -1,4 +1,4 @@
-package com.oppo.tagbase.common.util;
+package com.oppo.tagbase.dict.util;
 
 import org.junit.Assert;
 import org.junit.Test;
